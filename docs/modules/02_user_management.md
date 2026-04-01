@@ -10,16 +10,16 @@ Admin mendaftarkan dan mengelola anggota keluarga. Register publik dinonaktifkan
 - Action: edit, reset password, toggle aktif/nonaktif
 
 ### 2. Create User
-- Form: name, email, password, role (Admin/User)
+- Form: name, email, password, assign role/group (Dropdown)
 
 ### 3. Edit User
-- Edit: name, email, role
+- Edit: name, email, assign role/group (Dropdown)
 - Reset password
 - Toggle aktif/nonaktif
 
 ## Aturan Bisnis
-- Hanya Admin yang bisa akses module ini
+- Hanya User dengan permission tertentu yang sanggup mengelola module ini
 - Admin bisa edit nama user (user sendiri tidak bisa ganti nama)
 - User nonaktif tidak bisa login, data historisnya tetap ada
-- Admin tidak bisa menonaktifkan dirinya sendiri
-- Boleh lebih dari 1 Admin
+- User tidak bisa menonaktifkan dirinya sendiri
+- Setiap user hanya bisa di-assign ke 1 Role/Group (relasi One-to-One)
