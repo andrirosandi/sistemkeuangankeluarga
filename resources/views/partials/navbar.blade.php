@@ -36,7 +36,7 @@
                 <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" id="nav-user-menu">
                     <span class="avatar avatar-sm rounded"
                           style="background: linear-gradient(135deg, #0d9488, #14b8a6);">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        <span class="fw-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
                     </span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
