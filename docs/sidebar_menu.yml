@@ -1,0 +1,45 @@
+menu:
+  - label: "Dashboard"
+    icon: "home"
+    route: "dashboard"
+    roles: ["admin", "user"]
+
+  - label: "Kas Masuk"
+    icon: "trending-down"
+    children:
+      - label: "Pengajuan"
+        route: "in.request.index"
+        roles: ["admin", "user"]
+      - label: "Realisasi"
+        route: "in.transaction.index"
+        roles: ["admin"]
+
+  - label: "Kas Keluar"
+    icon: "trending-up"
+    children:
+      - label: "Pengajuan"
+        route: "out.request.index"
+        roles: ["admin", "user"]
+      - label: "Realisasi"
+        route: "out.transaction.index"
+        roles: ["admin"]
+
+  - label: "Laporan & Analitik"
+    icon: "report-analytics"
+    route: "report.index"
+    roles: ["admin"]
+
+  - label: "Master Data & Pengaturan"
+    icon: "settings"
+    roles: ["admin"]
+    children:
+      - label: "Kategori Kas"
+        route: "master.category.index"
+      - label: "Template Rutin"
+        route: "master.template.index"
+      - label: "Manajemen Pengguna"
+        route: "master.user.index"
+      - label: "Group & Akses"
+        route: "master.group.index"
+      - label: "Pengaturan Sistem"
+        route: "settings.index"
