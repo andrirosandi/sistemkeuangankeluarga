@@ -1,19 +1,20 @@
-# Module: Inbox Realisasi / Approval (Admin)
+# Module: Realisasi (Approval & Transaksi Admin)
 
 ## Deskripsi
-Modul ini adalah "Inbox" untuk Admin (Suami) yang berfungsi memeriksa, membaca, dan memberikan keputusan terhadap pengajuan yang masuk. Fitur ini dipecah menjadi dua menu di sidebar untuk memfokuskan pekerjaan Admin:
-1. **Realisasi Kas Masuk**
-2. **Realisasi Kas Keluar**
+Sesuai struktur sidebar yang disepakati, menu ini adalah gabungan fitur "Inbox Approval" dan "Buku Mutasi" yang diakses oleh Admin. Menu dipisah berdasarkan jenis kas:
+1. **Kas Masuk > Realisasi**
+2. **Kas Keluar > Realisasi**
+
+Halaman Realisasi ini akan berfungsi ganda:
+- Menampilkan daftar antrean pengajuan (menunggu persetujuan).
+- Menampilkan riwayat transaksi (mutasi kas riil) yang sudah disetujui dan diselesaikan.
 
 ## Pages & UI
 
-### 1. Inbox Realisasi (List Pengajuan)
-- Menampilkan daftar pengajuan (`request_header`) dari semua user yang berstatus `requested` (sesuai jenis Masuk/Keluar).
-- **Search & Filter:**
-  - **Search:** Cari deskripsi/kode pengajuan secara teks bebas.
-  - **Filter Pengaju:** Berdasarkan nama `created_by` (istri/anak).
-  - **Filter Prioritas:** (High/Normal/Low).
-  - **Filter Tanggal:** Rentang waktu pengajuan.
+### 1. Halaman Realisasi (Diberi Tabs/Filter)
+- Halaman utama "Realisasi" (baik Masuk/Keluar) sebaiknya memuat 2 bagian/tab utama:
+  1. **Tab Antrean (Inbox):** Menampilkan daftar dari tabel `request_header` yang statusnya `requested`.
+  2. **Tab Selesai (Mutasi Kas):** Menampilkan buku mutasi dari tabel `transaction_header` yang statusnya `completed`.
 - Data List secara default diurutkan berdasarkan `priority` High di urutan teratas, lalu berdasar tanggal terbaru.
 - Action Utama: Tombol **Review**.
 
