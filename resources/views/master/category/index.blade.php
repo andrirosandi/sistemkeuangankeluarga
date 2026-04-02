@@ -39,7 +39,7 @@
                 <table class="table table-vcenter table-mobile-md card-table">
                     <thead>
                         <tr>
-                            <th class="w-1"><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select all invoice"></th>
+                            <th class="w-1"><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select all" id="select-all"></th>
                             <th class="sort" data-sort="sort-name"><button class="table-sort" data-sort="sort-name">Nama Kategori</button></th>
                             <th class="w-1 text-end">Aksi</th>
                         </tr>
@@ -47,7 +47,7 @@
                     <tbody class="list">
                         @forelse($categories as $category)
                         <tr>
-                            <td><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select category"></td>
+                            <td><input class="form-check-input m-0 align-middle check-item" type="checkbox" aria-label="Select category"></td>
                             <td class="sort-name" data-label="Nama Kategori" data-name="{{ $category->name }}">
                                 <div class="d-flex py-1 align-items-center">
                                     <span class="status-dot status-dot-animated me-2" style="background: {{ $category->color ?? '#616876' }}"></span>
