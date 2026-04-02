@@ -153,6 +153,7 @@
             <form id="form-edit" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="id" id="edit-id" value="{{ old('id') }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Kategori</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -160,7 +161,10 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label required">Nama Kategori</label>
-                        <input type="text" class="form-control" name="name" id="edit-name" required>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="edit-name" value="{{ old('name') }}" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Warna Identitas</label>
@@ -233,9 +237,13 @@
 
     function editCategory(id, name, color) {
         const form = document.getElementById('form-edit');
+        const inputId = document.getElementById('edit-id');
         const inputName = document.getElementById('edit-name');
+        
         form.action = `{{ url('master/categories') }}/${id}`;
+        inputId.value = id;
         inputName.value = name;
+        
         const colorRadios = document.querySelectorAll('.edit-color-radio');
         colorRadios.forEach(radio => { radio.checked = (radio.value === color); });
         new bootstrap.Modal(document.getElementById('modal-edit')).show();
@@ -249,8 +257,20 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Handle Validation Errors Show Modals
         @if ($errors->any())
-            new bootstrap.Modal(document.getElementById('modal-add')).show();
+            @if(old('_method') === 'PUT')
+                const editModalId = "{{ old('id') }}";
+                if(editModalId) {
+                    const editForm = document.getElementById('form-edit');
+                    editForm.action = `{{ url('master/categories') }}/${editModalId}`;
+                }
+                const editModal = new bootstrap.Modal(document.getElementById('modal-edit'));
+                editModal.show();
+            @else
+                const addModal = new bootstrap.Modal(document.getElementById('modal-add'));
+                addModal.show();
+            @endif
         @endif
 
         // 1. Initialize Smart Table Selection Handler

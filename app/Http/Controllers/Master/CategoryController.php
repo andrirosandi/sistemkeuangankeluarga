@@ -24,15 +24,19 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
-            'color' => 'nullable|string|size:7'
+            'color' => 'nullable|string|max:10'
         ]);
 
-        Category::create([
-            'name' => $request->name,
-            'color' => $request->color ?? '#616876'
-        ]);
+        try {
+            Category::create([
+                'name' => $request->name,
+                'color' => $request->color ?? '#616876'
+            ]);
 
-        return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
+            return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan kategori! Silakan coba lagi.');
+        }
     }
 
     /**
@@ -42,15 +46,19 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'color' => 'nullable|string|size:7'
+            'color' => 'nullable|string|max:10'
         ]);
 
-        $category->update([
-            'name' => $request->name,
-            'color' => $request->color ?? $category->color
-        ]);
+        try {
+            $category->update([
+                'name' => $request->name,
+                'color' => $request->color ?? $category->color
+            ]);
 
-        return redirect()->back()->with('success', 'Nama kategori berhasil diubah.');
+            return redirect()->back()->with('success', 'Kategori berhasil diubah.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal mengubah kategori! Pastikan nama belum digunakan.');
+        }
     }
 
     /**
