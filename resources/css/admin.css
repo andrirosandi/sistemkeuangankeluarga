@@ -21,3 +21,36 @@ html {
 body {
     overflow-x: hidden;
 }
+
+/* Active Menu - Font Color + Left Border (No Background, No Radius) */
+.navbar-vertical .navbar-nav .nav-link.active,
+.navbar-vertical .dropdown-menu .dropdown-item.active {
+    color: #0d9488 !important;
+    background: transparent !important;
+    font-weight: 500;
+    border-left: 3px solid #0d9488;
+    border-radius: 0;
+}
+
+.navbar-vertical .navbar-nav .nav-link:hover:not(.active),
+.navbar-vertical .dropdown-menu .dropdown-item:hover:not(.active) {
+    color: #0d9488;
+    background: transparent;
+    border-radius: 0;
+}
+
+.navbar-vertical .dropdown-menu .dropdown-item.active {
+    border-left: 3px solid #0d9488;
+}
+
+/* Dark mode adaptation */
+[data-bs-theme="dark"] .navbar-vertical .navbar-nav .nav-link.active,
+[data-bs-theme="dark"] .navbar-vertical .dropdown-menu .dropdown-item.active {
+    color: #2dd4bf !important;
+    border-left-color: #2dd4bf;
+}
+
+[data-bs-theme="dark"] .navbar-vertical .navbar-nav .nav-link:hover:not(.active),
+[data-bs-theme="dark"] .navbar-vertical .dropdown-menu .dropdown-item:hover:not(.active) {
+    color: #2dd4bf;
+}
