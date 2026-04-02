@@ -48,7 +48,7 @@
                         @forelse($categories as $category)
                         <tr>
                             <td><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select category"></td>
-                            <td class="sort-name" data-label="Nama Kategori">
+                            <td class="sort-name" data-label="Nama Kategori" data-name="{{ $category->name }}">
                                 <div class="d-flex py-1 align-items-center">
                                     <span class="status-dot status-dot-animated me-2" style="background: {{ $category->color ?? '#616876' }}"></span>
                                     <div class="flex-fill">
@@ -264,7 +264,9 @@
 
         // Initialize List.js
         const categoryList = new List('table-default', {
-            valueNames: ['sort-name'],
+            valueNames: [
+                { name: 'sort-name', attr: 'data-name' }
+            ],
             page: 8,
             pagination: {
                 innerWindow: 2,
