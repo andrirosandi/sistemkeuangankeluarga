@@ -1,4 +1,4 @@
-<aside class="navbar navbar-vertical navbar-expand-lg bg-transparent">
+<aside class="navbar navbar-vertical navbar-expand-lg">
     <div class="container-fluid">
         {{-- Logo / Brand --}}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu">

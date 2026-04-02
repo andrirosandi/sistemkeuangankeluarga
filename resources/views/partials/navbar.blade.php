@@ -1,5 +1,5 @@
 <header class="navbar navbar-expand-md d-print-none">
-    <div class="container-xl">
+    <div class="container-fluid">
 
         {{-- Mobile toggle --}}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu">

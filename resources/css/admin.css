@@ -12,3 +12,12 @@
 .navbar-brand span {
     line-height: 1.2;
 }
+
+html {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
