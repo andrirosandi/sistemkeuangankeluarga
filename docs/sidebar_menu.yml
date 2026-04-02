@@ -10,10 +10,6 @@ menu:
       - label: "Pengajuan"
         route: "in.request.index"
         roles: ["admin", "user"]
-      - label: "Pending Approval"
-        route: "in.approval.index"
-        badge: "pending_in_count" # Muncul angka jika ada antrean IN
-        roles: ["admin"]
       - label: "Realisasi"
         route: "in.transaction.index"
         roles: ["admin"]
@@ -24,13 +20,14 @@ menu:
       - label: "Pengajuan"
         route: "out.request.index"
         roles: ["admin", "user"]
-      - label: "Pending Approval"
-        route: "out.approval.index"
-        badge: "pending_out_count" # Muncul angka jika ada antrean OUT
-        roles: ["admin"]
       - label: "Realisasi"
         route: "out.transaction.index"
         roles: ["admin"]
+
+  - label: "Mutasi"
+    icon: "transfer"
+    route: "mutation.index"
+    roles: ["admin", "user"]
 
   - label: "Laporan & Analitik"
     icon: "report-analytics"
