@@ -65,4 +65,22 @@ class CategoryController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus! Kategori ini mungkin sudah digunakan di data transaksi.');
         }
     }
+
+    /**
+     * Hapus banyak kategori sekaligus.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:categories,id'
+        ]);
+
+        try {
+            Category::whereIn('id', $request->ids)->delete();
+            return redirect()->back()->with('success', count($request->ids) . ' kategori berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus beberapa kategori! Beberapa data mungkin sudah digunakan di transaksi.');
+        }
+    }
 }

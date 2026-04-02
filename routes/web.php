@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data
     Route::prefix('master')->name('master.')->group(function () {
+        Route::post('categories/bulk-delete', [\App\Http\Controllers\Master\CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete');
         Route::resource('categories', \App\Http\Controllers\Master\CategoryController::class);
         Route::resource('users', \App\Http\Controllers\Master\UserController::class);
         Route::get('/template', fn() => abort(404))->name('template.index');

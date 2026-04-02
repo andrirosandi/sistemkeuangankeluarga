@@ -47,7 +47,7 @@
                     <tbody class="list">
                         @forelse($categories as $category)
                         <tr>
-                            <td><input class="form-check-input m-0 align-middle check-item" type="checkbox" aria-label="Select category"></td>
+                            <td><input class="form-check-input m-0 align-middle check-item" type="checkbox" value="{{ $category->id }}" aria-label="Select category"></td>
                             <td class="sort-name" data-label="Nama Kategori" data-name="{{ $category->name }}">
                                 <div class="d-flex py-1 align-items-center">
                                     <span class="status-dot status-dot-animated me-2" style="background: {{ $category->color ?? '#616876' }}"></span>
@@ -87,6 +87,18 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Batch Action Bar -->
+            <div id="batch-action-bar" class="bg-primary-lt px-3 py-2 border-top d-none">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-primary fw-bold"><span id="selected-count">0</span> Data Terpilih</span>
+                        <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="btn-cancel-all">Batalkan Pilihan</button>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modal-bulk-delete">Hapus</button>
+                </div>
+            </div>
+
             <div class="card-footer d-flex align-items-center border-top">
                 <p class="m-0 text-secondary d-none d-sm-block">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">8</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
                 <div class="pagination m-0 ms-auto"></div>
@@ -199,6 +211,28 @@
         </div>
     </div>
 </div>
+
+<div class="modal modal-blur fade" id="modal-bulk-delete" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-status bg-danger"></div>
+            <div class="modal-body text-center py-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.707 2.983h16.845a1.989 1.989 0 0 0 1.708 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.415 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+                <h3>Hapus Terpilih</h3>
+                <div class="text-secondary">Anda yakin menghapus kategori terpilih? Tindakan ini tidak dapat dibatalkan.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col"><button type="button" class="btn btn-danger w-100" id="btn-bulk-delete-confirm">Hapus Semua</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -236,17 +270,47 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
+    // Persistent Selection State
+    let selectedIds = new Set();
+    const selectAllHeader = document.getElementById('select-all');
+    const tableBody = document.querySelector('.list');
+    const batchBar = document.getElementById('batch-action-bar');
+    const selectedCountSpan = document.getElementById('selected-count');
+
+    function updateBatchBarUI() {
+        const count = selectedIds.size;
+        if (count > 0) {
+            batchBar.classList.remove('d-none');
+            selectedCountSpan.innerText = count;
+        } else {
+            batchBar.classList.add('d-none');
+            selectAllHeader.checked = false;
+            selectAllHeader.indeterminate = false;
+        }
+    }
+
+    function syncCheckboxes() {
+        const checkboxes = document.querySelectorAll('.check-item');
+        checkboxes.forEach(cb => {
+            cb.checked = selectedIds.has(cb.value);
+        });
+        
+        // Sync header state based on page
+        if (checkboxes.length > 0) {
+            const visibleChecked = document.querySelectorAll('.check-item:checked').length;
+            selectAllHeader.checked = (visibleChecked === checkboxes.length);
+            selectAllHeader.indeterminate = (visibleChecked > 0 && visibleChecked < checkboxes.length);
+        }
+    }
+
     function editCategory(id, name, color) {
+        // ... (existing logic)
         const form = document.getElementById('form-edit');
         const inputName = document.getElementById('edit-name');
         form.action = `{{ url('master/categories') }}/${id}`;
         inputName.value = name;
-        
         const colorRadios = document.querySelectorAll('.edit-color-radio');
-        colorRadios.forEach(radio => {
-            radio.checked = (radio.value === color);
-        });
-
+        colorRadios.forEach(radio => { radio.checked = (radio.value === color); });
         new bootstrap.Modal(document.getElementById('modal-edit')).show();
     }
     function deleteCategory(id, name) {
@@ -256,39 +320,85 @@
         label.innerText = name;
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
+
     document.addEventListener('DOMContentLoaded', function () {
         @if ($errors->any())
-            var addModal = new bootstrap.Modal(document.getElementById('modal-add'));
-            addModal.show();
+            new bootstrap.Modal(document.getElementById('modal-add')).show();
         @endif
 
         // Initialize List.js
         const categoryList = new List('table-default', {
-            valueNames: [
-                { name: 'sort-name', attr: 'data-name' }
-            ],
+            valueNames: [{ name: 'sort-name', attr: 'data-name' }],
             page: 8,
-            pagination: {
-                innerWindow: 2,
-                outerWindow: 1
-            }
+            pagination: { innerWindow: 2, outerWindow: 1 }
         });
 
         // Update info on list update
         categoryList.on('updated', function (list) {
-            const start = list.i;
-            const end = Math.min(list.i + list.page - 1, list.items.length);
-            const total = list.items.length;
-            
-            document.getElementById('pagination-info-start').innerText = start;
-            document.getElementById('pagination-info-end').innerText = end;
-            document.getElementById('pagination-info-total').innerText = total;
+            document.getElementById('pagination-info-start').innerText = list.i;
+            document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.page - 1, list.items.length);
+            document.getElementById('pagination-info-total').innerText = list.items.length;
+            syncCheckboxes();
         });
 
-        // Handle page count changes
+        // Select All listener (Header)
+        selectAllHeader?.addEventListener('click', function() {
+            const isChecked = this.checked;
+            const checkboxes = document.querySelectorAll('.check-item');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                if (isChecked) selectedIds.add(cb.value);
+                else selectedIds.delete(cb.value);
+            });
+            updateBatchBarUI();
+        });
+
+        // Item listener (Delegation)
+        tableBody?.addEventListener('change', function(e) {
+            if (e.target.classList.contains('check-item')) {
+                if (e.target.checked) selectedIds.add(e.target.value);
+                else selectedIds.delete(e.target.value);
+                
+                syncCheckboxes();
+                updateBatchBarUI();
+            }
+        });
+
+        // Cancel All listener
+        document.getElementById('btn-cancel-all')?.addEventListener('click', function() {
+            selectedIds.clear();
+            syncCheckboxes();
+            updateBatchBarUI();
+        });
+
+        // Page count handler
         document.getElementById('page-count-input')?.addEventListener('change', function(e) {
-            const count = parseInt(e.target.value) || 8;
-            categoryList.show(1, count);
+            categoryList.show(1, parseInt(e.target.value) || 8);
+        });
+
+        // Bulk Delete Finalize
+        document.getElementById('btn-bulk-delete-confirm')?.addEventListener('click', function() {
+            const ids = Array.from(selectedIds);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ route('master.categories.bulk-delete') }}";
+            
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = "{{ csrf_token() }}";
+            form.appendChild(csrf);
+
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         });
     });
 </script>
