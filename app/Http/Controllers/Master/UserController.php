@@ -7,88 +7,129 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     /**
-     * Tampilkan daftar anggota keluarga.
+     * Tampilkan daftar pengguna / anggota keluarga.
      */
     public function index()
     {
-        // Ambil semua user kecuali dirinya sendiri (Admin saat ini)
-        $users = User::where('id', '!=', auth()->id())->get();
-        return view('master.user.index', compact('users'));
+        $users = User::with('roles')->orderBy('name')->get();
+        $roles = Role::where('guard_name', 'web')->get();
+        return view('master.user.index', compact('users', 'roles'));
     }
 
     /**
-     * Simpan user baru.
+     * Simpan pengguna baru.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'required|exists:roles,name'
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
 
-        // Default role untuk user baru via Master ini adalah 'user'
-        $user->assignRole('user');
+            $user->assignRole($request->role);
 
-        return redirect()->back()->with('success', 'Anggota keluarga baru berhasil didaftarkan.');
+            return redirect()->back()->with('success', 'Anggota keluarga baru berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan anggota baru! Silakan coba lagi.');
+        }
     }
 
     /**
-     * Update data user.
+     * Update data pengguna.
      */
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
+            'role' => 'required|exists:roles,name'
         ]);
 
-        $user->update([
-            'name'  => $request->name,
-            'email' => $request->email,
-        ]);
-
-        // Jika password diisi, maka update password
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => ['confirmed', Rules\Password::defaults()],
-            ]);
+        try {
             $user->update([
-                'password' => Hash::make($request->password),
+                'name' => $request->name,
+                'email' => $request->email,
             ]);
-        }
 
-        return redirect()->back()->with('success', 'Data anggota keluarga berhasil diperbarui.');
+            $user->syncRoles($request->role);
+
+            return redirect()->back()->with('success', 'Data anggota keluarga berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui data! Pastikan email belum digunakan.');
+        }
     }
 
     /**
-     * Hapus user.
+     * Reset password pengguna.
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        $request->validate([
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        try {
+            $user->update([
+                'password' => Hash::make($request->password),
+            ]);
+
+            return redirect()->back()->with('success', 'Password user ' . $user->name . ' berhasil direset.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal meriset password! Silakan coba lagi.');
+        }
+    }
+
+    /**
+     * Hapus pengguna.
      */
     public function destroy(User $user)
     {
-        // Proteksi jangan hapus diri sendiri (sudah dicek di index, tapi untuk keamanan)
         if ($user->id === auth()->id()) {
-            return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun Anda sendiri.');
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        // Cek jika user sudah punya data transaksi (Opsional, tapi aman)
-        // Di tugas.md: User memiliki data pengeluaran.
-        // Jika hapus user, data pengeluaran akan error jika tidak di-restrict.
         try {
             $user->delete();
-            return redirect()->back()->with('success', 'Akun anggota keluarga telah dihapus.');
+            return redirect()->back()->with('success', 'Anggota keluarga berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus! User ini memiliki riwayat data di sistem.');
+            return redirect()->back()->with('error', 'Gagal menghapus! Akun ini mungkin sudah memiliki data terkait.');
+        }
+    }
+
+    /**
+     * Hapus banyak pengguna sekaligus.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id'
+        ]);
+
+        // Prevent self-deletion in bulk
+        if (in_array(auth()->id(), $request->ids)) {
+            return redirect()->back()->with('error', 'Operasi dibatalkan! Salah satu akun adalah akun Anda sendiri.');
+        }
+
+        try {
+            User::whereIn('id', $request->ids)->delete();
+            return redirect()->back()->with('success', count($request->ids) . ' anggota keluarga berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus beberapa akun! Beberapa data mungkin sudah digunakan.');
         }
     }
 }

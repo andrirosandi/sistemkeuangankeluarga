@@ -60,9 +60,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data
     Route::prefix('master')->name('master.')->group(function () {
+        // Categories
         Route::post('categories/bulk-delete', [\App\Http\Controllers\Master\CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete');
         Route::resource('categories', \App\Http\Controllers\Master\CategoryController::class);
+
+        // Users
+        Route::post('users/bulk-delete', [\App\Http\Controllers\Master\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+        Route::put('users/{user}/reset-password', [\App\Http\Controllers\Master\UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::resource('users', \App\Http\Controllers\Master\UserController::class);
+        
         Route::get('/template', fn() => abort(404))->name('template.index');
         Route::get('/group-akses', fn() => abort(404))->name('group.index');
     });
