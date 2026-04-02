@@ -264,6 +264,26 @@
     .pagination li a:hover {
         background-color: var(--tblr-bg-surface-secondary);
     }
+
+    /* Mobile Compact Optimization */
+    @media (max-width: 767.98px) {
+        .table-mobile-md td {
+            padding-top: 0.35rem !important;
+            padding-bottom: 0.35rem !important;
+            min-height: auto !important;
+        }
+        .table-mobile-md td:before {
+            margin-bottom: 0.125rem !important;
+            font-size: 0.7rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            opacity: 0.7;
+        }
+        /* Make actions more compact on mobile */
+        .table-mobile-md td:last-child {
+            padding-bottom: 0.75rem !important;
+        }
+    }
 </style>
 @endpush
 
