@@ -84,21 +84,27 @@ class RolePermissionSeeder extends Seeder
 
     /**
      * Permissions yang boleh dimiliki role 'user' (Istri/Anak).
+     * Berdasarkan tugas.md: "Hanya dapat melihat dan mengelola data miliknya sendiri"
      */
     private array $userPermissions = [
         'dashboard.view',
-        // Kas Masuk - Pengajuan (user hanya bisa CRUD milik sendiri, bukan approve)
+        
+        // Pemasukan - Hanya Pengajuan (Create/Edit milik sendiri)
         'in.request.view',
         'in.request.create',
         'in.request.edit',
         'in.request.delete',
-        // Kas Keluar - Pengajuan
+        
+        // Pengeluaran - Hanya Pengajuan (Create/Edit milik sendiri)
         'out.request.view',
         'out.request.create',
         'out.request.edit',
         'out.request.delete',
-        // Mutasi (read-only)
-        'mutation.view',
+
+        // Riwayat (Bisa melihat hasil realisasi miliknya sendiri)
+        'in.transaction.view',
+        'out.transaction.view',
+
         // Notifikasi milik sendiri
         'notification.view',
     ];
