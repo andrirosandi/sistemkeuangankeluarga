@@ -56,8 +56,8 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center justify-content-end gap-4">
+                             <td>
+                                <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-4" data-label="Aksi">
                                     <button class="btn btn-icon btn-sm btn-ghost-primary"
                                             onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')"
                                             title="Edit Kategori">
@@ -100,7 +100,7 @@
             </div>
 
             <div class="card-footer d-flex align-items-center border-top">
-                <p class="m-0 text-secondary d-none d-sm-block">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">20</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
+                <p class="m-0 text-secondary d-none d-sm-block" id="pagination-wrapper">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">20</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
                 <div class="pagination m-0 ms-auto"></div>
             </div>
         </div>
@@ -324,7 +324,6 @@
     }
 
     function editCategory(id, name, color) {
-        // ... (existing logic)
         const form = document.getElementById('form-edit');
         const inputName = document.getElementById('edit-name');
         form.action = `{{ url('master/categories') }}/${id}`;
@@ -355,9 +354,15 @@
 
         // Update info on list update
         categoryList.on('updated', function (list) {
-            document.getElementById('pagination-info-start').innerText = list.i;
-            document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.page - 1, list.items.length);
-            document.getElementById('pagination-info-total').innerText = list.items.length;
+            const paginationWrapper = document.getElementById('pagination-wrapper');
+            if (list.items.length > 0) {
+                paginationWrapper.classList.remove('d-none');
+                document.getElementById('pagination-info-start').innerText = list.i;
+                document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.page - 1, list.items.length);
+                document.getElementById('pagination-info-total').innerText = list.items.length;
+            } else {
+                paginationWrapper.classList.add('d-none');
+            }
             syncCheckboxes();
         });
 
