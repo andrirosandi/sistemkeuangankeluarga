@@ -8,7 +8,14 @@
 :root {
     --tblr-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
     
-    /* Teal Color Palette - Replace entire Bootstrap primary colors */
+    /* Tabler primary color overrides (Teal) */
+    --tblr-primary: #0d9488;
+    --tblr-primary-rgb: 13, 148, 136;
+    --tblr-primary-fg: #ffffff;
+    --tblr-link-color: #0d9488;
+    --tblr-link-hover-color: #0f766e;
+    
+    /* Bootstrap primary colors (keeping for compatibility) */
     --bs-primary: #0d9488;
     --bs-primary-hover: #0f766e;
     --bs-primary-rgb: 13, 148, 136;
@@ -70,6 +77,12 @@ body {
 
 /* Dark mode color palette */
 [data-bs-theme="dark"] {
+    --tblr-primary: #2dd4bf;
+    --tblr-primary-rgb: 45, 212, 191;
+    --tblr-primary-fg: #000000;
+    --tblr-link-color: #2dd4bf;
+    --tblr-link-hover-color: #5eead4;
+
     --bs-primary: #2dd4bf;
     --bs-primary-hover: #5eead4;
     --bs-primary-rgb: 45, 212, 191;
