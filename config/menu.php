@@ -4,57 +4,57 @@ return [
     'sidebar' => [
         [
             'label'      => 'Dashboard',
-            'icon'       => 'home',
+            'icon'       => 'layout-dashboard',
             'route'      => 'dashboard',
             'permission' => 'dashboard.view',
         ],
         [
-            'label' => 'Kas Masuk',
+            'label' => 'Pemasukan',
             'icon'  => 'trending-up',
             'children' => [
                 [
-                    'label'      => 'Pengajuan',
+                    'label'      => 'Pengajuan Dana',
                     'route'      => 'in.request.index',
                     'permission' => 'in.request.view',
                 ],
                 [
-                    'label'      => 'Realisasi',
+                    'label'      => 'Riwayat Masuk',
                     'route'      => 'in.transaction.index',
                     'permission' => 'in.transaction.view',
                 ],
             ],
         ],
         [
-            'label' => 'Kas Keluar',
+            'label' => 'Pengeluaran',
             'icon'  => 'trending-down',
             'children' => [
                 [
-                    'label'      => 'Pengajuan',
+                    'label'      => 'Pengajuan Belanja',
                     'route'      => 'out.request.index',
                     'permission' => 'out.request.view',
                 ],
                 [
-                    'label'      => 'Realisasi',
+                    'label'      => 'Riwayat Keluar',
                     'route'      => 'out.transaction.index',
                     'permission' => 'out.transaction.view',
                 ],
             ],
         ],
         [
-            'label'      => 'Mutasi',
+            'label'      => 'Mutasi Kas',
             'icon'       => 'arrows-exchange',
             'route'      => 'mutation.index',
             'permission' => 'mutation.view',
         ],
         [
-            'label'      => 'Laporan & Analitik',
-            'icon'       => 'chart-bar',
+            'label'      => 'Laporan',
+            'icon'       => 'report-analytics',
             'route'      => 'report.index',
             'permission' => 'report.view',
         ],
         [
-            'label' => 'Master Data & Pengaturan',
-            'icon'  => 'settings',
+            'label' => 'Master',
+            'icon'  => 'database',
             'children' => [
                 [
                     'label'      => 'Kategori Kas',
@@ -66,18 +66,24 @@ return [
                     'route'      => 'master.template.index',
                     'permission' => 'template.view',
                 ],
+            ],
+        ],
+        [
+            'label' => 'Pengaturan',
+            'icon'  => 'settings',
+            'children' => [
                 [
                     'label'      => 'Manajemen Pengguna',
                     'route'      => 'master.user.index',
                     'permission' => 'user.view',
                 ],
                 [
-                    'label'      => 'Group & Akses',
+                    'label'      => 'Hak Akses (RBAC)',
                     'route'      => 'master.group.index',
                     'permission' => 'role.view',
                 ],
                 [
-                    'label'      => 'Pengaturan Sistem',
+                    'label'      => 'Sistem',
                     'route'      => 'settings.index',
                     'permission' => 'setting.view',
                 ],
