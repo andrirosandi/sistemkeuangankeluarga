@@ -56,7 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data
     Route::prefix('master')->name('master.')->group(function () {
-        Route::get('/kategori', fn() => abort(404))->name('category.index');
+        Route::resource('categories', \App\Http\Controllers\Master\CategoryController::class);
         Route::get('/template', fn() => abort(404))->name('template.index');
         Route::get('/pengguna', fn() => abort(404))->name('user.index');
         Route::get('/group-akses', fn() => abort(404))->name('group.index');
