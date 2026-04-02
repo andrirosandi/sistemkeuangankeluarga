@@ -14,7 +14,7 @@ menu:
         route: "in.approval.index"
         badge: "pending_in_count" # Muncul angka jika ada antrean IN
         roles: ["admin"]
-      - label: "Buku Mutasi"
+      - label: "Realisasi"
         route: "in.transaction.index"
         roles: ["admin"]
 
@@ -28,7 +28,7 @@ menu:
         route: "out.approval.index"
         badge: "pending_out_count" # Muncul angka jika ada antrean OUT
         roles: ["admin"]
-      - label: "Buku Mutasi"
+      - label: "Realisasi"
         route: "out.transaction.index"
         roles: ["admin"]
 
