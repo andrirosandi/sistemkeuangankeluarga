@@ -135,3 +135,39 @@ body {
 
 [data-bs-theme="dark"] .bg-teal-lt { background-color: #134e4a !important; }
 [data-bs-theme="dark"] .text-teal { color: #2dd4bf !important; }
+
+/* Mobile & Tablet sidebar overlay - show hamburger and hide sidebar by default */
+@media (max-width: 991.98px) {
+    .navbar-vertical {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        z-index: 1050;
+        width: 280px;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        display: block !important;
+        visibility: visible !important;
+        background: var(--tblr-bg-surface, #fff);
+    }
+    
+    .navbar-vertical:not(.show) {
+        left: -280px;
+    }
+    
+    .navbar-vertical.show {
+        left: 0;
+    }
+    
+    #sidebar-menu {
+        display: block !important;
+    }
+}
+
+/* Desktop: show sidebar normally */
+@media (min-width: 992px) {
+    .navbar-vertical {
+        left: 0 !important;
+    }
+}

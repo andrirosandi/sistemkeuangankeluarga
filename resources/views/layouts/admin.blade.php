@@ -112,6 +112,27 @@
             const currentTheme = html.getAttribute('data-bs-theme');
             setTheme(currentTheme === 'dark' ? 'light' : 'dark');
         });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebar = document.querySelector('.navbar-vertical');
+        const sidebarMenu = document.getElementById('sidebar-menu');
+
+        mobileMenuToggle?.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            if (sidebarMenu) {
+                sidebarMenu.classList.add('show');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile/tablet
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth < 1200) {
+                if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
     });
     </script>
 

@@ -1,17 +1,17 @@
-<header class="navbar navbar-expand-md d-print-none">
+<header class="navbar navbar-expand-lg d-print-none">
     <div class="container-fluid">
 
-        {{-- Mobile toggle --}}
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center gap-2">
+            {{-- Hamburger Menu (tablet & mobile) --}}
+            <button class="navbar-toggler p-0 border-0 d-lg-none" type="button" id="mobile-menu-toggle" style="background: transparent; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="ti ti-menu-2" style="font-size: 24px;"></i>
+            </button>
 
-        {{-- Page Title (from @section) --}}
-        <div class="navbar-brand me-0 me-md-3 d-none d-md-flex align-items-center gap-2">
+            {{-- Page Title --}}
             <span class="fw-semibold text-body">@yield('page-title', 'Dashboard')</span>
         </div>
 
-        <div class="navbar-nav flex-row order-md-last">
+        <div class="navbar-nav flex-row order-lg-last">
 
             {{-- Notification Bell --}}
             <div class="nav-item me-2">
