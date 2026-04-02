@@ -1,4 +1,4 @@
-<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+<aside class="navbar navbar-vertical navbar-expand-lg bg-transparent">
     <div class="container-fluid">
         {{-- Logo / Brand --}}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu">
@@ -6,10 +6,10 @@
         </button>
 
         <h1 class="navbar-brand navbar-brand-autodark">
-            <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 text-white text-decoration-none">
+            <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 text-body text-decoration-none">
                 <i class="ti ti-wallet fs-2"></i>
                 <span class="fw-bold" style="font-size: 1rem; line-height: 1.2">
-                    Kas<br><small class="fw-normal opacity-75" style="font-size:0.75rem">Keluarga</small>
+                    Kas<br><small class="fw-normal text-secondary" style="font-size:0.75rem">Keluarga</small>
                 </span>
             </a>
         </h1>
