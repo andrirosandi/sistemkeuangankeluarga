@@ -33,19 +33,22 @@
 
             {{-- User Dropdown --}}
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link d-flex lh-1 text-reset p-0 gap-2" data-bs-toggle="dropdown" id="nav-user-menu">
+                <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" id="nav-user-menu">
                     <span class="avatar avatar-sm rounded"
-                          style="background: linear-gradient(135deg, #206bc4, #4299e1);">
+                          style="background: linear-gradient(135deg, #0d9488, #14b8a6);">
                         {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                     </span>
-                    <div class="d-none d-md-block">
-                        <div class="fw-medium lh-1" style="font-size:0.875rem">{{ auth()->user()->name }}</div>
-                        <div class="mt-1 text-secondary" style="font-size:0.75rem">
-                            {{ auth()->user()->getRoleNames()->first() ?? 'user' }}
-                        </div>
-                    </div>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <div class="dropdown-item-text py-2 px-3">
+                        <div class="fw-medium" style="font-size:0.9rem">{{ auth()->user()->name }}</div>
+                        <div class="text-secondary" style="font-size:0.75rem">
+                            <span class="badge bg-teal-lt text-teal" style="font-size:0.65rem; padding: 2px 6px;">
+                                {{ ucfirst(auth()->user()->getRoleNames()->first() ?? 'user') }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
                     <a href="{{ route('profile.edit') }}" class="dropdown-item" id="nav-profile-link">
                         <i class="ti ti-user me-2"></i> Profile Settings
                     </a>

@@ -128,3 +128,10 @@ body {
 [data-bs-theme="dark"] .navbar-vertical .dropdown-menu .dropdown-item:hover:not(.active) {
     color: #2dd4bf;
 }
+
+/* Teal light background for badges */
+.bg-teal-lt { background-color: #f0fdfa !important; }
+.text-teal { color: #0d9488 !important; }
+
+[data-bs-theme="dark"] .bg-teal-lt { background-color: #134e4a !important; }
+[data-bs-theme="dark"] .text-teal { color: #2dd4bf !important; }
