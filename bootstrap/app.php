@@ -11,7 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Global middleware: redirect to /setup if no users exist yet
+        $middleware->append(\App\Http\Middleware\RedirectToSetupIfNeeded::class);
+
+        // Custom middleware aliases
+        $middleware->alias([
+            'setup.guard'  => \App\Http\Middleware\RedirectIfSetupComplete::class,
+            'role'         => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'   => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

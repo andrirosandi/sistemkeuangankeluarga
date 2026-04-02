@@ -7,13 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     protected $table = 'settings';
-    
-    // UUID or string PK? Default ID is string key usually for settings ?
-    // Let's assume standard ID for now or string primary key?
-    // Let's check migration. If key is primary.
-    protected $primaryKey = 'key';
-    public $incrementing = false;
-    protected $keyType = 'string';
 
     protected $fillable = ['key', 'value'];
+
+    /**
+     * Get a setting value by key.
+     */
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        $setting = static::where('key', $key)->first();
+        return $setting ? $setting->value : $default;
+    }
+
+    /**
+     * Set a setting value by key (upsert).
+     */
+    public static function set(string $key, mixed $value): void
+    {
+        static::updateOrCreate(['key' => $key], ['value' => $value]);
+    }
 }

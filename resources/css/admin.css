@@ -1,0 +1,14 @@
+/* Tabler core CSS */
+@import "@tabler/core/dist/css/tabler.min.css";
+
+/* Tabler Icons webfont */
+@import "@tabler/icons-webfont/dist/tabler-icons.min.css";
+
+/* Custom overrides */
+:root {
+    --tblr-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.navbar-brand span {
+    line-height: 1.2;
+}
