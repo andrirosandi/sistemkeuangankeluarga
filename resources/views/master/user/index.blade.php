@@ -10,11 +10,11 @@
                 <h3 class="card-title">Daftar Anggota Keluarga</h3>
                 <div class="card-actions">
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <i class="ti ti-plus icon"></i>
+                        <x-icon name="plus" />
                         Tambah Anggota
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Anggota">
-                        <i class="ti ti-plus icon"></i>
+                        <x-icon name="plus" />
                     </button>
                 </div>
             </div>
@@ -80,18 +80,18 @@
                                     <button class="btn btn-icon btn-sm btn-ghost-primary"
                                             onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->roles->first()?->name }}')"
                                             title="Edit Profil">
-                                        <i class="ti ti-pencil icon"></i>
+                                        <x-icon name="pencil" />
                                     </button>
                                     <button class="btn btn-icon btn-sm btn-ghost-warning"
                                             onclick="resetPassword({{ $user->id }}, '{{ $user->name }}')"
                                             title="Reset Password">
-                                        <i class="ti ti-key icon"></i>
+                                        <x-icon name="key" />
                                     </button>
                                     @if($user->id !== auth()->id())
                                     <button class="btn btn-icon btn-sm btn-ghost-danger"
                                             onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')"
                                             title="Hapus Anggota">
-                                        <i class="ti ti-trash icon"></i>
+                                        <x-icon name="trash" />
                                     </button>
                                     @endif
                                 </div>
@@ -102,7 +102,7 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <i class="ti ti-users-off icon-lg"></i>
+                                        <x-icon name="users-off" class="icon-lg" />
                                     </div>
                                     <p class="empty-title">Data Pengguna Kosong</p>
                                     <p class="empty-subtitle text-secondary">Ayo undang anggota keluarga Anda.</p>
@@ -255,7 +255,7 @@
         <div class="modal-content">
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
+                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
                 <h3>Konfirmasi Hapus</h3>
                 <div class="text-secondary">Anda yakin menghapus <strong id="delete-name"></strong>? Data pengajuan dan transaksi miliknya juga akan dihapus.</div>
             </div>

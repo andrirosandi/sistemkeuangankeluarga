@@ -10,11 +10,11 @@
                 <h3 class="card-title">Daftar Kategori</h3>
                 <div class="card-actions">
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <i class="ti ti-plus icon"></i>
+                        <x-icon name="plus" />
                         Tambah Kategori
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Kategori">
-                        <i class="ti ti-plus icon"></i>
+                        <x-icon name="plus" />
                     </button>
                 </div>
             </div>
@@ -61,12 +61,12 @@
                                     <button class="btn btn-icon btn-sm btn-ghost-primary"
                                             onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')"
                                             title="Edit Kategori">
-                                        <i class="ti ti-pencil icon"></i>
+                                        <x-icon name="pencil" />
                                     </button>
                                     <button class="btn btn-icon btn-sm btn-ghost-danger"
                                             onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')"
                                             title="Hapus Kategori">
-                                        <i class="ti ti-trash icon"></i>
+                                        <x-icon name="trash" />
                                     </button>
                                 </div>
                             </td>
@@ -76,7 +76,7 @@
                             <td colspan="3" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <i class="ti ti-folder-plus icon-lg"></i>
+                                        <x-icon name="folder-plus" class="icon-lg" />
                                     </div>
                                     <p class="empty-title">Belum ada kategori</p>
                                     <p class="empty-subtitle text-secondary">Ayo buat kategori pertama Anda.</p>
@@ -196,7 +196,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
+                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
                 <h3>Konfirmasi Hapus</h3>
                 <div class="text-secondary">Hapus kategori <strong id="delete-name"></strong>? Data yang terkait mungkin akan error.</div>
             </div>
