@@ -10,11 +10,11 @@
                 <h3 class="card-title">Daftar Anggota Keluarga</h3>
                 <div class="card-actions">
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        <i class="ti ti-plus icon"></i>
                         Tambah Anggota
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Anggota">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        <i class="ti ti-plus icon"></i>
                     </button>
                 </div>
             </div>
@@ -80,18 +80,18 @@
                                     <button class="btn btn-icon btn-sm btn-ghost-primary"
                                             onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->roles->first()?->name }}')"
                                             title="Edit Profil">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 15l8.385 -8.415a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3z" /><path d="M16 5l3 3" /><path d="M9 7.07a7 7 0 0 1 1 13.93a7 7 0 0 1 -1 -13.93z" /></svg>
+                                        <i class="ti ti-pencil icon"></i>
                                     </button>
                                     <button class="btn btn-icon btn-sm btn-ghost-warning"
                                             onclick="resetPassword({{ $user->id }}, '{{ $user->name }}')"
                                             title="Reset Password">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M8 11a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M21 21l-6 -6" /><path d="M5 10c0 -3 2.5 -5 5 -5" /></svg>
+                                        <i class="ti ti-key icon"></i>
                                     </button>
                                     @if($user->id !== auth()->id())
                                     <button class="btn btn-icon btn-sm btn-ghost-danger"
                                             onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')"
                                             title="Hapus Anggota">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                        <i class="ti ti-trash icon"></i>
                                     </button>
                                     @endif
                                 </div>
@@ -102,7 +102,7 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-users-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 7a4 4 0 1 0 4 4" /><path d="M3 21v-2c0 -.637 .126 -1.246 .356 -1.801m1.582 -2.398c.326 -.18 .679 -.335 1.054 -.457" /><path d="M12 11a4 4 0 0 0 4 4m2 -2a4 4 0 0 0 -2 -2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M16 19h6" /><path d="M3 3l18 18" /></svg>
+                                        <i class="ti ti-users-off icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Data Pengguna Kosong</p>
                                     <p class="empty-subtitle text-secondary">Ayo undang anggota keluarga Anda.</p>
@@ -255,7 +255,7 @@
         <div class="modal-content">
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.707 2.983h16.845a1.989 1.989 0 0 0 1.708 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.415 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
                 <h3>Konfirmasi Hapus</h3>
                 <div class="text-secondary">Anda yakin menghapus <strong id="delete-name"></strong>? Data pengajuan dan transaksi miliknya juga akan dihapus.</div>
             </div>

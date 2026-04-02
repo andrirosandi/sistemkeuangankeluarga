@@ -10,11 +10,11 @@
                 <h3 class="card-title">Daftar Kategori</h3>
                 <div class="card-actions">
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        <i class="ti ti-plus icon"></i>
                         Tambah Kategori
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Kategori">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        <i class="ti ti-plus icon"></i>
                     </button>
                 </div>
             </div>
@@ -61,12 +61,12 @@
                                     <button class="btn btn-icon btn-sm btn-ghost-primary"
                                             onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')"
                                             title="Edit Kategori">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg>
+                                        <i class="ti ti-pencil icon"></i>
                                     </button>
                                     <button class="btn btn-icon btn-sm btn-ghost-danger"
                                             onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')"
                                             title="Hapus Kategori">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                        <i class="ti ti-trash icon"></i>
                                     </button>
                                 </div>
                             </td>
@@ -76,10 +76,10 @@
                             <td colspan="3" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-database-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12.983 8.978c3.955 -.182 7.017 -1.446 7.017 -2.978c0 -1.657 -3.582 -3 -8 -3c-1.661 0 -3.204 .19 -4.483 .515m-2.783 1.228c-.471 .382 -.734 .808 -.734 1.257c0 1.22 1.944 2.271 4.734 2.74" /><path d="M4 6v6c0 1.657 3.582 3 8 3c.986 0 1.93 -.067 2.802 -.19m3.187 -.814c1.25 -.524 2.011 -1.223 2.011 -1.996v-6" /><path d="M4 12v6c0 1.657 3.582 3 8 3c3.217 0 5.991 -.712 7.231 -1.703" /><path d="M3 3l18 18" /></svg>
+                                        <i class="ti ti-folder-plus icon-lg"></i>
                                     </div>
-                                    <p class="empty-title">Kategori Kosong</p>
-                                    <p class="empty-subtitle text-secondary">Mulai tambahkan kategori pengeluaran/pemasukan Anda.</p>
+                                    <p class="empty-title">Belum ada kategori</p>
+                                    <p class="empty-subtitle text-secondary">Ayo buat kategori pertama Anda.</p>
                                 </div>
                             </td>
                         </tr>
@@ -196,7 +196,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.707 2.983h16.845a1.989 1.989 0 0 0 1.708 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.415 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
                 <h3>Konfirmasi Hapus</h3>
                 <div class="text-secondary">Hapus kategori <strong id="delete-name"></strong>? Data yang terkait mungkin akan error.</div>
             </div>
