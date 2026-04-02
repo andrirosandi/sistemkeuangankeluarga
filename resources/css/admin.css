@@ -7,6 +7,25 @@
 /* Custom overrides */
 :root {
     --tblr-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
+    
+    /* Teal Color Palette - Replace entire Bootstrap primary colors */
+    --bs-primary: #0d9488;
+    --bs-primary-hover: #0f766e;
+    --bs-primary-rgb: 13, 148, 136;
+    --bs-link-color: #0d9488;
+    --bs-link-hover-color: #0f766e;
+    
+    /* Custom teal shades for consistency */
+    --teal-50: #f0fdfa;
+    --teal-100: #ccfbf1;
+    --teal-200: #99f6e4;
+    --teal-300: #5eead4;
+    --teal-400: #2dd4bf;
+    --teal-500: #14b8a6;
+    --teal-600: #0d9488;
+    --teal-700: #0f766e;
+    --teal-800: #115e59;
+    --teal-900: #134e4a;
 }
 
 .navbar-brand span {
@@ -43,7 +62,62 @@ body {
     border-left: 3px solid #0d9488;
 }
 
-/* Dark mode adaptation */
+/* Dark mode color palette */
+[data-bs-theme="dark"] {
+    --bs-primary: #2dd4bf;
+    --bs-primary-hover: #5eead4;
+    --bs-primary-rgb: 45, 212, 191;
+    --bs-link-color: #2dd4bf;
+    --bs-link-hover-color: #5eead4;
+}
+
+/* Override Tabler color utilities to use teal palette */
+.bg-blue { background-color: #0d9488 !important; }
+.bg-azure { background-color: #0d9488 !important; }
+.bg-teal { background-color: #0d9488 !important; }
+.bg-green { background-color: #059669 !important; }
+.bg-lime { background-color: #84cc16 !important; }
+
+.text-blue { color: #0d9488 !important; }
+.text-azure { color: #0d9488 !important; }
+.text-teal { color: #0d9488 !important; }
+
+.btn-primary {
+    background-color: #0d9488 !important;
+    border-color: #0d9488 !important;
+}
+
+.btn-primary:hover {
+    background-color: #0f766e !important;
+    border-color: #0f766e !important;
+}
+
+.link-primary { color: #0d9488 !important; }
+
+/* Dark mode overrides */
+[data-bs-theme="dark"] .bg-blue,
+[data-bs-theme="dark"] .bg-azure,
+[data-bs-theme="dark"] .bg-teal {
+    background-color: #2dd4bf !important;
+}
+
+[data-bs-theme="dark"] .text-blue,
+[data-bs-theme="dark"] .text-azure,
+[data-bs-theme="dark"] .text-teal {
+    color: #2dd4bf !important;
+}
+
+[data-bs-theme="dark"] .btn-primary {
+    background-color: #2dd4bf !important;
+    border-color: #2dd4bf !important;
+}
+
+[data-bs-theme="dark"] .btn-primary:hover {
+    background-color: #5eead4 !important;
+    border-color: #5eead4 !important;
+}
+
+/* Dark mode sidebar adaptation */
 [data-bs-theme="dark"] .navbar-vertical .navbar-nav .nav-link.active,
 [data-bs-theme="dark"] .navbar-vertical .dropdown-menu .dropdown-item.active {
     color: #2dd4bf !important;
