@@ -1,7 +1,7 @@
 <aside class="navbar navbar-vertical navbar-expand-lg">
-    <div class="container-fluid">
+    <div class="container-fluid px-0">
         <div>
-            <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 text-body text-decoration-none ps-3 pt-3">
+            <a href="{{ route('dashboard') }}" class="navbar-brand d-flex align-items-center gap-2 text-body text-decoration-none">
                 <i class="ti ti-wallet fs-2"></i>
                 <span class="fw-bold" style="font-size: 1rem; line-height: 1.2">
                     Kas<br><small class="fw-normal text-secondary" style="font-size:0.75rem">Keluarga</small>
@@ -11,7 +11,7 @@
 
         {{-- Menu Items --}}
         <div class="collapse navbar-collapse" id="sidebar-menu">
-            <ul class="navbar-nav pt-lg-3">
+            <ul class="navbar-nav pt-3">
                 @foreach(config('menu.sidebar') as $item)
                     @if(isset($item['children']))
                         {{-- Check if user has permission to any child --}}
