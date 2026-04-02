@@ -276,9 +276,13 @@
 
         // Update info on list update
         categoryList.on('updated', function (list) {
-            document.getElementById('pagination-info-start').innerText = list.i;
-            document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.displayPerPage - 1, list.items.length);
-            document.getElementById('pagination-info-total').innerText = list.items.length;
+            const start = list.i;
+            const end = Math.min(list.i + list.page - 1, list.items.length);
+            const total = list.items.length;
+            
+            document.getElementById('pagination-info-start').innerText = start;
+            document.getElementById('pagination-info-end').innerText = end;
+            document.getElementById('pagination-info-total').innerText = total;
         });
 
         // Handle page count changes
