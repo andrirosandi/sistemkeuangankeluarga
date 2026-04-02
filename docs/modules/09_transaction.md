@@ -32,10 +32,11 @@ Ini adalah halaman yang otomatis terbuka pasca klik *Approve* dari Request, ATAU
 
 ### 3. Halaman Edit Transaksi 
 - Mengizinkan revisi kesalahan pengetikan nominal. Namun memiliki proteksi ketat via Database Lock.
-- Perubahan pada nominal ketika status sudah `completed` akan memicu trigger.
+- Perubahan pada nominal ketika status sudah `completed` akan memicu Observer.
 
-## Aturan Bisnis & Logika Trigger (Observer Laravel)
-- Aplikasi akan memantau segala bentuk *Update/Insert/Delete* pada `transaction_header`.
-- **HANYA status `completed` yang dihitung.**
-- Jika ada penambahan nominal = Sistem mencari baris di tabel `balance` dengan rentang `YYYY-MM`. Sistem menjumlah/mengurangi field `total_in` & `total_out`.
-- `ending balance` bulan tersebut harus digaransi sinkron: `begin` + `total_in` - `total_out`.
+## Aturan Bisnis & Logika Balance Engine (Observer Laravel)
+- Aplikasi akan memantau segala bentuk *Update/Insert/Delete* pada `transaction_header` menggunakan fitur **Laravel Observer**.
+- Seluruh mutasi `transaction_header` ini **WAJIB** dibungkus dalam blok `DB::transaction()` dari *Controller* agar aman dari kegagalan sistem.
+- **HANYA status `completed` yang dihitung saldonya.**
+- Jika ada transaksi `completed` = Observer memanggil `BalanceService`. Sistem mencari baris di tabel `balance` dengan rentang `YYYY-MM`. Sistem menjumlah/mengurangi field `total_in` & `total_out`.
+- `ending balance` bulan tersebut harus digaransi sinkron: `begin` + `total_in` - `total_out`. Kalkulasi efek domino untuk bulan masa depan akan di-handle *Service* ini.

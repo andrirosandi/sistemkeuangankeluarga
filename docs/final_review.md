@@ -1,5 +1,5 @@
 # Final Review & Analisis Kebutuhan vs Dokumen Desain
-*Tanggal Review:* 01 April 2026
+*Tanggal Review:* 02 April 2026
 *Dokumen Acuan:* `tugas.md`
 
 Melalui dokumen ini, kita melacak dan membedah apakah arsitektur sistem yang telah kita bangun dalam folder `/docs` selama ini sudah **100% mematuhi atau menyimpang** dari _brieffing_ awal tugas teknis.
@@ -28,9 +28,9 @@ Melalui dokumen ini, kita melacak dan membedah apakah arsitektur sistem yang tel
 | Syarat Framework & Database | Implementasi Kita | Status |
 |---|---|:---:|
 | **Laravel 12 & MySQL** | Sudah ter-set di **Tech Stack**, menggunakan schema SQL relasional (InnoDB). | ✅ |
-| **Bootstrap 5 & Blade** | Frontend murni **Blade component** + **Bootstrap 5 UI**, diperkuat Alpine.js / HTMX untuk efek interaktif *Form Detail* agar tidak nge-refresh halaman tanpa Vue/React. | ✅ |
+| **Bootstrap 5 & Blade** | Menggunakan **Tabler UI** (Bootstrap 5-based) + **Blade**. Diperkuat Alpine.js / HTMX untuk interaksi Form Detail tanpa perlu nge-refresh halaman. | ✅ |
 | **Autentikasi & Database Relasi** | Jelas ✅. Kita pakai paket resmi **Laravel Breeze** untuk fondasi basic Auth (Login/Register) lalu dirombak. Skema DB *Foreign Key* on Delete/Update Restrict. | ✅ |
-| **Validasi Form Input** | Ditekankan secara huruf kapital di **Global Rules (Poin 4)**: Wajib hukumnya divalidasi via Form Request PHP. Ditambah *Pessimistic Locking* menghindari *Race Condition*. | ✅ |
+| **Validasi Form Input** | Ditekankan secara huruf kapital di **Global Rules (Poin 4)**: Wajib hukumnya divalidasi via Form Request PHP. Ditambah *DB Transaction* untuk menghindari *Race Condition*. | ✅ |
 
 ## 4. Evaluasi Arsitektur (Lebih dari yang diminta)
 Kita tidak sekedar membuat sesuai standar kelulusan tugas, tapi menjadikannya sekelas *"Enterprise"* level:

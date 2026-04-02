@@ -31,3 +31,12 @@ Dokumen ini berisi aturan main (standar) penulisan kode, penanganan file, dan st
 - **Database Concurrency Lock (Mencegah Double Input Utama):** Seluruh aksi mutasi (INSERT/UPDATE) pada tabel krusial seperti `request_header`, `request_detail`, `transaction_header`, `transaction_detail`, dan `balance` WAJIB menggunakan `DB::transaction()`. Penggunaan fungsi *Pessimistic Locking* Laravel (`lockForUpdate()` atau implementasi sejenis) harus diutamakan guna menghindari insiden dobel potong saldo ketike internet tidak stabil/tekan submit 2x beruntun.
 - **Hak Akses Halaman:** Dibatasi ketat dengan _Middleware_ dari **Spatie Laravel Permission** (`role:Admin|User`).
 - **Pengecekan Kepemilikan (Ownership):** User hanya bisa membuka Request yang miliknya sendiri (`created_by === auth()->id()`). Admin kebal dari aturan ini dan bisa melihat semua data lintas-user.
+
+## 5. Balance Engine & Saldo Otomatis
+
+- **Engine:** Balance dihitung otomatis via **Laravel Observer** (`TransactionHeaderObserver`) yang memantau setiap perubahan (insert/update/delete) pada tabel `transaction_header`.
+- **Trigger Kondisi:** Observer **HANYA** memanggil recalculate jika transaksi berstatus `completed`. Transaksi berstatus `draft` atau `canceled` tidak mempengaruhi saldo.
+- **Service Class:** Logika kalkulasi terpusat di `BalanceService::recalculateFromMonth(string $month)`. Service ini akan meng-iterasi semua bulan dari `$month` hingga bulan terbaru secara berurutan (efek domino).
+- **Atomik (DB Transaction):** Seluruh operasi penyimpanan transaksi + pembaruan saldo WAJIB dibungkus dalam `DB::transaction()`. Jika ada bagian yang gagal (termasuk error di tengah kalkulasi), seluruh operasi akan di-rollback otomatis oleh MySQL agar data tetap konsisten.
+- **Formula Saldo:** `ending = begin + total_in - total_out` dimana `begin` satu bulan diambil dari nilai `ending` bulan sebelumnya.
+- **Baca Saldo Dashboard:** Dashboard Admin **TIDAK** menjalankan `SUM()` query real-time. Seluruhnya membaca dari 1 baris tabel `balance` untuk bulan berjalan yang sudah tersedia → performa dashboard dijamin cepat (< 50ms).
