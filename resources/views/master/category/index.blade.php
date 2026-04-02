@@ -23,7 +23,7 @@
                     <div class="text-secondary">
                         Tampilkan
                         <div class="mx-2 d-inline-block">
-                            <input type="text" class="form-control form-control-sm" value="8" size="3" aria-label="In page count" id="page-count-input">
+                            <input type="text" class="form-control form-control-sm" value="20" size="3" aria-label="In page count" id="page-count-input">
                         </div>
                         data
                     </div>
@@ -100,7 +100,7 @@
             </div>
 
             <div class="card-footer d-flex align-items-center border-top">
-                <p class="m-0 text-secondary d-none d-sm-block">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">8</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
+                <p class="m-0 text-secondary d-none d-sm-block">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">20</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
                 <div class="pagination m-0 ms-auto"></div>
             </div>
         </div>
@@ -329,7 +329,7 @@
         // Initialize List.js
         const categoryList = new List('table-default', {
             valueNames: [{ name: 'sort-name', attr: 'data-name' }],
-            page: 8,
+            page: 20,
             pagination: { innerWindow: 2, outerWindow: 1 }
         });
 
@@ -373,7 +373,7 @@
 
         // Page count handler
         document.getElementById('page-count-input')?.addEventListener('change', function(e) {
-            categoryList.show(1, parseInt(e.target.value) || 8);
+            categoryList.show(1, parseInt(e.target.value) || 20);
         });
 
         // Bulk Delete Finalize
