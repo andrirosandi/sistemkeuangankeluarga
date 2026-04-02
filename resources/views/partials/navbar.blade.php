@@ -24,6 +24,13 @@
                 </a>
             </div>
 
+            {{-- Theme Toggle --}}
+            <div class="nav-item me-2">
+                <a href="#" class="nav-link px-0" title="Ganti Tema" id="theme-toggle">
+                    <i class="ti ti-moon fs-3" id="theme-icon"></i>
+                </a>
+            </div>
+
             {{-- User Dropdown --}}
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link d-flex lh-1 text-reset p-0 gap-2" data-bs-toggle="dropdown" id="nav-user-menu">

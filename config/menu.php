@@ -58,7 +58,7 @@ return [
             'children' => [
                 [
                     'label'      => 'Kategori Kas',
-                    'route'      => 'master.category.index',
+                    'route'      => 'master.categories.index',
                     'permission' => 'category.view',
                 ],
                 [
@@ -73,8 +73,8 @@ return [
             'icon'  => 'settings',
             'children' => [
                 [
-                    'label'      => 'Manajemen Pengguna',
-                    'route'      => 'master.user.index',
+                    'label'      => 'Anggota Keluarga',
+                    'route'      => 'master.users.index',
                     'permission' => 'user.view',
                 ],
                 [

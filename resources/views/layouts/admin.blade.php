@@ -84,6 +84,37 @@
 
     {{-- Tabler JS is bundled by Vite via admin.js --}}
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function setTheme(theme) {
+            html.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (themeIcon) {
+                themeIcon.className = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else {
+            setTheme(systemDark ? 'dark' : 'light');
+        }
+
+        themeToggle?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const currentTheme = html.getAttribute('data-bs-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+    });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

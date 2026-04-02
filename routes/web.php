@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 | Hanya bisa diakses saat belum ada user di database (dijaga middleware global)
 |--------------------------------------------------------------------------
 */
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
+
 Route::middleware('setup.guard')->group(function () {
     Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
     Route::post('/setup/admin', [SetupController::class, 'storeAdmin'])->name('setup.admin');
@@ -57,8 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Master Data
     Route::prefix('master')->name('master.')->group(function () {
         Route::resource('categories', \App\Http\Controllers\Master\CategoryController::class);
+        Route::resource('users', \App\Http\Controllers\Master\UserController::class);
         Route::get('/template', fn() => abort(404))->name('template.index');
-        Route::get('/pengguna', fn() => abort(404))->name('user.index');
         Route::get('/group-akses', fn() => abort(404))->name('group.index');
     });
 
