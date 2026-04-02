@@ -89,25 +89,11 @@
             </div>
 
             <!-- Batch Action Bar -->
-            <div id="batch-action-bar" class="bg-primary-lt px-3 py-2 border-top d-none">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="text-primary fw-bold"><span id="selected-count">0</span> Data Terpilih</span>
-                        <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="btn-cancel-all">Batalkan Pilihan</button>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modal-bulk-delete">Hapus</button>
-                </div>
-            </div>
+            <x-datatable.batch-bar />
 
-            <div class="card-footer d-flex align-items-center border-top">
-                <p class="m-0 text-secondary" id="pagination-wrapper">
-                    <span class="d-none d-sm-inline">Menampilkan</span>
-                    <span id="pagination-info-start">1</span>-<span id="pagination-info-end">{{ min(20, $categories->count()) }}</span>
-                    dari <span id="pagination-info-total">{{ $categories->count() }}</span>
-                    <span class="d-none d-sm-inline">data</span>
-                </p>
-                <div class="pagination m-0 ms-auto"></div>
-            </div>
+            <!-- Pagination Footer -->
+            <x-datatable.pagination :total="$categories->count()" :perPage="20" />
+        </div>
         </div>
     </div>
 </div>
@@ -240,77 +226,10 @@
 </div>
 @endsection
 
-@push('styles')
-<style>
-    /* Styling List.js dynamic pagination to match Tabler */
-    .pagination {
-        display: flex;
-        padding-left: 0;
-        list-style: none;
-    }
-    .pagination li {
-        margin: 0 2px;
-    }
-    .pagination li a {
-        display: block;
-        padding: 0.35rem 0.65rem;
-        color: var(--tblr-secondary);
-        text-decoration: none;
-        background-color: var(--tblr-bg-surface);
-        border: 1px solid var(--tblr-border-color);
-        border-radius: var(--tblr-border-radius);
-        cursor: pointer;
-    }
-    .pagination li.active a {
-        color: var(--tblr-primary-fg);
-        background-color: var(--tblr-primary);
-        border-color: var(--tblr-primary);
-    }
-    .pagination li a:hover {
-        background-color: var(--tblr-bg-surface-secondary);
-    }
-
-    .pagination li a:hover {
-        background-color: var(--tblr-bg-surface-secondary);
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
-    // Persistent Selection State
-    let selectedIds = new Set();
-    const selectAllHeader = document.getElementById('select-all');
-    const tableBody = document.querySelector('.list');
-    const batchBar = document.getElementById('batch-action-bar');
-    const selectedCountSpan = document.getElementById('selected-count');
-
-    function updateBatchBarUI() {
-        const count = selectedIds.size;
-        if (count > 0) {
-            batchBar.classList.remove('d-none');
-            selectedCountSpan.innerText = count;
-        } else {
-            batchBar.classList.add('d-none');
-            selectAllHeader.checked = false;
-            selectAllHeader.indeterminate = false;
-        }
-    }
-
-    function syncCheckboxes() {
-        const checkboxes = document.querySelectorAll('.check-item');
-        checkboxes.forEach(cb => {
-            cb.checked = selectedIds.has(cb.value);
-        });
-        
-        // Sync header state based on page
-        if (checkboxes.length > 0) {
-            const visibleChecked = document.querySelectorAll('.check-item:checked').length;
-            selectAllHeader.checked = (visibleChecked === checkboxes.length);
-            selectAllHeader.indeterminate = (visibleChecked > 0 && visibleChecked < checkboxes.length);
-        }
-    }
 
     function editCategory(id, name, color) {
         const form = document.getElementById('form-edit');
@@ -334,14 +253,20 @@
             new bootstrap.Modal(document.getElementById('modal-add')).show();
         @endif
 
-        // Initialize List.js
+        // 1. Initialize Smart Table Selection Handler
+        const tableSelector = window.initSmartTableSelection({
+            batchBarId: 'batch-action-bar',
+            countId: 'selected-count'
+        });
+
+        // 2. Initialize List.js
         const categoryList = new List('table-default', {
             valueNames: [{ name: 'sort-name', attr: 'data-name' }],
             page: 20,
             pagination: { innerWindow: 2, outerWindow: 1 }
         });
 
-        // Update info on list update
+        // 3. Sync List.js with Selection & Pagination Info
         categoryList.on('updated', function (list) {
             const paginationWrapper = document.getElementById('pagination-wrapper');
             if (list.items.length > 0) {
@@ -352,47 +277,19 @@
             } else {
                 paginationWrapper.classList.add('d-none');
             }
-            syncCheckboxes();
+            
+            // Critical: Re-sync checkmarks when page changes
+            tableSelector.syncCheckboxes();
         });
 
-        // Select All listener (Header)
-        selectAllHeader?.addEventListener('click', function() {
-            const isChecked = this.checked;
-            const checkboxes = document.querySelectorAll('.check-item');
-            checkboxes.forEach(cb => {
-                cb.checked = isChecked;
-                if (isChecked) selectedIds.add(cb.value);
-                else selectedIds.delete(cb.value);
-            });
-            updateBatchBarUI();
-        });
-
-        // Item listener (Delegation)
-        tableBody?.addEventListener('change', function(e) {
-            if (e.target.classList.contains('check-item')) {
-                if (e.target.checked) selectedIds.add(e.target.value);
-                else selectedIds.delete(e.target.value);
-                
-                syncCheckboxes();
-                updateBatchBarUI();
-            }
-        });
-
-        // Cancel All listener
-        document.getElementById('btn-cancel-all')?.addEventListener('click', function() {
-            selectedIds.clear();
-            syncCheckboxes();
-            updateBatchBarUI();
-        });
-
-        // Page count handler
+        // Handler for page count items
         document.getElementById('page-count-input')?.addEventListener('change', function(e) {
             categoryList.show(1, parseInt(e.target.value) || 20);
         });
 
-        // Bulk Delete Finalize
+        // Bulk Delete Action
         document.getElementById('btn-bulk-delete-confirm')?.addEventListener('click', function() {
-            const ids = Array.from(selectedIds);
+            const ids = tableSelector.getSelectedIds();
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = "{{ route('master.categories.bulk-delete') }}";
