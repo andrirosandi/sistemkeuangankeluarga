@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-vcenter table-mobile-md card-table">
+                <table class="table table-vcenter card-table text-nowrap">
                     <thead>
                         <tr>
                             <th class="w-1"><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select all" id="select-all"></th>
@@ -100,7 +100,12 @@
             </div>
 
             <div class="card-footer d-flex align-items-center border-top">
-                <p class="m-0 text-secondary d-none d-sm-block" id="pagination-wrapper">Menampilkan <span id="pagination-info-start">1</span> sampai <span id="pagination-info-end">20</span> dari <span id="pagination-info-total">{{ $categories->count() }}</span> data</p>
+                <p class="m-0 text-secondary" id="pagination-wrapper">
+                    <span class="d-none d-sm-inline">Menampilkan</span>
+                    <span id="pagination-info-start">1</span>-<span id="pagination-info-end">{{ min(20, $categories->count()) }}</span>
+                    dari <span id="pagination-info-total">{{ $categories->count() }}</span>
+                    <span class="d-none d-sm-inline">data</span>
+                </p>
                 <div class="pagination m-0 ms-auto"></div>
             </div>
         </div>
@@ -265,24 +270,8 @@
         background-color: var(--tblr-bg-surface-secondary);
     }
 
-    /* Mobile Compact Optimization */
-    @media (max-width: 767.98px) {
-        .table-mobile-md td {
-            padding-top: 0.35rem !important;
-            padding-bottom: 0.35rem !important;
-            min-height: auto !important;
-        }
-        .table-mobile-md td:before {
-            margin-bottom: 0.125rem !important;
-            font-size: 0.7rem !important;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            opacity: 0.7;
-        }
-        /* Make actions more compact on mobile */
-        .table-mobile-md td:last-child {
-            padding-bottom: 0.75rem !important;
-        }
+    .pagination li a:hover {
+        background-color: var(--tblr-bg-surface-secondary);
     }
 </style>
 @endpush
