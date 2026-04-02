@@ -43,3 +43,19 @@ menu:
         route: "master.group.index"
       - label: "Pengaturan Sistem"
         route: "settings.index"
+
+navbar:
+  - label: "Notifikasi"
+    icon: "bell"
+    route: "notification.index"
+    badge: "unread_count" # Muncul titik merah kalau ada yang unread
+    roles: ["admin", "user"]
+
+  - label: "Profile Menu"
+    icon: "user-circle" # Berisi Avatar & Nama
+    roles: ["admin", "user"]
+    children:
+      - label: "Profile Settings"
+        route: "profile.edit"
+      - label: "Logout"
+        route: "logout"
