@@ -1,16 +1,18 @@
-# Module: Request Approval (Admin)
+# Module: Inbox Realisasi / Approval (Admin)
 
 ## Deskripsi
-Modul ini adalah "Inbox" untuk Admin (Suami) yang berfungsi memeriksa, membaca, dan memberikan keputusan terhadap pengajuan yang masuk dari anggota keluarga.
+Modul ini adalah "Inbox" untuk Admin (Suami) yang berfungsi memeriksa, membaca, dan memberikan keputusan terhadap pengajuan yang masuk. Fitur ini dipecah menjadi dua menu di sidebar untuk memfokuskan pekerjaan Admin:
+1. **Realisasi Kas Masuk**
+2. **Realisasi Kas Keluar**
 
 ## Pages & UI
 
-### 1. Inbox Approval (List Pengajuan)
-- Menampilkan daftar pengajuan (`request_header`) dari semua user yang berstatus `requested`.
+### 1. Inbox Realisasi (List Pengajuan)
+- Menampilkan daftar pengajuan (`request_header`) dari semua user yang berstatus `requested` (sesuai jenis Masuk/Keluar).
 - **Search & Filter:**
   - **Search:** Cari deskripsi/kode pengajuan secara teks bebas.
   - **Filter Pengaju:** Berdasarkan nama `created_by` (istri/anak).
-  - **Filter Tipe / Prioritas:** Hanya IN/OUT, atau difilter berdasar `priority` (High/Normal/Low).
+  - **Filter Prioritas:** (High/Normal/Low).
   - **Filter Tanggal:** Rentang waktu pengajuan.
 - Data List secara default diurutkan berdasarkan `priority` High di urutan teratas, lalu berdasar tanggal terbaru.
 - Action Utama: Tombol **Review**.

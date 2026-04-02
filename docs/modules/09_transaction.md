@@ -8,11 +8,13 @@ Modul ini adalah jantung finansial aplikasi yang mencatat **Mutasi Aktual (Uang 
 ## Pages & UI
 
 ### 1. List Transaksi (Buku Mutasi Kas)
-- Menampilkan seluruh `transaction_header`.
+Sesuai struktur yang baru, menu buku mutasi juga dipisah menjadi dua:
+1. **Buku Mutasi Kas Masuk** (`trans_code = 1`)
+2. **Buku Mutasi Kas Keluar** (`trans_code = 2`)
+
 - **Informasi:** Terdapat tag visual membedakan transaksi yang lahir dari *Request Istri/Anak* (menampilkan link `request_id`) dengan transaksi yang murni *Direct Input/Template* (`request_id = NULL`).
 - **Search & Filter:** 
   - Rentang Tanggal (`transaction_date`).
-  - Tipe Pemasukan/Pengeluaran (`trans_code`).
   - Status Pekerjaan (`draft` atau `completed`).
 - **Data Balance Singkat (Widget):** Di atas tabel, tampilkan angka `Saldo Awal`, `Total In`, `Total Out`, `Saldo Akhir` dari bulan yang sedang dilihat di filter, agar Admin tahu posisi uang real-time.
 

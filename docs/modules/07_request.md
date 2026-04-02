@@ -1,15 +1,16 @@
-# Module: Request (User)
+# Module: Request (Pengajuan)
 
 ## Deskripsi
-Fitur bagi user (Istri/Anak) untuk membuat pengajuan dana (Pemasukan) atau mencatat pengeluaran.
+Fitur bagi user (Istri/Anak) untuk membuat pengajuan. Sesuai kesepakatan, UI dipisah menjadi dua menu utama agar lebih intuitif:
+1. **Pengajuan Kas Masuk** (Melaporkan pemasukan, `trans_code = 1`)
+2. **Pengajuan Kas Keluar** (Meminta uang pencairan, `trans_code = 2`)
 
 ## Pages & UI
 
-### 1. List Request
-- Menampilkan daftar request pribadi user tersebut.
+### 1. List Request (Berlaku untuk Masuk & Keluar)
+- Menampilkan daftar request pribadi user tersebut sesuai dengan menu jenis yang diklik.
 - **Search & Filter Explorer:**
   - **Search:** Pencarian bebas berdasarkan keterangan/deskripsi pengajuan.
-  - **Filter Tipe:** Memilih hanya *Pemasukan* (IN) atau *Pengeluaran* (OUT).
   - **Filter Status:** (Draft, Requested, Approved, Rejected, Canceled).
   - **Filter Prioritas:** (Low, Normal, High).
   - **Filter Tanggal:** (Bulan tertentu / Rentang tanggal).
@@ -25,7 +26,7 @@ Halaman form dibagi menjadi 2 area fungsional:
 **Area Atas - Header:**
 - Kategori (`category_id`)
 - Tanggal Pengajuan (`request_date`)
-- Jenis Transaksi (`trans_code`: Pemasukan/Pengeluaran)
+- Jenis Transaksi otomatis terkunci sesuai Menu (Masuk/Keluar).
 - Prioritas / Urgensi (`priority`: Low, Normal, High)
 - Deskripsi Umum (`description`: Judul singkat)
 - Catatan Tambahan (`notes`: Penjelasan panjang/alasan opsional)
