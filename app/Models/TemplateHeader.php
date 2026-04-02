@@ -11,7 +11,8 @@ class TemplateHeader extends Model
         'category_id',
         'trans_code',
         'description',
-        'amount'
+        'amount',
+        'created_by'
     ];
 
     public function details()
@@ -22,5 +23,10 @@ class TemplateHeader extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
