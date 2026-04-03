@@ -69,8 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('users/{user}/reset-password', [\App\Http\Controllers\Master\UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::resource('users', \App\Http\Controllers\Master\UserController::class);
         
+        // Roles & Permissions
+        Route::post('roles/bulk-delete', [\App\Http\Controllers\Master\RoleController::class, 'bulkDelete'])->name('roles.bulk-delete');
+        Route::resource('roles', \App\Http\Controllers\Master\RoleController::class);
+        
         Route::get('/template', fn() => abort(404))->name('template.index');
-        Route::get('/group-akses', fn() => abort(404))->name('group.index');
     });
 
     // Pengaturan

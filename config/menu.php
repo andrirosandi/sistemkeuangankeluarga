@@ -78,8 +78,8 @@ return [
                     'permission' => 'user.view',
                 ],
                 [
-                    'label'      => 'Hak Akses (RBAC)',
-                    'route'      => 'master.group.index',
+                    'label'      => 'Peran & Akses',
+                    'route'      => 'master.roles.index',
                     'permission' => 'role.view',
                 ],
                 [
