@@ -33,11 +33,18 @@
 
             {{-- User Dropdown --}}
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" id="nav-user-menu">
-                    <span class="avatar avatar-sm rounded"
-                          style="background: linear-gradient(135deg, #0d9488, #14b8a6);">
-                        <span class="fw-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
-                    </span>
+                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" id="nav-user-menu">
+                    @php
+                        $avatarUrl = auth()->user()->getFirstMediaUrl('avatars', 'thumb');
+                    @endphp
+                    @if($avatarUrl)
+                        <span class="avatar avatar-sm rounded" style="background-image: url('{{ $avatarUrl }}')"></span>
+                    @else
+                        <span class="avatar avatar-sm rounded"
+                              style="background: linear-gradient(135deg, #0d9488, #14b8a6);">
+                            <span class="fw-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                        </span>
+                    @endif
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                     <div class="dropdown-item-text py-2 px-3">

@@ -134,6 +134,9 @@ Alpine.data('fileUploadComponent', (config = {}) => ({
             fileObj.id = result.media_id;
             fileObj.url = result.url;
             this.uploadStatus = 'Berhasil diunggah';
+
+            // Dispatch dynamic event based on name (e.g. avatar-uploaded)
+            this.$dispatch(`${this.name}-uploaded`, result.media_id);
         } catch (error) {
             fileObj.status = 'error';
             fileObj.error = error.message;
