@@ -24,8 +24,8 @@
 
     {{-- Dropzone Area --}}
     <div
-        class="border border-dashed rounded p-4 text-center position-relative mb-2"
-        style="cursor:pointer; min-height:140px; display:flex; align-items:center; justify-content:center; transition: background 0.2s; z-index:1;"
+        class="border border-dashed rounded p-3 text-center position-relative mb-2"
+        style="cursor:pointer; min-height:120px; display:flex; align-items:center; justify-content:center; transition: background 0.2s; z-index:1;"
         :class="dropzoneHover ? 'bg-light border-primary' : 'bg-white'"
         @dragover.prevent="dropzoneHover = true"
         @dragleave.prevent="dropzoneHover = false"
@@ -45,7 +45,7 @@
             <template x-if="!isUploading && dropzoneHover">
                 <div class="text-primary text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg mb-2" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
-                    <div class="fw-bold">Lepas file di sini</div>
+                    <div class="fw-bold text-truncate" style="max-width: 100%;">Lepas di sini</div>
                 </div>
             </template>
 
@@ -56,18 +56,18 @@
                     <template x-if="!multiple && files.length > 0">
                         <div class="text-center">
                             <template x-if="files[0].url">
-                                <img :src="files[0].url" class="img-fluid rounded border shadow-sm mb-2" style="max-height:100px; object-fit:contain;">
+                                <img :src="files[0].url" class="img-fluid rounded border shadow-sm mb-1" style="max-height:80px; object-fit:contain;">
                             </template>
-                            <div class="text-primary small fw-bold">Klik untuk ganti file</div>
+                            <div class="text-primary small fw-bold">Klik untuk ganti</div>
                         </div>
                     </template>
 
                     {{-- If Multiple or No File --}}
                     <template x-if="multiple || files.length === 0">
                         <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted mb-2" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /></svg>
-                            <div class="text-muted">Tarik file ke sini atau <strong>klik</strong></div>
-                            <small class="text-secondary small d-block mt-1">{{ $accept }}</small>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted mb-1" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /></svg>
+                            <div class="text-muted small">Tarik file atau <strong>klik</strong></div>
+                            <small class="text-secondary small d-block" style="font-size: 0.75rem;">{{ $accept }}</small>
                         </div>
                     </template>
                 </div>
