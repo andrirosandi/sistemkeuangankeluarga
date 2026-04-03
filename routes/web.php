@@ -80,6 +80,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index');
     Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update');
     Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp');
+
+    // Dedicated Upload API
+    Route::post('/api/upload-media', [\App\Http\Controllers\Api\UploadController::class, 'store'])->name('api.upload');
 });
 
 /*

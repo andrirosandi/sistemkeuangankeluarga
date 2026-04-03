@@ -4,7 +4,15 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', config('app.name', 'Sistem Keuangan Keluarga')) - {{ config('app.name') }}</title>
+    @php 
+        $appName = \App\Models\Setting::get('app_name', config('app.name')); 
+        $favicon = \App\Models\Setting::get('app_favicon');
+    @endphp
+    <title>@yield('title', $appName) - {{ $appName }}</title>
+
+    @if($favicon)
+        <link rel="icon" href="{{ asset('storage/' . \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $favicon)->first()?->id . '/' . $favicon) }}" type="image/webp">
+    @endif
 
     {{-- Tabler via npm (bundled by Vite) --}}
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
@@ -71,7 +79,7 @@
                         <div class="col-12 col-lg-auto mt-3 mt-lg-0">
                             <ul class="list-inline list-inline-dots mb-0">
                                 <li class="list-inline-item">
-                                    &copy; {{ date('Y') }} <strong>{{ config('app.name', 'Sistem Keuangan Keluarga') }}</strong>
+                                    &copy; {{ date('Y') }} <strong>{{ \App\Models\Setting::get('app_name', config('app.name')) }}</strong>
                                 </li>
                             </ul>
                         </div>

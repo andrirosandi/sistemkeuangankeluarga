@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-md-9" x-data="settingsUpload()">
         <form action="{{ route('settings.update') }}" method="POST">
                 @csrf
                 <div class="card">
@@ -35,7 +35,67 @@
                             <div class="mb-3">
                                 <label class="form-label required">Nama Aplikasi</label>
                                 <input type="text" name="app_name" class="form-control" value="{{ $settings['app_name'] }}" required>
-                                <small class="text-secondary mt-1">Nama ini akan muncul di sidebar dan judul halaman.</small>
+                                <small class="text-secondary mt-1">Nama ini akan muncul di sidebar, judul halaman, dan footer.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Logo & Favicon</label>
+                                <div class="row g-3">
+                                    <!-- Full Logo -->
+                                    <div class="col-md-6">
+                                        <div class="form-label">Logo Utama (Full)</div>
+                                        <div class="row align-items-start g-2">
+                                            <div class="col-auto">
+                                                <template x-if="logoPreview">
+                                                    <span class="avatar avatar-md" :style="'background-image: url(' + logoPreview + ')'"></span>
+                                                </template>
+                                                <template x-if="!logoPreview">
+                                                    @php
+                                                        $logo = \App\Models\Setting::get('app_logo');
+                                                        $media = $logo ? \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $logo)->first() : null;
+                                                    @endphp
+                                                    @if($media)
+                                                        <span class="avatar avatar-md" style="background-image: url({{ $media->getUrl() }})"></span>
+                                                    @else
+                                                        <span class="avatar avatar-md"><x-icon name="wallet" /></span>
+                                                    @endif
+                                                </template>
+                                            </div>
+                                            <div class="col">
+                                                <input type="file" class="form-control" accept="image/*" @change="handleUpload($event, 'logo')">
+                                                <input type="hidden" name="logo_media_id" x-model="logoMediaId">
+                                                <small class="text-secondary mt-1" x-text="logoStatus || 'Format: PNG, JPG, SVG. Di-resize ke 512px (kecuali SVG).'"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Favicon -->
+                                    <div class="col-md-6">
+                                        <div class="form-label">Favicon (Tab Browser)</div>
+                                        <div class="row align-items-start g-2">
+                                            <div class="col-auto">
+                                                <template x-if="faviconPreview">
+                                                    <span class="avatar avatar-md" :style="'background-image: url(' + faviconPreview + ')'"></span>
+                                                </template>
+                                                <template x-if="!faviconPreview">
+                                                    @php
+                                                        $favicon = \App\Models\Setting::get('app_favicon');
+                                                        $media = $favicon ? \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $favicon)->first() : null;
+                                                    @endphp
+                                                    @if($media)
+                                                        <span class="avatar avatar-md" style="background-image: url({{ $media->getUrl() }})"></span>
+                                                    @else
+                                                        <span class="avatar avatar-md"><x-icon name="coin" /></span>
+                                                    @endif
+                                                </template>
+                                            </div>
+                                            <div class="col">
+                                                <input type="file" class="form-control" accept="image/*" @change="handleUpload($event, 'favicon')">
+                                                <input type="hidden" name="favicon_media_id" x-model="faviconMediaId">
+                                                <small class="text-secondary mt-1" x-text="faviconStatus || 'Format: PNG, JPG, SVG. Di-resize ke 64x64px.'"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label required">Zona Waktu (Timezone)</label>
@@ -135,7 +195,12 @@
                         </div>
                     </div>
                     <div class="card-footer text-end">
-                        <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                        <button type="submit" class="btn btn-primary" :disabled="isUploading">
+                            <span x-show="!isUploading">Simpan Pengaturan</span>
+                            <span x-show="isUploading" style="display: none;">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Mengunggah...
+                            </span>
+                        </button>
                     </div>
                 </div>
         </form>
@@ -199,5 +264,113 @@
             mailTab.show();
         @endif
     });
+    function settingsUpload() {
+        return {
+            isUploading: false,
+            logoPreview: null,
+            logoMediaId: '',
+            logoStatus: '',
+            faviconPreview: null,
+            faviconMediaId: '',
+            faviconStatus: '',
+
+            async handleUpload(event, type) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                this.isUploading = true;
+                if (type === 'logo') {
+                    this.logoStatus = 'Memproses...';
+                    this.logoPreview = URL.createObjectURL(file);
+                } else {
+                    this.faviconStatus = 'Memproses...';
+                    this.faviconPreview = URL.createObjectURL(file);
+                }
+
+                try {
+                    let uploadFile = file;
+
+                    // Skip compression if SVG
+                    if (file.type !== 'image/svg+xml') {
+                        const targetSize = type === 'logo' ? 512 : 64;
+                        uploadFile = await this.compressImage(file, targetSize, type === 'favicon');
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', uploadFile);
+                    formData.append('folder', 'settings');
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    const response = await fetch('{{ route("api.upload") }}', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) throw new Error(result.error || 'Upload gagal');
+
+                    if (type === 'logo') {
+                        this.logoMediaId = result.media_id;
+                        this.logoStatus = '✅ Berhasil diunggah';
+                    } else {
+                        this.faviconMediaId = result.media_id;
+                        this.faviconStatus = '✅ Berhasil diunggah';
+                    }
+                } catch (error) {
+                    if (type === 'logo') this.logoStatus = '❌ ' + error.message;
+                    else this.faviconStatus = '❌ ' + error.message;
+                } finally {
+                    this.isUploading = false;
+                }
+            },
+
+            compressImage(file, maxSize, forceSquare = false) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (forceSquare) {
+                                // Center crop to square
+                                const side = Math.min(width, height);
+                                canvas.width = maxSize;
+                                canvas.height = maxSize;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, (width - side) / 2, (height - side) / 2, side, side, 0, 0, maxSize, maxSize);
+                            } else {
+                                // Maintain aspect ratio
+                                if (width > height) {
+                                    if (width > maxSize) {
+                                        height *= maxSize / width;
+                                        width = maxSize;
+                                    }
+                                } else {
+                                    if (height > maxSize) {
+                                        width *= maxSize / height;
+                                        height = maxSize;
+                                    }
+                                }
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+                            }
+
+                            canvas.toBlob((blob) => {
+                                resolve(new File([blob], file.name, { type: 'image/webp' }));
+                            }, 'image/webp', 0.8);
+                        };
+                    };
+                });
+            }
+        }
+    }
 </script>
 @endpush

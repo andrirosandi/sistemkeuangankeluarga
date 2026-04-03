@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SettingController extends Controller
 {
@@ -49,6 +51,8 @@ class SettingController extends Controller
     {
         $rules = [
             'app_name'        => 'required|string|max:255',
+            'logo_media_id'   => 'nullable|integer',
+            'favicon_media_id'=> 'nullable|integer',
             'timezone'        => 'required|string',
             'currency'        => 'required|string|max:10',
             'mail_host'       => 'nullable|string',
@@ -66,6 +70,8 @@ class SettingController extends Controller
             $smtpChanged = false;
 
             foreach ($validated as $key => $value) {
+                if (in_array($key, ['logo_media_id', 'favicon_media_id'])) continue;
+                
                 $oldValue = Setting::get($key);
                 
                 if (in_array($key, $smtpFields) && $value != $oldValue) {
@@ -78,6 +84,14 @@ class SettingController extends Controller
                 } else {
                     Setting::set($key, $value);
                 }
+            }
+
+            // Handle Logo & Favicon via MediaLibrary
+            if ($request->logo_media_id) {
+                $this->attachSettingsMedia($request->logo_media_id, 'app_logo');
+            }
+            if ($request->favicon_media_id) {
+                $this->attachSettingsMedia($request->favicon_media_id, 'app_favicon');
             }
 
             // Jika SMTP berubah, kirim OTP
@@ -135,5 +149,27 @@ class SettingController extends Controller
             'error' => 'Kode verifikasi salah! Silakan periksa kembali email Anda.',
             'show_otp_modal' => true
         ]);
+    }
+    /**
+     * Helper to attach media from temporary model to setting model
+     */
+    private function attachSettingsMedia($mediaId, $settingKey)
+    {
+        $setting = Setting::where('key', $settingKey)->first();
+        if (!$setting) {
+            $setting = Setting::create(['key' => $settingKey, 'value' => '']);
+        }
+
+        $media = Media::find($mediaId);
+        if ($media) {
+            // Delete old media in the same collection
+            $setting->clearMediaCollection($settingKey);
+            
+            // Move from TemporaryMedia to Setting model
+            $newMedia = $media->move($setting, $settingKey);
+            
+            // Update the setting value with the media filename
+            $setting->update(['value' => $newMedia->file_name]); 
+        }
     }
 }
