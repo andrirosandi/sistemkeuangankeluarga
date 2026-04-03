@@ -89,7 +89,7 @@
                                     <div class="d-flex align-items-center justify-content-end gap-2">
                                         <x-datatable.row-action 
                                             type="edit" 
-                                            href="{{ route('master.templates.edit', $template->id) }}"
+                                            onclick="window.location.href='{{ route('master.templates.edit', $template->id) }}'"
                                             title="Edit Template" />
                                         
                                         <x-datatable.row-action 
