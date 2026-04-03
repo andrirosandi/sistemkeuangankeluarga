@@ -4,6 +4,8 @@
 
 @section('content')
 <script>
+    window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
+
     document.addEventListener('alpine:init', () => {
         Alpine.data('templateForm', (config = {}) => ({
             categories: config.categories || {},
@@ -58,7 +60,7 @@
     @csrf
     @method('PUT')
     <div class="row row-cards" x-data="templateForm({
-        categories: @json($categories->keyBy('id'))
+        categories: window.templateCategories
     })">
         <div class="col-md-4">
             <div class="card">
