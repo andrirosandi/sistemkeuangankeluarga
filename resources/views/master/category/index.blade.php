@@ -57,17 +57,16 @@
                                 </div>
                             </td>
                              <td>
-                                <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-4" data-label="Aksi">
-                                    <button class="btn btn-icon btn-sm btn-ghost-primary"
-                                            onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')"
-                                            title="Edit Kategori">
-                                        <x-icon name="pencil" />
-                                    </button>
-                                    <button class="btn btn-icon btn-sm btn-ghost-danger"
-                                            onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')"
-                                            title="Hapus Kategori">
-                                        <x-icon name="trash" />
-                                    </button>
+                                <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
+                                    <x-datatable.row-action 
+                                        type="edit" 
+                                        onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')" 
+                                        title="Edit Kategori" />
+                                    
+                                    <x-datatable.row-action 
+                                        type="delete" 
+                                        onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" 
+                                        title="Hapus Kategori" />
                                 </div>
                             </td>
                         </tr>

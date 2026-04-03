@@ -75,24 +75,23 @@
                             <td class="sort-date text-secondary" data-date="{{ $user->created_at?->timestamp ?? 0 }}">
                                 {{ $user->created_at?->format('d M Y') }}
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-3" data-label="Aksi">
-                                    <button class="btn btn-icon btn-sm btn-ghost-primary"
-                                            onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->roles->first()?->name }}')"
-                                            title="Edit Profil">
-                                        <x-icon name="pencil" />
-                                    </button>
-                                    <button class="btn btn-icon btn-sm btn-ghost-warning"
-                                            onclick="resetPassword({{ $user->id }}, '{{ $user->name }}')"
-                                            title="Reset Password">
-                                        <x-icon name="key" />
-                                    </button>
+                             <td>
+                                <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
+                                    <x-datatable.row-action 
+                                        type="edit" 
+                                        onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->roles->first()?->name }}')" 
+                                        title="Edit Profil" />
+                                    
+                                    <x-datatable.row-action 
+                                        type="reset" 
+                                        onclick="resetPassword({{ $user->id }}, '{{ $user->name }}')" 
+                                        title="Reset Password" />
+                                    
                                     @if($user->id !== auth()->id())
-                                    <button class="btn btn-icon btn-sm btn-ghost-danger"
-                                            onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')"
-                                            title="Hapus Anggota">
-                                        <x-icon name="trash" />
-                                    </button>
+                                    <x-datatable.row-action 
+                                        type="delete" 
+                                        onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
+                                        title="Hapus Anggota" />
                                     @endif
                                 </div>
                             </td>

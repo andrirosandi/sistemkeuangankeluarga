@@ -289,3 +289,34 @@ header.navbar .container-fluid {
 .bg-primary-lt {
     background-color: rgba(var(--tblr-primary-rgb), 0.1) !important;
 }
+
+/* Action Buttons Hover & Centering Fixes */
+.btn-icon.btn-sm {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    padding: 0 !important;
+}
+
+.btn-icon.btn-sm .icon {
+    margin: 0 !important;
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Premium Hover Transitions */
+.btn-ghost-primary:hover .icon, 
+.btn-ghost-danger:hover .icon, 
+.btn-ghost-warning:hover .icon {
+    transform: scale(1.1);
+}
+
+/* Disable any default Tabler hover shifts */
+.btn-ghost-primary:hover, 
+.btn-ghost-danger:hover, 
+.btn-ghost-warning:hover {
+    transform: none !important;
+}
