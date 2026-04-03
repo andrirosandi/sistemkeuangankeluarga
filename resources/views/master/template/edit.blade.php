@@ -156,7 +156,12 @@
             },
 
             init() {
-                if(this.items.length === 0) {
+                // Ensure items is an array
+                if (!Array.isArray(this.items)) {
+                    this.items = [];
+                }
+                
+                if (this.items.length === 0) {
                     this.addItem();
                 }
             },
