@@ -77,7 +77,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Pengaturan
-    Route::get('/pengaturan', fn() => abort(404))->name('settings.index');
+    Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update');
+    Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp');
 });
 
 /*

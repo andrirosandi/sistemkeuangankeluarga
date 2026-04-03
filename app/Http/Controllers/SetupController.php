@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Crypt;
 use Spatie\Permission\Models\Role;
 
 class SetupController extends Controller
@@ -100,7 +101,7 @@ class SetupController extends Controller
             Setting::set('mail_host',       $request->mail_host);
             Setting::set('mail_port',       $request->mail_port);
             Setting::set('mail_username',   $request->mail_username);
-            Setting::set('mail_password',   $request->mail_password);
+            Setting::set('mail_password',   Crypt::encryptString($request->mail_password));
             Setting::set('mail_encryption', $request->mail_encryption);
             Setting::set('mail_from',       $request->mail_from);
         }
