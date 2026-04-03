@@ -14,34 +14,34 @@ class CategorySeeder extends Seeder
     {
         $categories = [
             // Pemasukan
-            'Gaji',
-            'Bonus / THR',
-            'Hasil Usaha',
-            
+            ['name' => 'Gaji', 'color' => '#10B981'],
+            ['name' => 'Bonus / THR', 'color' => '#34D399'],
+            ['name' => 'Hasil Usaha', 'color' => '#059669'],
+
             // Pengeluaran Rutin
-            'Makan & Minum',
-            'Belanja Bulanan',
-            'Listrik & Air',
-            'Internet & Pulsa',
-            
+            ['name' => 'Makan & Minum', 'color' => '#F59E0B'],
+            ['name' => 'Belanja Bulanan', 'color' => '#F97316'],
+            ['name' => 'Listrik & Air', 'color' => '#3B82F6'],
+            ['name' => 'Internet & Pulsa', 'color' => '#6366F1'],
+
             // Pengeluaran Lainnya
-            'Transportasi',
-            'Kesehatan',
-            'Hiburan / Self Reward',
-            'Pendidikan',
-            'Cicilan / Hutang',
-            
+            ['name' => 'Transportasi', 'color' => '#EF4444'],
+            ['name' => 'Kesehatan', 'color' => '#EC4899'],
+            ['name' => 'Hiburan / Self Reward', 'color' => '#8B5CF6'],
+            ['name' => 'Pendidikan', 'color' => '#14B8A6'],
+            ['name' => 'Cicilan / Hutang', 'color' => '#DC2626'],
+
             // Simpanan
-            'Tabungan / Investasi',
-            'Dana Darurat',
-            'Sedekah / Zakat',
-            
+            ['name' => 'Tabungan / Investasi', 'color' => '#0EA5E9'],
+            ['name' => 'Dana Darurat', 'color' => '#64748B'],
+            ['name' => 'Sedekah / Zakat', 'color' => '#84CC16'],
+
             // Lain-lain
-            'Lain-lain',
+            ['name' => 'Lain-lain', 'color' => '#616876'],
         ];
 
         foreach ($categories as $cat) {
-            Category::firstOrCreate(['name' => $cat]);
+            Category::firstOrCreate(['name' => $cat['name']], ['color' => $cat['color']]);
         }
     }
 }
