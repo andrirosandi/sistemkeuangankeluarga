@@ -2,13 +2,44 @@
     <div class="container-fluid">
 
         <div class="d-flex align-items-center gap-2">
-            {{-- Hamburger Menu (tablet & mobile) --}}
+            {{-- Hamburger Menu (tablet dan mobile) --}}
             <button class="navbar-toggler p-0 border-0 d-lg-none" type="button" id="mobile-menu-toggle" style="background: transparent; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                 <i class="ti ti-menu-2" style="font-size: 24px;"></i>
             </button>
 
             {{-- Page Title --}}
-            <span class="fw-semibold text-body">@yield('page-title', 'Dashboard')</span>
+            {{-- Breadcrumb (Desktop) dan Module Title (Mobile) --}}
+            @php
+                $segments = Request::segments();
+                $currentTitle = $__env->yieldContent('page-title') ?: $__env->yieldContent('title') ?: 'Dashboard';
+            @endphp
+            
+            <nav class="d-none d-md-flex" aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-dots py-0 m-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('dashboard') }}" class="text-secondary d-flex align-items-center">
+                            <i class="ti ti-home me-1"></i> Home
+                        </a>
+                    </li>
+                    @php $link = ''; @endphp
+                    @foreach($segments as $index => $segment)
+                        @php $link .= '/' . $segment; @endphp
+                        @if($index + 1 < count($segments))
+                            <li class="breadcrumb-item text-secondary">
+                                {{ ucfirst(str_replace('-', ' ', $segment)) }}
+                            </li>
+                        @else
+                            <li class="breadcrumb-item active fw-bold" aria-current="page">
+                                <span>{{ $currentTitle }}</span>
+                            </li>
+                        @endif
+                    @endforeach
+                </ol>
+            </nav>
+
+            <div class="d-md-none">
+                <span class="fw-bold text-body">{{ $currentTitle }}</span>
+            </div>
         </div>
 
         <div class="navbar-nav flex-row order-lg-last">

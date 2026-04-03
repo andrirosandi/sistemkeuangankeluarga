@@ -44,7 +44,7 @@
                             <div class="mb-3">
                                 <x-shared.file-upload 
                                     name="logo_component" 
-                                    label="Logo & Favicon" 
+                                    label="Logo dan Favicon" 
                                     :current-value="$logoMedia?->getUrl()"
                                     mode="settings-logo"
                                     @logo-uploaded="logoMediaId = $event.detail"

@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Peran & Akses')
+@section('title', 'Peran dan Akses')
 
 @section('content')
 <div class="row row-cards">
     <div class="col-12">
         <div class="card" id="table-default">
             <div class="card-header border-bottom">
-                <h3 class="card-title">Daftar Peran & Akses</h3>
+                <h3 class="card-title">Daftar Peran dan Akses</h3>
                 <div class="card-actions">
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
                         <x-icon name="plus" />
