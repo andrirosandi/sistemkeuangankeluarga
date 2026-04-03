@@ -136,8 +136,8 @@
     function templateForm(config = {}) {
         return {
             categories: config.categories || {},
-            selectedCategoryId: '{{ old('category_id', '') }}',
-            items: [
+            selectedCategoryId: String('{{ old('category_id', '') }}'),
+            items: {{ Js::from(old('details')) }} || [
                 { description: '', amount: 0 }
             ],
             

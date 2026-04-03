@@ -144,9 +144,9 @@
     function templateForm(config = {}) {
         return {
             categories: config.categories || {},
-            selectedCategoryId: '{{ old('category_id', $template->category_id) }}',
-            // Priority: Old input (if any), then Template Details, then Default item
-            items: @json(old('details', $template->details->toArray())),
+            selectedCategoryId: String('{{ old('category_id', $template->category_id) }}'),
+            // Priority: Old input (if any), then Template Details, then Default empty array
+            items: {{ Js::from(old('details', $template->details)) }} || [],
             
             get selectedCategoryColor() {
                 if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
