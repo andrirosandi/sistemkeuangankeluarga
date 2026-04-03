@@ -73,7 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('roles/bulk-delete', [\App\Http\Controllers\Master\RoleController::class, 'bulkDelete'])->name('roles.bulk-delete');
         Route::resource('roles', \App\Http\Controllers\Master\RoleController::class);
         
-        Route::get('/template', fn() => abort(404))->name('template.index');
+        // Transaction Templates (Presets)
+        Route::resource('templates', \App\Http\Controllers\Master\TemplateController::class);
     });
 
     // Pengaturan

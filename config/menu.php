@@ -63,7 +63,7 @@ return [
                 ],
                 [
                     'label'      => 'Template Rutin',
-                    'route'      => 'master.template.index',
+                    'route'      => 'master.templates.index',
                     'permission' => 'template.view',
                 ],
             ],
