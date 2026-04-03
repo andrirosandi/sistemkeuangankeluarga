@@ -3,6 +3,57 @@
 @section('title', 'Tambah Template Baru')
 
 @section('content')
+<script>
+    function templateForm(config = {}) {
+        return {
+            categories: config.categories || {},
+            selectedCategoryId: String('{{ old('category_id', '') }}'),
+            items: {{ Js::from(old('details')) }} || [
+                { description: '', amount: 0 }
+            ],
+            
+            get selectedCategoryColor() {
+                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                    return this.categories[this.selectedCategoryId].color;
+                }
+                return null;
+            },
+
+            init() {
+                if (!Array.isArray(this.items)) {
+                    this.items = [];
+                }
+                
+                if (this.items.length === 0) {
+                    this.addItem();
+                }
+            },
+
+            addItem() {
+                this.items.push({ description: '', amount: 0 });
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                }
+            },
+
+            totalAmount() {
+                return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+            },
+
+            formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(number);
+            }
+        }
+    }
+</script>
+
 <form action="{{ route('master.templates.store') }}" method="POST">
     @csrf
     <div class="row row-cards" x-data="templateForm({
@@ -130,57 +181,3 @@
 </form>
 
 @endsection
-
-@push('scripts')
-<script>
-    function templateForm(config = {}) {
-        return {
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', '') }}'),
-            items: {{ Js::from(old('details')) }} || [
-                { description: '', amount: 0 }
-            ],
-            
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-
-            init() {
-                // Ensure items is an array
-                if (!Array.isArray(this.items)) {
-                    this.items = [];
-                }
-                
-                if (this.items.length === 0) {
-                    this.addItem();
-                }
-            },
-
-            addItem() {
-                this.items.push({ description: '', amount: 0 });
-            },
-
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-
-            totalAmount() {
-                return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-            },
-
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
-        }
-    }
-</script>
-@endpush

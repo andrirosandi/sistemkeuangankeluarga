@@ -3,6 +3,57 @@
 @section('title', 'Edit Template Transaksi')
 
 @section('content')
+<script>
+    function templateForm(config = {}) {
+        return {
+            categories: config.categories || {},
+            selectedCategoryId: String('{{ old('category_id', $template->category_id) }}'),
+            // Priority: Old input (if any), then Template Details, then Default empty array
+            items: {{ Js::from(old('details', $template->details)) }} || [],
+            
+            get selectedCategoryColor() {
+                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                    return this.categories[this.selectedCategoryId].color;
+                }
+                return null;
+            },
+
+            init() {
+                // Ensure items is an array
+                if (!Array.isArray(this.items)) {
+                    this.items = [];
+                }
+                
+                if (this.items.length === 0) {
+                    this.addItem();
+                }
+            },
+
+            addItem() {
+                this.items.push({ description: '', amount: 0 });
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                }
+            },
+
+            totalAmount() {
+                return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+            },
+
+            formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(number);
+            }
+        }
+    }
+</script>
+
 <form action="{{ route('master.templates.update', $template->id) }}" method="POST">
     @csrf
     @method('PUT')
@@ -138,56 +189,3 @@
 </form>
 
 @endsection
-
-@push('scripts')
-<script>
-    function templateForm(config = {}) {
-        return {
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', $template->category_id) }}'),
-            // Priority: Old input (if any), then Template Details, then Default empty array
-            items: {{ Js::from(old('details', $template->details)) }} || [],
-            
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-
-            init() {
-                // Ensure items is an array
-                if (!Array.isArray(this.items)) {
-                    this.items = [];
-                }
-                
-                if (this.items.length === 0) {
-                    this.addItem();
-                }
-            },
-
-            addItem() {
-                this.items.push({ description: '', amount: 0 });
-            },
-
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-
-            totalAmount() {
-                return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-            },
-
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
-        }
-    }
-</script>
-@endpush
