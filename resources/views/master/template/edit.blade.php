@@ -4,8 +4,8 @@
 
 @section('content')
 <script>
-    function templateForm(config = {}) {
-        return {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('templateForm', (config = {}) => ({
             categories: config.categories || {},
             selectedCategoryId: String('{{ old('category_id', $template->category_id) }}'),
             // Priority: Old input (if any), then Template Details, then Default empty array
@@ -50,8 +50,8 @@
                     minimumFractionDigits: 0
                 }).format(number);
             }
-        }
-    }
+        }));
+    });
 </script>
 
 <form action="{{ route('master.templates.update', $template->id) }}" method="POST">

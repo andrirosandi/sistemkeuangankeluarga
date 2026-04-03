@@ -4,8 +4,8 @@
 
 @section('content')
 <script>
-    function templateForm(config = {}) {
-        return {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('templateForm', (config = {}) => ({
             categories: config.categories || {},
             selectedCategoryId: String('{{ old('category_id', '') }}'),
             items: {{ Js::from(old('details')) }} || [
@@ -50,8 +50,8 @@
                     minimumFractionDigits: 0
                 }).format(number);
             }
-        }
-    }
+        }));
+    });
 </script>
 
 <form action="{{ route('master.templates.store') }}" method="POST">
