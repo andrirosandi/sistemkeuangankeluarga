@@ -26,7 +26,7 @@
     <div
         class="border border-dashed rounded p-3 text-center position-relative mb-2"
         style="cursor:pointer; min-height:120px; display:flex; align-items:center; justify-content:center; transition: background 0.2s; z-index:1;"
-        :class="dropzoneHover ? 'bg-light border-primary' : 'bg-white'"
+        :class="dropzoneHover ? 'bg-body-tertiary border-primary' : 'bg-body'"
         @dragover.prevent="dropzoneHover = true"
         @dragleave.prevent="dropzoneHover = false"
         @drop.prevent="handleDrop($event)"
