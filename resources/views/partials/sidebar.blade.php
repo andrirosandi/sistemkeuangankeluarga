@@ -1,17 +1,18 @@
 <aside class="navbar navbar-vertical navbar-expand-lg">
     <div class="container-fluid px-0">
         <div>
-            <a href="{{ route('dashboard') }}" class="navbar-brand d-flex align-items-center gap-2 text-body text-decoration-none">
-                @php
-                    $logo = \App\Models\Setting::get('app_logo');
-                    $media = $logo ? \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $logo)->first() : null;
-                @endphp
-                @if($media)
-                    <img src="{{ $media->getUrl() }}" alt="Logo" class="navbar-brand-image" style="height: 2rem; max-width: 2rem; object-fit: contain;">
-                @else
-                    <i class="ti ti-wallet fs-2 text-primary"></i>
-                @endif
-                <span class="fw-bold" style="font-size: 1rem; line-height: 1.2">
+            <a href="{{ route('dashboard') }}" class="navbar-brand text-body text-decoration-none" style="padding-left: 1rem !important; margin: 0 !important; display: flex; align-items: center;">
+                <span class="nav-link-icon d-flex align-items-center justify-content-center" style="margin-right: 0.5rem;">
+                    @php
+                        $media = \App\Models\Setting::where('key', 'app_logo')->first()?->getFirstMedia('app_logo');
+                    @endphp
+                    @if($media)
+                        <img src="{{ $media->getUrl() }}" alt="Logo" style="max-height: 1.25rem; max-width: 1.25rem; object-fit: contain;">
+                    @else
+                        <i class="ti ti-wallet text-primary" style="font-size: 1.25rem;"></i>
+                    @endif
+                </span>
+                <span class="nav-link-title fw-bold" style="font-size: 0.95rem; line-height: 1.2">
                     {{ \App\Models\Setting::get('app_name', config('app.name')) }}
                 </span>
             </a>

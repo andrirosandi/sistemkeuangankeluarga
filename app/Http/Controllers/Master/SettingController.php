@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting;
 use App\Mail\SmtpTestMail;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SettingController extends Controller
@@ -19,19 +18,27 @@ class SettingController extends Controller
      */
     public function index()
     {
+        $keys = [
+            'app_name', 'timezone', 'currency', 'mail_host', 'mail_port', 
+            'mail_username', 'mail_encryption', 'mail_from', 'mail_password'
+        ];
+
+        // Ambil semua data setting dalam 1 query saja (Optimasi)
+        $settingsData = Setting::whereIn('key', $keys)->get()->pluck('value', 'key');
+
         $settings = [
-            'app_name'        => Setting::get('app_name', config('app.name')),
-            'timezone'        => Setting::get('timezone', config('app.timezone')),
-            'currency'        => Setting::get('currency', 'Rp'),
-            'mail_host'       => Setting::get('mail_host'),
-            'mail_port'       => Setting::get('mail_port'),
-            'mail_username'   => Setting::get('mail_username'),
-            'mail_encryption' => Setting::get('mail_encryption', 'tls'),
-            'mail_from'       => Setting::get('mail_from'),
+            'app_name' => $settingsData['app_name'] ?? config('app.name'),
+            'timezone' => $settingsData['timezone'] ?? config('app.timezone'),
+            'currency' => $settingsData['currency'] ?? 'Rp',
+            'mail_host' => $settingsData['mail_host'] ?? '',
+            'mail_port' => $settingsData['mail_port'] ?? '',
+            'mail_username' => $settingsData['mail_username'] ?? '',
+            'mail_encryption' => $settingsData['mail_encryption'] ?? 'tls',
+            'mail_from' => $settingsData['mail_from'] ?? '',
         ];
 
         // Dekripsi password SMTP jika ada
-        $smtpPasswordEncrypted = Setting::get('mail_password');
+        $smtpPasswordEncrypted = $settingsData['mail_password'] ?? null;
         $settings['mail_password'] = '';
         if ($smtpPasswordEncrypted) {
             try {
@@ -41,7 +48,11 @@ class SettingController extends Controller
             }
         }
 
-        return view('master.setting.index', compact('settings'));
+        // Get current logo and favicon media
+        $logoMedia = Setting::where('key', 'app_logo')->first()?->getFirstMedia('app_logo');
+        $faviconMedia = Setting::where('key', 'app_favicon')->first()?->getFirstMedia('app_favicon');
+
+        return view('master.setting.index', compact('settings', 'logoMedia', 'faviconMedia'));
     }
 
     /**
@@ -50,17 +61,17 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $rules = [
-            'app_name'        => 'required|string|max:255',
-            'logo_media_id'   => 'nullable|integer',
-            'favicon_media_id'=> 'nullable|integer',
-            'timezone'        => 'required|string',
-            'currency'        => 'required|string|max:10',
-            'mail_host'       => 'nullable|string',
-            'mail_port'       => 'nullable|numeric',
-            'mail_username'   => 'nullable|string',
-            'mail_password'   => 'nullable|string',
+            'app_name' => 'required|string|max:255',
+            'logo_media_id' => 'nullable|integer',
+            'favicon_media_id' => 'nullable|integer',
+            'timezone' => 'required|string',
+            'currency' => 'required|string|max:10',
+            'mail_host' => 'nullable|string',
+            'mail_port' => 'nullable|numeric',
+            'mail_username' => 'nullable|string',
+            'mail_password' => 'nullable|string',
             'mail_encryption' => 'nullable|in:ssl,tls',
-            'mail_from'       => 'nullable|email',
+            'mail_from' => 'nullable|email',
         ];
 
         $validated = $request->validate($rules);
@@ -70,15 +81,17 @@ class SettingController extends Controller
             $smtpChanged = false;
 
             foreach ($validated as $key => $value) {
-                if (in_array($key, ['logo_media_id', 'favicon_media_id'])) continue;
-                
+                if (in_array($key, ['logo_media_id', 'favicon_media_id'])) {
+                    continue;
+                }
+
                 $oldValue = Setting::get($key);
-                
+
                 if (in_array($key, $smtpFields) && $value != $oldValue) {
                     $smtpChanged = true;
                 }
 
-                if ($key === 'mail_password' && !empty($value)) {
+                if ($key === 'mail_password' && ! empty($value)) {
                     // Encrypt SMTP password (2-way)
                     Setting::set($key, Crypt::encryptString($value));
                 } else {
@@ -99,25 +112,26 @@ class SettingController extends Controller
                 $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
                 Session::put('smtp_verification_otp', $otp);
                 Session::put('smtp_verification_expires', now()->addMinutes(10));
-                
+
                 // Coba kirim email
                 try {
                     Mail::to($request->mail_from)->send(new SmtpTestMail($otp));
+
                     return redirect()->back()->with([
-                        'success' => 'Pengaturan disimpan! Silakan cek email ' . $request->mail_from . ' untuk kode verifikasi.',
-                        'show_otp_modal' => true
+                        'success' => 'Pengaturan disimpan! Silakan cek email '.$request->mail_from.' untuk kode verifikasi.',
+                        'show_otp_modal' => true,
                     ]);
                 } catch (\Exception $e) {
                     // Jika gagal kirim, beri peringatan tapi data tetap tersimpan
                     return redirect()->back()->with([
-                        'warning' => 'Pengaturan disimpan, tapi GAGAL mengirim email percobaan: ' . $e->getMessage(),
+                        'warning' => 'Pengaturan disimpan, tapi GAGAL mengirim email percobaan: '.$e->getMessage(),
                     ]);
                 }
             }
 
             return redirect()->back()->with('success', 'Pengaturan sistem berhasil diperbarui.');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui pengaturan! ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui pengaturan! '.$e->getMessage());
         }
     }
 
@@ -131,32 +145,33 @@ class SettingController extends Controller
         $storedOtp = Session::get('smtp_verification_otp');
         $expiresAt = Session::get('smtp_verification_expires');
 
-        if (!$storedOtp || now()->isAfter($expiresAt)) {
+        if (! $storedOtp || now()->isAfter($expiresAt)) {
             return redirect()->back()->with([
                 'error' => 'Kode verifikasi kedaluwarsa atau tidak ditemukan. Silakan simpan ulang pengaturan.',
-                'show_otp_modal' => true
+                'show_otp_modal' => true,
             ]);
         }
 
         if ($request->otp === $storedOtp) {
             Session::forget(['smtp_verification_otp', 'smtp_verification_expires']);
             Setting::set('smtp_verified_at', now());
-            
+
             return redirect()->route('settings.index')->with('success', 'Email berhasil diverifikasi! Sistem kini siap mengirim notifikasi.');
         }
 
         return redirect()->back()->with([
             'error' => 'Kode verifikasi salah! Silakan periksa kembali email Anda.',
-            'show_otp_modal' => true
+            'show_otp_modal' => true,
         ]);
     }
+
     /**
      * Helper to attach media from temporary model to setting model
      */
     private function attachSettingsMedia($mediaId, $settingKey)
     {
         $setting = Setting::where('key', $settingKey)->first();
-        if (!$setting) {
+        if (! $setting) {
             $setting = Setting::create(['key' => $settingKey, 'value' => '']);
         }
 
@@ -164,12 +179,12 @@ class SettingController extends Controller
         if ($media) {
             // Delete old media in the same collection
             $setting->clearMediaCollection($settingKey);
-            
+
             // Move from TemporaryMedia to Setting model
             $newMedia = $media->move($setting, $settingKey);
-            
+
             // Update the setting value with the media filename
-            $setting->update(['value' => $newMedia->file_name]); 
+            $setting->update(['value' => $newMedia->file_name]);
         }
     }
 }

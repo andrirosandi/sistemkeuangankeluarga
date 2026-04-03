@@ -2,6 +2,10 @@
 
 @section('title', 'Pengaturan Sistem')
 
+@push('styles')
+<style>[x-cloak] { display: none !important; }</style>
+@endpush
+
 @section('content')
 <div class="row row-cards">
     <div class="col-md-3">
@@ -9,15 +13,15 @@
             <div class="card-body p-0">
                 <div class="nav flex-column nav-pills" id="settings-tabs" role="tablist" aria-orientation="vertical">
                     <button class="nav-link text-start active" id="tab-general-link" data-bs-toggle="pill" data-bs-target="#tab-general" type="button" role="tab">
-                        <x-icon name="settings" class="me-2" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37a1.724 1.724 0 0 0 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
                         Umum (General)
                     </button>
                     <button class="nav-link text-start" id="tab-finance-link" data-bs-toggle="pill" data-bs-target="#tab-finance" type="button" role="tab">
-                        <x-icon name="coin" class="me-2" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1" /><path d="M12 7v10" /></svg>
                         Finansial (Finance)
                     </button>
                     <button class="nav-link text-start" id="tab-mail-link" data-bs-toggle="pill" data-bs-target="#tab-mail" type="button" role="tab">
-                        <x-icon name="mail" class="me-2" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg>
                         Layanan Email (SMTP)
                     </button>
                 </div>
@@ -25,7 +29,7 @@
         </div>
     </div>
 
-    <div class="col-md-9" x-data="settingsUpload()">
+    <div class="col-md-9" x-data="{ logoMediaId: '', faviconMediaId: '', isUploading: false }" @uploading-changed.window="isUploading = $event.detail.uploading">
         <form action="{{ route('settings.update') }}" method="POST">
                 @csrf
                 <div class="card">
@@ -38,64 +42,17 @@
                                 <small class="text-secondary mt-1">Nama ini akan muncul di sidebar, judul halaman, dan footer.</small>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Logo & Favicon</label>
-                                <div class="row g-3">
-                                    <!-- Full Logo -->
-                                    <div class="col-md-6">
-                                        <div class="form-label">Logo Utama (Full)</div>
-                                        <div class="row align-items-start g-2">
-                                            <div class="col-auto">
-                                                <template x-if="logoPreview">
-                                                    <span class="avatar avatar-md" :style="'background-image: url(' + logoPreview + ')'"></span>
-                                                </template>
-                                                <template x-if="!logoPreview">
-                                                    @php
-                                                        $logo = \App\Models\Setting::get('app_logo');
-                                                        $media = $logo ? \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $logo)->first() : null;
-                                                    @endphp
-                                                    @if($media)
-                                                        <span class="avatar avatar-md" style="background-image: url({{ $media->getUrl() }})"></span>
-                                                    @else
-                                                        <span class="avatar avatar-md"><x-icon name="wallet" /></span>
-                                                    @endif
-                                                </template>
-                                            </div>
-                                            <div class="col">
-                                                <input type="file" class="form-control" accept="image/*" @change="handleUpload($event, 'logo')">
-                                                <input type="hidden" name="logo_media_id" x-model="logoMediaId">
-                                                <small class="text-secondary mt-1" x-text="logoStatus || 'Format: PNG, JPG, SVG. Di-resize ke 512px (kecuali SVG).'"></small>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <x-shared.file-upload 
+                                    name="logo_component" 
+                                    label="Logo & Favicon" 
+                                    :current-value="$logoMedia?->getUrl()"
+                                    mode="settings-logo"
+                                    @logo-uploaded="logoMediaId = $event.detail"
+                                    @favicon-uploaded="faviconMediaId = $event.detail"
+                                />
 
-                                    <!-- Favicon -->
-                                    <div class="col-md-6">
-                                        <div class="form-label">Favicon (Tab Browser)</div>
-                                        <div class="row align-items-start g-2">
-                                            <div class="col-auto">
-                                                <template x-if="faviconPreview">
-                                                    <span class="avatar avatar-md" :style="'background-image: url(' + faviconPreview + ')'"></span>
-                                                </template>
-                                                <template x-if="!faviconPreview">
-                                                    @php
-                                                        $favicon = \App\Models\Setting::get('app_favicon');
-                                                        $media = $favicon ? \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $favicon)->first() : null;
-                                                    @endphp
-                                                    @if($media)
-                                                        <span class="avatar avatar-md" style="background-image: url({{ $media->getUrl() }})"></span>
-                                                    @else
-                                                        <span class="avatar avatar-md"><x-icon name="coin" /></span>
-                                                    @endif
-                                                </template>
-                                            </div>
-                                            <div class="col">
-                                                <input type="file" class="form-control" accept="image/*" @change="handleUpload($event, 'favicon')">
-                                                <input type="hidden" name="favicon_media_id" x-model="faviconMediaId">
-                                                <small class="text-secondary mt-1" x-text="faviconStatus || 'Format: PNG, JPG, SVG. Di-resize ke 64x64px.'"></small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <input type="hidden" name="logo_media_id" :value="logoMediaId">
+                                <input type="hidden" name="favicon_media_id" :value="faviconMediaId">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label required">Zona Waktu (Timezone)</label>
@@ -124,18 +81,18 @@
                                 <h3 class="card-title m-0">Konfigurasi Email (SMTP)</h3>
                                 @if(\App\Models\Setting::get('smtp_verified_at'))
                                     <span class="badge bg-success-lt">
-                                        <x-icon name="check" class="me-1" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
                                         Terverifikasi
                                     </span>
                                 @else
                                     <span class="badge bg-warning-lt">
-                                        <x-icon name="alert-circle" class="me-1" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg>
                                         Belum Verifikasi
                                     </span>
                                 @endif
                             </div>
                             <div class="alert alert-info">
-                                <x-icon name="info-circle" class="me-2" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
                                 Gunakan layanan SMTP untuk mengirim notifikasi penagihan atau reset password.
                             </div>
                             <div class="row">
@@ -166,8 +123,8 @@
                                             <input type="password" name="mail_password" id="mail_password" class="form-control" value="{{ $settings['mail_password'] }}">
                                             <span class="input-group-text">
                                                 <a href="javascript:void(0)" class="link-secondary" id="toggle-password-btn" title="Show password" data-bs-toggle="tooltip" onclick="toggleSmtpPassword(this)">
-                                                    <x-icon name="eye" id="password-hide-icon" />
-                                                    <x-icon name="eye-off" id="password-show-icon" class="d-none" />
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" id="password-hide-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon d-none" id="password-show-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.584 10.587a2 2 0 0 0 2.829 2.828" /><path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87" /><path d="M3 3l18 18" /></svg>
                                                 </a>
                                             </span>
                                         </div>
@@ -213,7 +170,7 @@
         <div class="modal-content">
             <div class="modal-status bg-primary"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="mail-opened" class="text-primary icon-lg mb-2" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon text-primary icon-lg mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 9l9 6l9 -6l-9 -6l-9 6" /><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 19l6 -6" /><path d="M15 13l6 6" /></svg>
                 <h3>Verifikasi Email</h3>
                 <div class="text-secondary mb-3">Kami telah mengirimkan kode OTP ke <strong>{{ $settings['mail_from'] }}</strong>. Silakan masukkan kode tersebut di bawah ini:</div>
                 <form action="{{ route('settings.verify-otp') }}" method="POST" id="form-otp">
@@ -246,7 +203,6 @@
             input.type = 'text';
             el.setAttribute('title', 'Hide password');
             eyeIcon.classList.add('d-none');
-            eyeOffIcon.classList.status = 'icon'; // Ensure icon class
             eyeOffIcon.classList.remove('d-none');
         } else {
             input.type = 'password';
@@ -259,118 +215,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         @if(session('show_otp_modal'))
             new bootstrap.Modal(document.getElementById('modal-otp')).show();
-            // Switch to mail tab
             const mailTab = new bootstrap.Tab(document.getElementById('tab-mail-link'));
             mailTab.show();
         @endif
     });
-    function settingsUpload() {
-        return {
-            isUploading: false,
-            logoPreview: null,
-            logoMediaId: '',
-            logoStatus: '',
-            faviconPreview: null,
-            faviconMediaId: '',
-            faviconStatus: '',
 
-            async handleUpload(event, type) {
-                const file = event.target.files[0];
-                if (!file) return;
 
-                this.isUploading = true;
-                if (type === 'logo') {
-                    this.logoStatus = 'Memproses...';
-                    this.logoPreview = URL.createObjectURL(file);
-                } else {
-                    this.faviconStatus = 'Memproses...';
-                    this.faviconPreview = URL.createObjectURL(file);
-                }
-
-                try {
-                    let uploadFile = file;
-
-                    // Skip compression if SVG
-                    if (file.type !== 'image/svg+xml') {
-                        const targetSize = type === 'logo' ? 512 : 64;
-                        uploadFile = await this.compressImage(file, targetSize, type === 'favicon');
-                    }
-
-                    const formData = new FormData();
-                    formData.append('file', uploadFile);
-                    formData.append('folder', 'settings');
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    const response = await fetch('{{ route("api.upload") }}', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) throw new Error(result.error || 'Upload gagal');
-
-                    if (type === 'logo') {
-                        this.logoMediaId = result.media_id;
-                        this.logoStatus = '✅ Berhasil diunggah';
-                    } else {
-                        this.faviconMediaId = result.media_id;
-                        this.faviconStatus = '✅ Berhasil diunggah';
-                    }
-                } catch (error) {
-                    if (type === 'logo') this.logoStatus = '❌ ' + error.message;
-                    else this.faviconStatus = '❌ ' + error.message;
-                } finally {
-                    this.isUploading = false;
-                }
-            },
-
-            compressImage(file, maxSize, forceSquare = false) {
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.src = e.target.result;
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-
-                            if (forceSquare) {
-                                // Center crop to square
-                                const side = Math.min(width, height);
-                                canvas.width = maxSize;
-                                canvas.height = maxSize;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, (width - side) / 2, (height - side) / 2, side, side, 0, 0, maxSize, maxSize);
-                            } else {
-                                // Maintain aspect ratio
-                                if (width > height) {
-                                    if (width > maxSize) {
-                                        height *= maxSize / width;
-                                        width = maxSize;
-                                    }
-                                } else {
-                                    if (height > maxSize) {
-                                        width *= maxSize / height;
-                                        height = maxSize;
-                                    }
-                                }
-                                canvas.width = width;
-                                canvas.height = height;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0, width, height);
-                            }
-
-                            canvas.toBlob((blob) => {
-                                resolve(new File([blob], file.name, { type: 'image/webp' }));
-                            }, 'image/webp', 0.8);
-                        };
-                    };
-                });
-            }
-        }
-    }
 </script>
 @endpush

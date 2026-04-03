@@ -6,16 +6,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php 
         $appName = \App\Models\Setting::get('app_name', config('app.name')); 
-        $favicon = \App\Models\Setting::get('app_favicon');
+        $faviconUrl = \App\Models\Setting::where('key', 'app_favicon')->first()?->getFirstMediaUrl('app_favicon');
     @endphp
     <title>@yield('title', $appName) - {{ $appName }}</title>
 
-    @if($favicon)
-        <link rel="icon" href="{{ asset('storage/' . \Spatie\MediaLibrary\MediaCollections\Models\Media::where('file_name', $favicon)->first()?->id . '/' . $favicon) }}" type="image/webp">
+    @if($faviconUrl)
+        <link rel="icon" href="{{ $faviconUrl }}" type="image/webp">
     @endif
 
     {{-- Tabler via npm (bundled by Vite) --}}
-    @vite(['resources/css/admin.css', 'resources/js/admin.js'])
+    @vite(['resources/css/admin.css', 'resources/js/admin.js', 'resources/js/app.js'])
 
     @stack('styles')
 </head>
