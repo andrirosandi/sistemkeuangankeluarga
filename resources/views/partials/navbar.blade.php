@@ -63,8 +63,8 @@
             </div>
 
             {{-- User Dropdown --}}
-            <div class="nav-item dropdown">
-                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" id="nav-user-menu">
+            <div class="nav-item dropdown" x-data="{ open: false }" @click.away="open = false">
+                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" id="nav-user-menu" @click.prevent="open = !open">
                     @php
                         $avatarUrl = auth()->user()->getFirstMediaUrl('avatars', 'thumb');
                     @endphp
@@ -77,7 +77,11 @@
                         </span>
                     @endif
                 </a>
-                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" 
+                     :class="{ 'show': open }"
+                     x-show="open"
+                     style="position: absolute; right: 0; top: 100%; margin-top: 10px; left: auto;"
+                     @click.away="open = false">
                     <div class="dropdown-item-text py-2 px-3">
                         <div class="fw-medium" style="font-size:0.9rem">{{ auth()->user()->name }}</div>
                         <div class="text-secondary" style="font-size:0.75rem">

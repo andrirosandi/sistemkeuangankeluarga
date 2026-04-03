@@ -15,7 +15,7 @@
     @endif
 
     {{-- Tabler via npm (bundled by Vite) --}}
-    @vite(['resources/css/admin.css', 'resources/js/admin.js', 'resources/js/app.js'])
+    @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 
     @stack('styles')
 </head>
