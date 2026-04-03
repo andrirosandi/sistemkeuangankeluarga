@@ -35,7 +35,10 @@ class CategoryController extends Controller
 
             return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan kategori! Silakan coba lagi.');
+            return redirect()->back()->withInput()->with([
+                'error' => 'Gagal menambahkan kategori! Silakan coba lagi.',
+                'modal' => 'add'
+            ]);
         }
     }
 
@@ -57,7 +60,10 @@ class CategoryController extends Controller
 
             return redirect()->back()->with('success', 'Kategori berhasil diubah.');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal mengubah kategori! Pastikan nama belum digunakan.');
+            return redirect()->back()->withInput()->with([
+                'error' => 'Gagal mengubah kategori! Pastikan nama belum digunakan.',
+                'modal' => 'edit'
+            ]);
         }
     }
 

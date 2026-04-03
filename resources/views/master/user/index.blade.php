@@ -150,6 +150,7 @@
                                 <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>{{ strtoupper($role->name) }}</option>
                             @endforeach
                         </select>
+                        @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="row">
                         <div class="col-lg-6">
@@ -201,11 +202,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label required">Role / Hak Akses</label>
-                        <select class="form-select" name="role" id="edit-role">
+                        <select class="form-select @error('role') is-invalid @enderror" name="role" id="edit-role">
                             @foreach($roles as $role)
                                 <option value="{{ $role->name }}">{{ strtoupper($role->name) }}</option>
                             @endforeach
                         </select>
+                        @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -232,7 +234,8 @@
                     <p class="text-secondary small mb-3">Password baru harus memiliki minimal 8 karakter.</p>
                     <div class="mb-3">
                         <label class="form-label required">Password Baru</label>
-                        <input type="password" class="form-control" name="password" required>
+                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" required>
+                        @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label required">Konfirmasi Password Baru</label>
@@ -339,7 +342,13 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Handle Validation Errors Show Modals
         @if ($errors->any())
-            @if(old('_method') === 'PUT')
+            @if(session('modal') === 'reset')
+                @php 
+                    // Get user from URI if possible or rely on JS to set it
+                    $resetUserId = old('id') ?: explode('/', request()->url())[count(explode('/', request()->url()))-2]; 
+                @endphp
+                new bootstrap.Modal(document.getElementById('modal-reset')).show();
+            @elseif(session('modal') === 'edit' || old('_method') === 'PUT')
                 const editModalId = "{{ old('id') }}";
                 if(editModalId) {
                     const editForm = document.getElementById('form-edit');

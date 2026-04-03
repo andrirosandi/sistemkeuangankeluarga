@@ -44,7 +44,10 @@ class UserController extends Controller
 
             return redirect()->back()->with('success', 'Anggota keluarga baru berhasil ditambahkan.');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan anggota baru! Silakan coba lagi.');
+            return redirect()->back()->withInput()->with([
+                'error' => 'Gagal menambahkan anggota baru! Silakan coba lagi.',
+                'modal' => 'add'
+            ]);
         }
     }
 
@@ -69,7 +72,10 @@ class UserController extends Controller
 
             return redirect()->back()->with('success', 'Data anggota keluarga berhasil diperbarui.');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui data! Pastikan email belum digunakan.');
+            return redirect()->back()->withInput()->with([
+                'error' => 'Gagal memperbarui data! Pastikan email belum digunakan.',
+                'modal' => 'edit'
+            ]);
         }
     }
 
@@ -89,7 +95,10 @@ class UserController extends Controller
 
             return redirect()->back()->with('success', 'Password user ' . $user->name . ' berhasil direset.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal meriset password! Silakan coba lagi.');
+            return redirect()->back()->with([
+                'error' => 'Gagal meriset password! Silakan coba lagi.',
+                'modal' => 'reset'
+            ]);
         }
     }
 
