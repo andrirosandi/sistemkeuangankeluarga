@@ -2,26 +2,21 @@
 
 @section('title', 'Pengaturan Profil')
 
-@section('page-header')
-<div class="row align-items-center">
-    <div class="col">
-        <div class="page-pretitle">Akun</div>
-        <h2 class="page-title">Pengaturan Profil</h2>
-    </div>
-</div>
-@endsection
+@push('styles')
+<style>[x-cloak] { display: none !important; }</style>
+@endpush
 
 @section('content')
-<div class="row row-cards">
+<div class="row row-cards" x-data="{ activeTab: 'info', isUploading: false, avatarMediaId: '' }" @uploading-changed.window="isUploading = $event.detail.uploading">
     <div class="col-md-3">
         <div class="card card-flush">
             <div class="card-body p-0">
                 <div class="nav flex-column nav-pills" id="profile-tabs" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link text-start active" id="tab-info-link" data-bs-toggle="pill" data-bs-target="#tab-info" type="button" role="tab">
+                    <button class="nav-link text-start active" id="tab-info-link" data-bs-toggle="pill" data-bs-target="#tab-info" type="button" role="tab" @click="activeTab = 'info'">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg>
                         Data Profil
                     </button>
-                    <button class="nav-link text-start" id="tab-password-link" data-bs-toggle="pill" data-bs-target="#tab-password" type="button" role="tab">
+                    <button class="nav-link text-start" id="tab-password-link" data-bs-toggle="pill" data-bs-target="#tab-password" type="button" role="tab" @click="activeTab = 'password'">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
                         Ganti Password
                     </button>
@@ -30,18 +25,28 @@
         </div>
     </div>
 
-    <div class="col-md-9" x-data="{ avatarMediaId: '', isUploading: false }" @uploading-changed.window="isUploading = $event.detail.uploading">
+    <div class="col-md-9">
         <div class="card">
-            <div class="card-body tab-content">
-                {{-- Tab: Data Profil --}}
+            <div class="card-body tab-content pb-0">
+                {{-- Content: Data Profil --}}
                 <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
                     @include('profile.partials.update-profile-information-form')
                 </div>
 
-                {{-- Tab: Keamanan (Password) --}}
+                {{-- Content: Ganti Password --}}
                 <div class="tab-pane fade" id="tab-password" role="tabpanel">
                     @include('profile.partials.update-password-form')
                 </div>
+            </div>
+            <div class="card-footer text-end">
+                <button type="submit" :form="activeTab === 'info' ? 'form-profile' : 'form-password'" class="btn btn-primary" :disabled="isUploading">
+                    <span x-show="!isUploading">
+                        <i class="ti ti-device-floppy me-2"></i> Simpan Perubahan
+                    </span>
+                    <span x-show="isUploading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Memproses...
+                    </span>
+                </button>
             </div>
         </div>
     </div>
@@ -51,10 +56,16 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Auto-switch tab if redirected back index (e.g. status success)
-        @if(session('status') === 'password-updated')
+        // Handle redirect back with tab state
+        @if(session('status') === 'password-updated' || $errors->updatePassword->any())
             const passTab = new bootstrap.Tab(document.getElementById('tab-password-link'));
             passTab.show();
+            // Update Alpine state manually if needed, but bootstrap trigger might not bubble to x-on:click
+            // So we manually set the alpine property if we can find the scope
+            const el = document.querySelector('[x-data]');
+            if (el && el.__x && el.__x.$data) {
+                el.__x.$data.activeTab = 'password';
+            }
         @endif
     });
 </script>

@@ -6,7 +6,7 @@
         </div>
     </div>
 
-    <form method="post" action="{{ route('profile.update') }}">
+    <form id="form-profile" method="post" action="{{ route('profile.update') }}">
         @csrf
         @method('patch')
 
@@ -54,15 +54,14 @@
             @endif
         </div>
 
-        <div class="form-footer">
-            <button type="submit" class="btn btn-primary" :disabled="isUploading">
-                <i class="ti ti-device-floppy me-2"></i> Simpan Perubahan
-            </button>
-            @if (session('status') === 'profile-updated')
-                <span class="text-success ms-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 2000)">
-                    Tersimpan.
-                </span>
-            @endif
-        </div>
+        @if (session('status') === 'profile-updated')
+            <div class="alert alert-success alert-dismissible" role="alert" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)">
+                <div class="d-flex">
+                    <div><i class="ti ti-check me-2"></i></div>
+                    <div>Profil berhasil diperbarui.</div>
+                </div>
+                <a class="btn-close" @click="show = false"></a>
+            </div>
+        @endif
     </form>
 </section>

@@ -4,7 +4,7 @@
         <p class="text-secondary small">Pastikan akun Anda menggunakan kata sandi yang panjang dan acak untuk tetap aman.</p>
     </div>
 
-    <form method="post" action="{{ route('password.update') }}">
+    <form id="form-password" method="post" action="{{ route('password.update') }}">
         @csrf
         @method('put')
 
@@ -32,15 +32,14 @@
             @enderror
         </div>
 
-        <div class="form-footer">
-            <button type="submit" class="btn btn-primary">
-                <i class="ti ti-lock-check me-2"></i> Update Password
-            </button>
-            @if (session('status') === 'password-updated')
-                <span class="text-success ms-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 2000)">
-                    Password berhasil diperbarui.
-                </span>
-            @endif
-        </div>
+        @if (session('status') === 'password-updated')
+            <div class="alert alert-success alert-dismissible" role="alert" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)">
+                <div class="d-flex">
+                    <div><i class="ti ti-check me-2"></i></div>
+                    <div>Password berhasil diperbarui.</div>
+                </div>
+                <a class="btn-close" @click="show = false"></a>
+            </div>
+        @endif
     </form>
 </section>
