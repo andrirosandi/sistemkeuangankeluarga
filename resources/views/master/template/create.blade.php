@@ -5,7 +5,9 @@
 @section('content')
 <form action="{{ route('master.templates.store') }}" method="POST">
     @csrf
-    <div class="row row-cards" x-data="templateForm()">
+    <div class="row row-cards" x-data="templateForm({
+        categories: @json($categories->keyBy('id'))
+    })">
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
@@ -32,11 +34,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label required">Kategori Default</label>
-                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                        <label class="form-label required d-flex align-items-center justify-content-between">
+                            Kategori Default
+                            <span x-show="selectedCategoryColor" class="badge" :style="{ backgroundColor: selectedCategoryColor, width: '12px', height: '12px', padding: 0 }"></span>
+                        </label>
+                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" x-model="selectedCategoryId" required>
                             <option value="">Pilih Kategori</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                <option value="{{ $category->id }}">
                                     {{ $category->name }}
                                 </option>
                             @endforeach
@@ -128,12 +133,21 @@
 
 @push('scripts')
 <script>
-    function templateForm() {
+    function templateForm(config = {}) {
         return {
+            categories: config.categories || {},
+            selectedCategoryId: '{{ old('category_id', '') }}',
             items: [
                 { description: '', amount: 0 }
             ],
             
+            get selectedCategoryColor() {
+                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                    return this.categories[this.selectedCategoryId].color;
+                }
+                return null;
+            },
+
             init() {
                 // If validation failed, restore old items if available
                 @if(old('details'))

@@ -133,4 +133,22 @@ class TemplateController extends Controller
             return back()->with('error', 'Gagal menghapus template: ' . $e->getMessage());
         }
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:template_header,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            TemplateHeader::whereIn('id', $request->ids)->delete();
+            DB::commit();
+            return redirect()->route('master.templates.index')->with('success', count($request->ids) . ' template berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus template secara massal: ' . $e->getMessage());
+        }
+    }
 }
