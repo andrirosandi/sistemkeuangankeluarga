@@ -93,7 +93,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Mutasi
-    Route::get('/mutasi', fn() => abort(404))->name('mutation.index')->middleware('can:mutation.view');
+    Route::prefix('mutasi')->name('mutation.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Transaction\MutationController::class, 'index'])->name('index')->middleware('can:mutation.view');
+        Route::get('/print', [\App\Http\Controllers\Transaction\MutationController::class, 'index'])->name('print')->middleware('can:mutation.view');
+    });
 
     // Laporan
     Route::get('/laporan', fn() => abort(404))->name('report.index')->middleware('can:report.view');
