@@ -23,6 +23,21 @@ class TransactionController extends Controller
         return $type === 'out' ? 'Kas Keluar' : 'Kas Masuk';
     }
 
+    /**
+     * Cek apakah user boleh melihat transaksi ini.
+     * Visibility: user yang membuat transaksi, ATAU user yang membuat request asalnya.
+     */
+    private function isVisibleToUser($transaction, $visibleUserIds)
+    {
+        if ($visibleUserIds->contains($transaction->created_by)) {
+            return true;
+        }
+        if ($transaction->request_id && $transaction->requestHeader) {
+            return $visibleUserIds->contains($transaction->requestHeader->created_by);
+        }
+        return false;
+    }
+
     protected function notifyUser($userId, $message)
     {
         DB::table('notifications')->insert([
@@ -134,14 +149,14 @@ class TransactionController extends Controller
 
     public function edit($type, $id)
     {
-        $transaction = TransactionHeader::with(['details'])->findOrFail($id);
+        $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
         if ($transaction->status !== 'draft') {
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
         }
 
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$visibleUserIds->contains($transaction->created_by)) {
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -155,14 +170,14 @@ class TransactionController extends Controller
 
     public function update(Request $request, $type, $id)
     {
-        $transaction = TransactionHeader::findOrFail($id);
+        $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
         if ($transaction->status !== 'draft') {
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
         }
 
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$visibleUserIds->contains($transaction->created_by)) {
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -242,7 +257,12 @@ class TransactionController extends Controller
 
         $query = TransactionHeader::with(['creator', 'category', 'requestHeader'])
             ->where('trans_code', $transCode)
-            ->whereIn('created_by', $visibleUserIds);
+            ->where(function ($q) use ($visibleUserIds) {
+                $q->whereIn('created_by', $visibleUserIds)
+                  ->orWhereHas('requestHeader', function ($rq) use ($visibleUserIds) {
+                      $rq->whereIn('created_by', $visibleUserIds);
+                  });
+            });
 
         // Filters
         if ($request->filled('search')) {
@@ -273,7 +293,7 @@ class TransactionController extends Controller
             ->findOrFail($id);
 
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$visibleUserIds->contains($transaction->created_by)) {
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
             abort(403, 'Akses ditolak.');
         }
 

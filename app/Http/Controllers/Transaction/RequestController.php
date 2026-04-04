@@ -27,16 +27,25 @@ class RequestController extends Controller
     {
         $permissionName = $type == 'in' ? 'in.request.approve' : 'out.request.approve';
         $approvers = \App\Models\User::permission($permissionName)->get();
-        
+
+        $keyword = 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong>';
         $notifications = [];
         foreach($approvers as $approver) {
-            $notifications[] = [
-                'user_id' => $approver->id,
-                'message' => 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong> dari ' . auth()->user()->name,
-                'is_read' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+            $exists = \DB::table('notifications')
+                ->where('user_id', $approver->id)
+                ->where('message', 'like', '%' . addcslashes($req->description, '%_') . '%')
+                ->where('is_read', 0)
+                ->exists();
+
+            if (!$exists) {
+                $notifications[] = [
+                    'user_id' => $approver->id,
+                    'message' => $keyword . ' dari ' . auth()->user()->name,
+                    'is_read' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
         if (!empty($notifications)) {
             \DB::table('notifications')->insert($notifications);
@@ -291,14 +300,15 @@ class RequestController extends Controller
                 }
             }
 
-            DB::commit();
-
             if ($status === 'requested') {
                 $this->notifyApprovers($header, $type);
-                $msg = 'Pengajuan berhasil disimpan dan langsung diajukan.';
-            } else {
-                $msg = 'Pengajuan berhasil disimpan sebagai Draft.';
             }
+
+            DB::commit();
+
+            $msg = $status === 'requested'
+                ? 'Pengajuan berhasil disimpan dan langsung diajukan.'
+                : 'Pengajuan berhasil disimpan sebagai Draft.';
 
             return redirect()->route("{$type}.request.index")->with('success', $msg);
 
@@ -413,14 +423,15 @@ class RequestController extends Controller
                 }
             }
 
-            DB::commit();
-
             if ($status === 'requested') {
                 $this->notifyApprovers($req, $type);
-                $msg = 'Draft pengajuan berhasil diupdate dan diajukan.';
-            } else {
-                $msg = 'Draft pengajuan berhasil diupdate.';
             }
+
+            DB::commit();
+
+            $msg = $status === 'requested'
+                ? 'Draft pengajuan berhasil diupdate dan diajukan.'
+                : 'Draft pengajuan berhasil diupdate.';
 
             return redirect()->route("{$type}.request.index")->with('success', $msg);
 
@@ -441,10 +452,9 @@ class RequestController extends Controller
         try {
             DB::beginTransaction();
             $req->update(['status' => 'requested']);
-            
-            // TODO: Create logic to insert into notifications table for authorized approvers
+
             $this->notifyApprovers($req, $type);
-            
+
             DB::commit();
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disubmit. Menunggu persetujuan Admin.');
         } catch (\Exception $e) {
