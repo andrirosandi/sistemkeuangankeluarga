@@ -299,8 +299,6 @@
         document.querySelectorAll('.visibility-checkbox').forEach(cb => {
             const roleId = parseInt(cb.dataset.roleId);
             cb.checked = visibility.includes(roleId);
-            // Sembunyikan checkbox untuk role yang sedang diedit (jangan watch diri sendiri)
-            cb.closest('.col-md-3').style.display = (roleId === id) ? 'none' : '';
         });
 
         // Sembunyikan section visibilitas untuk role admin

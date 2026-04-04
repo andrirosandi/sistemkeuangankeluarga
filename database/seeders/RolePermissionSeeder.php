@@ -73,6 +73,7 @@ class RolePermissionSeeder extends Seeder
         'role.create',
         'role.edit',
         'role.delete',
+        'role.visibility',
 
         // Pengaturan Sistem
         'setting.view',

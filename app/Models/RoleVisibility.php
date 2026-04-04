@@ -99,11 +99,6 @@ class RoleVisibility extends Model
         // Insert yang baru
         $records = [];
         foreach ($watchedRoleIds as $watchedId) {
-            // Jangan allow watch diri sendiri
-            if ((int) $watchedId === $watcherRoleId) {
-                continue;
-            }
-
             $records[] = [
                 'watcher_role_id' => $watcherRoleId,
                 'watched_role_id' => $watchedId,
