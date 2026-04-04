@@ -42,13 +42,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Kas Masuk
     Route::prefix('kas-masuk')->name('in.')->group(function () {
-        Route::get('/pengajuan', fn() => abort(404))->name('request.index');
+        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'in');
+        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'in');
+        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'in');
+        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'in');
+        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'in');
+        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'in');
+        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'in');
+        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'in');
+        
         Route::get('/realisasi', fn() => abort(404))->name('transaction.index');
     });
 
     // Kas Keluar
     Route::prefix('kas-keluar')->name('out.')->group(function () {
-        Route::get('/pengajuan', fn() => abort(404))->name('request.index');
+        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'out');
+        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'out');
+        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'out');
+        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'out');
+        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'out');
+        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'out');
+        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'out');
+        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'out');
+
         Route::get('/realisasi', fn() => abort(404))->name('transaction.index');
     });
 

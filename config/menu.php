@@ -18,7 +18,7 @@ return [
                     'permission' => 'in.request.view',
                 ],
                 [
-                    'label'      => 'Riwayat Masuk',
+                    'label'      => 'Realisasi',
                     'route'      => 'in.transaction.index',
                     'permission' => 'in.transaction.view',
                 ],
@@ -34,7 +34,7 @@ return [
                     'permission' => 'out.request.view',
                 ],
                 [
-                    'label'      => 'Riwayat Keluar',
+                    'label'      => 'Realisasi',
                     'route'      => 'out.transaction.index',
                     'permission' => 'out.transaction.view',
                 ],

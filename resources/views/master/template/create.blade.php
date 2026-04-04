@@ -41,7 +41,7 @@
                 }
             },
 
-            totalAmount() {
+            get totalAmount() {
                 return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
             },
 
@@ -56,11 +56,11 @@
     });
 </script>
 
-<form action="{{ route('master.templates.store') }}" method="POST">
-    @csrf
-    <div class="row row-cards" x-data="templateForm({
+<form action="{{ route('master.templates.store') }}" method="POST" x-data="templateForm({
         categories: window.templateCategories
     })">
+    @csrf
+    <div class="row row-cards">
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
@@ -86,36 +86,54 @@
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label required d-flex align-items-center justify-content-between">
-                            Kategori Default
-                            <span x-show="selectedCategoryColor" class="badge" :style="{ backgroundColor: selectedCategoryColor, width: '12px', height: '12px', padding: 0 }"></span>
-                        </label>
-                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" x-model="selectedCategoryId" required>
-                            <option value="">Pilih Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="mb-3" x-data="{ open: false }">
+                        <label class="form-label required">Kategori Default</label>
+                        
+                        <div class="dropdown position-relative">
+                            <!-- Custom Styled Select Button -->
+                            <button type="button" class="form-select text-start d-flex align-items-center justify-content-between @error('category_id') is-invalid @enderror" 
+                                    @click="open = !open" @click.outside="open = false" 
+                                    :class="{'text-muted': !selectedCategoryId}"
+                                    style="min-height: 2.375rem;">
+                                <template x-if="selectedCategoryId && categories[selectedCategoryId]">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge" :style="{ backgroundColor: selectedCategoryColor, width: '12px', height: '12px', padding: 0 }"></span>
+                                        <span x-text="categories[selectedCategoryId].name"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!selectedCategoryId || !categories[selectedCategoryId]">
+                                    <span>Pilih Kategori</span>
+                                </template>
+                            </button>
+                            
+                            <!-- Custom Dropdown Menu -->
+                            <div class="dropdown-menu w-100 shadow-sm mt-1" :class="{'show': open}" x-show="open" style="max-height: 250px; overflow-y: auto; display: none; z-index: 1050;" x-transition>
+                                @foreach($categories as $category)
+                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 mb-1" 
+                                            :class="{'bg-primary-subtle text-primary fw-bold': selectedCategoryId == '{{ $category->id }}'}"
+                                            @click="selectedCategoryId = '{{ $category->id }}'; open = false">
+                                        <span class="badge" style="background-color: {{ $category->color }}; width: 12px; height: 12px; padding: 0;"></span>
+                                        {{ $category->name }}
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            <!-- Invisible Native Select for HTML5 Validation -->
+                            <select name="category_id" x-model="selectedCategoryId" required 
+                                    class="form-select position-absolute top-0 start-0 w-100 h-100 opacity-0" 
+                                    style="z-index: -1; pointer-events: none;" tabindex="-1">
+                                <option value="">Pilih Kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
                         @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="mt-4">
-                        <div class="p-3 bg-body-tertiary rounded">
-                            <div class="text-secondary small mb-1">Total Estimasi</div>
-                            <div class="h2 mb-0" x-text="formatRupiah(totalAmount())">Rp 0</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{{ route('master.templates.index') }}" class="btn btn-link text-secondary">Batal</a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-check me-2"></i> Simpan Template
-                    </button>
                 </div>
             </div>
         </div>
@@ -159,7 +177,7 @@
                         <tfoot>
                             <tr>
                                 <td class="fw-bold text-end">Subtotal</td>
-                                <td class="fw-bold text-end" x-text="formatRupiah(totalAmount())">Rp 0</td>
+                                <td class="fw-bold text-end" x-text="formatRupiah(totalAmount)">Rp 0</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -176,6 +194,26 @@
                 <i class="ti ti-info-circle fs-2 me-2"></i>
                 <div>
                    Template ini akan muncul sebagai pilihan saat Anda menginput transaksi Kas Masuk atau Kas Keluar untuk membantu mengisi rincian secara otomatis.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Bottom Bar -->
+    <div class="position-sticky bottom-0 pb-3 mt-3" style="z-index: 1020;">
+        <div class="card shadow-lg mb-0 border-primary border-opacity-25">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-bold text-uppercase tracking-wide">Total Estimasi Template</div>
+                    <div class="h2 mb-0 text-primary" x-text="formatRupiah(totalAmount)">Rp 0</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('master.templates.index') }}" class="btn btn-link link-secondary px-3">
+                        Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary shadow-sm">
+                        <i class="ti ti-device-floppy me-2"></i> Simpan Template
+                    </button>
                 </div>
             </div>
         </div>
