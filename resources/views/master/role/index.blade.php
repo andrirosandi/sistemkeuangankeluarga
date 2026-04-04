@@ -21,23 +21,7 @@
                 </div>
             </div>
 
-            <div class="card-body border-bottom py-3">
-                <div class="d-flex">
-                    <div class="text-secondary">
-                        Tampilkan
-                        <div class="mx-2 d-inline-block">
-                            <input type="text" class="form-control form-control-sm" value="20" size="3" aria-label="In page count" id="page-count-input">
-                        </div>
-                        data
-                    </div>
-                    <div class="ms-auto text-secondary">
-                        Pencarian:
-                        <div class="ms-2 d-inline-block">
-                            <input type="search" class="search form-control form-control-sm" aria-label="Search role">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-datatable.controls :perPage="20" searchLabel="Search role" />
 
             <div class="table-responsive">
                 <table class="table table-vcenter card-table text-nowrap">
@@ -246,43 +230,12 @@
     </div>
 </div>
 
-{{-- Standard Delete Modals --}}
-<div class="modal modal-blur fade" id="modal-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Hapus Grup?</h3>
-                <div class="text-secondary">Menghapus grup <strong id="delete-name"></strong> mungkin akan membatasi akses user terkait.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100"><div class="row"><div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div><div class="col"><form id="form-delete" method="POST">@csrf @method('DELETE') <button type="submit" class="btn btn-danger w-100">Hapus</button></form></div></div></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal modal-blur fade" id="modal-bulk-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Hapus Grup Terpilih?</h3>
-                <div class="text-secondary">Anda yakin menghapus grup yang dipilih? Operasi ini tidak dapat dibatalkan.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100"><div class="row"><div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div><div class="col"><button type="button" class="btn btn-danger w-100" id="btn-bulk-delete-confirm">Hapus Semua</button></div></div></div>
-            </div>
-        </div>
-    </div>
-</div>
+<x-datatable.delete-modal title="Hapus Grup?" message="Menghapus grup <strong id='delete-name'></strong> mungkin akan membatasi akses user terkait." />
+<x-datatable.bulk-delete-modal title="Hapus Grup Terpilih?" message="Anda yakin menghapus grup yang dipilih? Operasi ini tidak dapat dibatalkan." route="{{ route('master.roles.bulk-delete') }}" />
 
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
     function editRole(id, name, permissions, visibility) {
         const form = document.getElementById('form-edit');
@@ -290,29 +243,24 @@
         const inputName = document.getElementById('edit-name');
         const titleName = document.getElementById('edit-title-name');
         const visSection = document.getElementById('visibility-section');
-        
+
         form.action = `{{ url('master/roles') }}/${id}`;
         inputId.value = id;
         inputName.value = name;
         titleName.innerText = name;
 
-        // Reset & Set Permission Checkboxes
         document.querySelectorAll('.perm-checkbox').forEach(cb => {
             cb.checked = permissions.includes(cb.value);
         });
 
-        // Reset & Set Visibility Checkboxes
         document.querySelectorAll('.visibility-checkbox').forEach(cb => {
             const roleId = parseInt(cb.dataset.roleId);
             cb.checked = visibility.includes(roleId);
         });
 
-        // Sembunyikan section visibilitas untuk role admin
         visSection.style.display = (name === 'admin') ? 'none' : '';
-
-        // Disable name editing for admin role
         inputName.disabled = (name === 'admin');
-        
+
         new bootstrap.Modal(document.getElementById('modal-edit')).show();
     }
 
@@ -331,7 +279,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Handle Validation Errors Modals
         @if ($errors->any())
             @if(session('modal') === 'edit' || old('_method') === 'PUT')
                 const editModalId = "{{ old('id') }}";
@@ -344,52 +291,11 @@
                 new bootstrap.Modal(document.getElementById('modal-add')).show();
             @endif
         @endif
-
-        // Smart Selection
-        const tableSelector = window.initSmartTableSelection({
-            batchBarId: 'batch-action-bar',
-            countId: 'selected-count'
-        });
-
-        // List.js
-        const roleList = new List('table-default', {
-            valueNames: [
-                { name: 'sort-name', attr: 'data-name' },
-                { name: 'sort-users', attr: 'data-users' },
-                { name: 'sort-permissions', attr: 'data-permissions' }
-            ],
-            page: 20,
-            pagination: { innerWindow: 2, outerWindow: 1 }
-        });
-
-        roleList.on('updated', function (list) {
-            tableSelector.syncCheckboxes();
-        });
-
-        // Bulk Actions
-        document.getElementById('btn-bulk-delete-confirm')?.addEventListener('click', function() {
-            const ids = tableSelector.getSelectedIds();
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('master.roles.bulk-delete') }}";
-            
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            ids.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'ids[]';
-                input.value = id;
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        });
     });
 </script>
+<x-datatable.list-init :valueNames="[
+    { name: 'sort-name', attr: 'data-name' },
+    { name: 'sort-users', attr: 'data-users' },
+    { name: 'sort-permissions', attr: 'data-permissions' }
+]" :perPage="20" listVar="roleList" />
 @endpush

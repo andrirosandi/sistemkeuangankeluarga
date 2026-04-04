@@ -3,11 +3,22 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\BulkDeletable;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    use BulkDeletable;
+
+    protected function bulkDeleteConfig(): array
+    {
+        return [
+            'model' => Category::class,
+            'table' => 'categories',
+            'label' => 'kategori',
+        ];
+    }
     /**
      * Tampilkan daftar kategori.
      */
@@ -80,21 +91,4 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Hapus banyak kategori sekaligus.
-     */
-    public function bulkDelete(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:categories,id'
-        ]);
-
-        try {
-            Category::whereIn('id', $request->ids)->delete();
-            return redirect()->back()->with('success', count($request->ids) . ' kategori berhasil dihapus.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus beberapa kategori! Beberapa data mungkin sudah digunakan di transaksi.');
-        }
-    }
 }

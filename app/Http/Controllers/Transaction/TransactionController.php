@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\TransactionType;
 use App\Models\TransactionHeader;
 use App\Models\TransactionDetail;
 use App\Models\RequestHeader;
@@ -10,18 +11,13 @@ use App\Models\RequestDetail;
 use App\Models\Category;
 use App\Models\Balance;
 use App\Models\RoleVisibility;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
-    private function getTransCode($type) {
-        return $type === 'out' ? 2 : 1;
-    }
-
-    private function getTypeLabel($type) {
-        return $type === 'out' ? 'Kas Keluar' : 'Kas Masuk';
-    }
+    use TransactionType;
 
     /**
      * Cek apakah user boleh melihat transaksi ini.
@@ -36,17 +32,6 @@ class TransactionController extends Controller
             return $visibleUserIds->contains($transaction->requestHeader->created_by);
         }
         return false;
-    }
-
-    protected function notifyUser($userId, $message)
-    {
-        DB::table('notifications')->insert([
-            'user_id' => $userId,
-            'message' => $message,
-            'is_read' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     /**
@@ -350,7 +335,7 @@ class TransactionController extends Controller
             if ($transaction->request_id) {
                 $reqHeader = RequestHeader::find($transaction->request_id);
                 if ($reqHeader) {
-                    $this->notifyUser(
+                    NotificationService::notifyUser(
                         $reqHeader->created_by,
                         'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">dicairkan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.')
                     );
@@ -410,7 +395,7 @@ class TransactionController extends Controller
             if ($transaction->request_id) {
                 $reqHeader = RequestHeader::find($transaction->request_id);
                 if ($reqHeader) {
-                    $this->notifyUser(
+                    NotificationService::notifyUser(
                         $reqHeader->created_by,
                         'Pencairan dana untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.'
                     );

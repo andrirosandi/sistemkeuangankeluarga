@@ -45,18 +45,18 @@
                 @foreach($months as $m)
                 <tr>
                     <td>{{ \Carbon\Carbon::createFromFormat('Y-m', $m['month'])->translatedFormat('F') }}</td>
-                    <td class="text-end text-green">Rp {{ number_format($m['in'], 0, ',', '.') }}</td>
-                    <td class="text-end text-red">Rp {{ number_format($m['out'], 0, ',', '.') }}</td>
-                    <td class="text-end text-blue fw-bold">Rp {{ number_format($m['ending'], 0, ',', '.') }}</td>
+                    <td class="text-end text-green">@uang($m['in'])</td>
+                    <td class="text-end text-red">@uang($m['out'])</td>
+                    <td class="text-end text-blue fw-bold">@uang($m['ending'])</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="fw-bold">
                     <td>Total</td>
-                    <td class="text-end text-green">Rp {{ number_format(collect($months)->sum('in'), 0, ',', '.') }}</td>
-                    <td class="text-end text-red">Rp {{ number_format(collect($months)->sum('out'), 0, ',', '.') }}</td>
-                    <td class="text-end text-blue">Rp {{ number_format(collect($months)->last()['ending'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-end text-green">@uang(collect($months)->sum('in'))</td>
+                    <td class="text-end text-red">@uang(collect($months)->sum('out'))</td>
+                    <td class="text-end text-blue">@uang(collect($months)->last()['ending'] ?? 0)</td>
                 </tr>
             </tfoot>
         </table>

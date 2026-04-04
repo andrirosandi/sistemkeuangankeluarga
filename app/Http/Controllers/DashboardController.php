@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Spatie\Permission\Models\Role;
 
 class DashboardController extends Controller
 {
@@ -129,21 +128,59 @@ class DashboardController extends Controller
     }
 
     /**
-     * Alerts widget — pending requests needing approval.
+     * Alerts widget — pending requests needing action.
+     *
+     * Shows three types of "pending" items:
+     * 1. Requested — awaiting approval (visible to users with approve permission)
+     * 2. Belum Cair — approved but transaction still draft
+     * 3. Parsial — approved with some details still pending realization
      */
     public function widgetAlerts(Request $request)
     {
         [$userIds] = $this->resolveScope($request);
+        $user = auth()->user();
+        $isApprover = $user->can('in.request.approve') || $user->can('out.request.approve');
 
-        $alerts = RequestHeader::with(['category', 'creator'])
+        $alerts = collect();
+
+        // 1. Requested — awaiting approval (only visible to approvers)
+        if ($isApprover) {
+            $requestedAlerts = RequestHeader::with(['category', 'creator'])
+                ->whereIn('created_by', $userIds)
+                ->where('status', 'requested')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
+
+            foreach ($requestedAlerts as $req) {
+                $alerts->push([
+                    'id'          => $req->id,
+                    'description' => $req->description,
+                    'amount'      => (float) $req->amount,
+                    'creator'     => $req->creator->name ?? 'Sistem',
+                    'type'        => $req->trans_code == 1 ? 'in' : 'out',
+                    'category'    => $req->category->name ?? 'Tanpa Kategori',
+                    'created_at'  => $req->created_at->format('d M Y'),
+                    'alert_type'  => 'requested',
+                    'badge_label' => 'Menunggu Approve',
+                    'badge_class' => 'bg-yellow-lt text-yellow',
+                ]);
+            }
+        }
+
+        // 2. Approved but transaction still draft (belum cair)
+        $approvedDraft = RequestHeader::with(['category', 'creator'])
             ->whereIn('created_by', $userIds)
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
+            ->where('status', 'approved')
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'draft');
+            })
+            ->orderBy('approved_at', 'desc')
             ->limit(10)
             ->get();
 
-        $data = $alerts->map(function ($req) {
-            return [
+        foreach ($approvedDraft as $req) {
+            $alerts->push([
                 'id'          => $req->id,
                 'description' => $req->description,
                 'amount'      => (float) $req->amount,
@@ -151,8 +188,43 @@ class DashboardController extends Controller
                 'type'        => $req->trans_code == 1 ? 'in' : 'out',
                 'category'    => $req->category->name ?? 'Tanpa Kategori',
                 'created_at'  => $req->created_at->format('d M Y'),
-            ];
-        })->toArray();
+                'alert_type'  => 'approved_draft',
+                'badge_label' => 'Belum Cair',
+                'badge_class' => 'bg-blue-lt text-blue',
+            ]);
+        }
+
+        // 3. Partial realized — approved with pending detail items
+        $partialRealized = RequestHeader::with(['category', 'creator'])
+            ->whereIn('created_by', $userIds)
+            ->where('status', 'approved')
+            ->whereHas('details', function ($q) {
+                $q->where('status', 'pending');
+            })
+            ->whereDoesntHave('transaction', function ($q) {
+                $q->where('status', 'draft');
+            })
+            ->orderBy('approved_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        foreach ($partialRealized as $req) {
+            $alerts->push([
+                'id'          => $req->id,
+                'description' => $req->description,
+                'amount'      => (float) $req->amount,
+                'creator'     => $req->creator->name ?? 'Sistem',
+                'type'        => $req->trans_code == 1 ? 'in' : 'out',
+                'category'    => $req->category->name ?? 'Tanpa Kategori',
+                'created_at'  => $req->created_at->format('d M Y'),
+                'alert_type'  => 'partial',
+                'badge_label' => 'Parsial',
+                'badge_class' => 'bg-purple-lt text-purple',
+            ]);
+        }
+
+        // Sort by created_at desc and limit total
+        $data = $alerts->sortByDesc('created_at')->take(10)->values()->toArray();
 
         return view('dashboard.alerts', compact('data'))->render();
     }
@@ -286,37 +358,50 @@ class DashboardController extends Controller
      */
     public function widgetGroupRanking(Request $request)
     {
+        [$userIds] = $this->resolveScope($request);
         $month = now()->format('Y-m');
 
-        // Get all roles with users and their transactions
-        $roles = Role::where('name', '!=', 'admin')->get();
+        // Single aggregated query: get totals per created_by
+        $totals = TransactionHeader::where('status', 'completed')
+            ->whereIn('created_by', $userIds)
+            ->where('transaction_date', 'like', $month . '%')
+            ->selectRaw('created_by, trans_code, SUM(amount) as total')
+            ->groupBy('created_by', 'trans_code')
+            ->get();
+
+        // Get user-role mapping in one query
+        $users = User::whereIn('id', $userIds)->with('roles')->get();
+        $userRoleMap = [];
+        foreach ($users as $u) {
+            $userRoleMap[$u->id] = $u->roles->first()?->name ?? 'Tanpa Role';
+        }
+
+        // Aggregate by role
+        $byRole = [];
+        foreach ($totals as $row) {
+            $role = $userRoleMap[$row->created_by] ?? 'Tanpa Role';
+            if ($role === 'admin') continue;
+
+            if (!isset($byRole[$role])) {
+                $byRole[$role] = ['totalIn' => 0, 'totalOut' => 0];
+            }
+            if ($row->trans_code == 1) {
+                $byRole[$role]['totalIn'] += $row->total;
+            } else {
+                $byRole[$role]['totalOut'] += $row->total;
+            }
+        }
 
         $ranking = [];
-        foreach ($roles as $role) {
-            $roleUserIds = User::role($role->name)->pluck('id');
-            if ($roleUserIds->isEmpty()) continue;
-
-            $totalOut = TransactionHeader::where('status', 'completed')
-                ->whereIn('created_by', $roleUserIds)
-                ->where('trans_code', 2)
-                ->where('transaction_date', 'like', $month . '%')
-                ->sum('amount');
-
-            $totalIn = TransactionHeader::where('status', 'completed')
-                ->whereIn('created_by', $roleUserIds)
-                ->where('trans_code', 1)
-                ->where('transaction_date', 'like', $month . '%')
-                ->sum('amount');
-
+        foreach ($byRole as $name => $amounts) {
             $ranking[] = [
-                'name'     => $role->name,
-                'totalOut' => (float) $totalOut,
-                'totalIn'  => (float) $totalIn,
-                'net'      => (float) ($totalIn - $totalOut),
+                'name'     => $name,
+                'totalOut' => (float) $amounts['totalOut'],
+                'totalIn'  => (float) $amounts['totalIn'],
+                'net'      => (float) ($amounts['totalIn'] - $amounts['totalOut']),
             ];
         }
 
-        // Sort by totalOut descending (paling boros di atas)
         usort($ranking, fn($a, $b) => $b['totalOut'] <=> $a['totalOut']);
 
         $maxOut = collect($ranking)->max('totalOut') ?: 1;
@@ -332,27 +417,35 @@ class DashboardController extends Controller
         [$userIds] = $this->resolveScope($request);
         $month = now()->format('Y-m');
 
-        $users = User::whereIn('id', $userIds)->get(['id', 'name']);
+        // Single aggregated query
+        $totals = TransactionHeader::where('status', 'completed')
+            ->whereIn('created_by', $userIds)
+            ->where('transaction_date', 'like', $month . '%')
+            ->selectRaw('created_by, trans_code, SUM(amount) as total')
+            ->groupBy('created_by', 'trans_code')
+            ->get();
+
+        $users = User::whereIn('id', $userIds)->get(['id', 'name'])->keyBy('id');
+
+        $byUser = [];
+        foreach ($totals as $row) {
+            if (!isset($byUser[$row->created_by])) {
+                $byUser[$row->created_by] = ['totalIn' => 0, 'totalOut' => 0];
+            }
+            if ($row->trans_code == 1) {
+                $byUser[$row->created_by]['totalIn'] += $row->total;
+            } else {
+                $byUser[$row->created_by]['totalOut'] += $row->total;
+            }
+        }
 
         $ranking = [];
-        foreach ($users as $u) {
-            $totalOut = TransactionHeader::where('status', 'completed')
-                ->where('created_by', $u->id)
-                ->where('trans_code', 2)
-                ->where('transaction_date', 'like', $month . '%')
-                ->sum('amount');
-
-            $totalIn = TransactionHeader::where('status', 'completed')
-                ->where('created_by', $u->id)
-                ->where('trans_code', 1)
-                ->where('transaction_date', 'like', $month . '%')
-                ->sum('amount');
-
+        foreach ($byUser as $userId => $amounts) {
             $ranking[] = [
-                'name'     => $u->name,
-                'totalOut' => (float) $totalOut,
-                'totalIn'  => (float) $totalIn,
-                'net'      => (float) ($totalIn - $totalOut),
+                'name'     => $users[$userId]->name ?? 'Unknown',
+                'totalOut' => (float) $amounts['totalOut'],
+                'totalIn'  => (float) $amounts['totalIn'],
+                'net'      => (float) ($amounts['totalIn'] - $amounts['totalOut']),
             ];
         }
 
@@ -495,11 +588,11 @@ class DashboardController extends Controller
             ->where('created_at', '<', now()->subDays(3))
             ->count();
 
-        // Average response time (in days)
+        // Average response time (in hours) — SQLite compatible
         $avgResponseHours = RequestHeader::where('approved_by', $user->id)
             ->whereNotNull('approved_at')
             ->where('approved_at', 'like', $month . '%')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, approved_at)) as avg_hours')
+            ->selectRaw('AVG((julianday(approved_at) - julianday(created_at)) * 24) as avg_hours')
             ->value('avg_hours');
 
         $data = [

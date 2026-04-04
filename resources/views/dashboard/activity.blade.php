@@ -13,14 +13,14 @@
             <td>{{ \Carbon\Carbon::parse($day['date'])->translatedFormat('D, d M') }}</td>
             <td class="text-end">
                 @if($day['debit'] > 0)
-                    <span class="text-green">+{{ number_format($day['debit'], 0, ',', '.') }}</span>
+                    <span class="text-green">+@uang($day['debit'])</span>
                 @else
                     <span class="text-secondary">-</span>
                 @endif
             </td>
             <td class="text-end">
                 @if($day['credit'] > 0)
-                    <span class="text-red">-{{ number_format($day['credit'], 0, ',', '.') }}</span>
+                    <span class="text-red">-@uang($day['credit'])</span>
                 @else
                     <span class="text-secondary">-</span>
                 @endif

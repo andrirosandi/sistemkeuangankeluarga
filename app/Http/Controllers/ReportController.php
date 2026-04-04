@@ -324,8 +324,26 @@ class ReportController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        // Placeholder — will be implemented after composer package install
-        return back()->with('error', 'Fitur export PDF belum tersedia. Package barryvdh/laravel-dompdf perlu diinstall.');
+        abort_if(!auth()->user()->can('report.export'), 403);
+
+        [$userIds, $scope] = $this->resolveScope($request);
+        $month = $request->input('month', now()->format('Y-m'));
+        $transCode = $request->input('trans_code');
+
+        $query = TransactionHeader::with(['category', 'creator'])
+            ->where('status', 'completed')
+            ->whereIn('created_by', $userIds)
+            ->where('transaction_date', 'like', $month . '%');
+
+        if ($transCode) {
+            $query->where('trans_code', $transCode);
+        }
+
+        $transactions = $query->orderBy('transaction_date', 'asc')->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('report.mutation-pdf', compact('transactions', 'month'));
+        
+        return $pdf->download('Mutasi_' . $month . '.pdf');
     }
 
     /**
@@ -333,8 +351,27 @@ class ReportController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        // Placeholder — will be implemented after composer package install
-        return back()->with('error', 'Fitur export Excel belum tersedia. Package maatwebsite/excel perlu diinstall.');
+        abort_if(!auth()->user()->can('report.export'), 403);
+
+        [$userIds, $scope] = $this->resolveScope($request);
+        $month = $request->input('month', now()->format('Y-m'));
+        $transCode = $request->input('trans_code');
+
+        $query = TransactionHeader::with(['category', 'creator'])
+            ->where('status', 'completed')
+            ->whereIn('created_by', $userIds)
+            ->where('transaction_date', 'like', $month . '%');
+
+        if ($transCode) {
+            $query->where('trans_code', $transCode);
+        }
+
+        $transactions = $query->orderBy('transaction_date', 'asc')->get();
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\MutationExport($transactions), 
+            'Mutasi_' . $month . '.xlsx'
+        );
     }
 
     // ─── Private Helpers ──────────────────────────────────────────

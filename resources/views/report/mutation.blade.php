@@ -83,12 +83,12 @@
                     <td class="text-secondary" style="font-size:0.85rem">{{ $trx->creator->name ?? '-' }}</td>
                     <td class="text-end text-green fw-bold">
                         @if($trx->trans_code == 1)
-                            +Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                            +@uang($trx->amount)
                         @endif
                     </td>
                     <td class="text-end text-red fw-bold">
                         @if($trx->trans_code == 2)
-                            -Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                            -@uang($trx->amount)
                         @endif
                     </td>
                 </tr>

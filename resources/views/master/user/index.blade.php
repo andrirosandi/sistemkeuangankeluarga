@@ -21,23 +21,7 @@
                 </div>
             </div>
 
-            <div class="card-body border-bottom py-3">
-                <div class="d-flex">
-                    <div class="text-secondary">
-                        Tampilkan
-                        <div class="mx-2 d-inline-block">
-                            <input type="text" class="form-control form-control-sm" value="20" size="3" aria-label="In page count" id="page-count-input">
-                        </div>
-                        data
-                    </div>
-                    <div class="ms-auto text-secondary">
-                        Pencarian:
-                        <div class="ms-2 d-inline-block">
-                            <input type="search" class="search form-control form-control-sm" aria-label="Search user">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-datatable.controls :perPage="20" searchLabel="Search user" />
 
             <div class="table-responsive">
                 <table class="table table-vcenter card-table text-nowrap">
@@ -259,62 +243,13 @@
     </div>
 </div>
 
-{{-- Modal Delete --}}
-<div class="modal modal-blur fade" id="modal-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Konfirmasi Hapus</h3>
-                <div class="text-secondary">Anda yakin menghapus <strong id="delete-name"></strong>? Data pengajuan dan transaksi miliknya juga akan dihapus.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col">
-                            <form id="form-delete" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger w-100">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal Bulk Delete --}}
-<div class="modal modal-blur fade" id="modal-bulk-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.707 2.983h16.845a1.989 1.989 0 0 0 1.708 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.415 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-                <h3>Hapus User Terpilih</h3>
-                <div class="text-secondary">Tindakan ini akan menghapus semua user terpilih berserta datanya. Lanjutkan?</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col"><button type="button" class="btn btn-danger w-100" id="btn-bulk-delete-confirm">Hapus Semua</button></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<x-datatable.delete-modal message="Anda yakin menghapus <strong id='delete-name'></strong>? Data pengajuan dan transaksi miliknya juga akan dihapus." />
+<x-datatable.bulk-delete-modal title="Hapus User Terpilih" message="Tindakan ini akan menghapus semua user terpilih berserta datanya. Lanjutkan?" route="{{ route('master.users.bulk-delete') }}" />
 
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
-    // 1. Helper functions for modals
     function editUser(id, name, email, role) {
         const form = document.getElementById('form-edit');
         const inputId = document.getElementById('edit-id');
@@ -348,13 +283,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Handle Validation Errors Show Modals
         @if ($errors->any())
             @if(session('modal') === 'reset')
-                @php 
-                    // Get user from URI if possible or rely on JS to set it
-                    $resetUserId = old('id') ?: explode('/', request()->url())[count(explode('/', request()->url()))-2]; 
-                @endphp
                 new bootstrap.Modal(document.getElementById('modal-reset')).show();
             @elseif(session('modal') === 'edit' || old('_method') === 'PUT')
                 const editModalId = "{{ old('id') }}";
@@ -367,67 +297,12 @@
                 new bootstrap.Modal(document.getElementById('modal-add')).show();
             @endif
         @endif
-
-        // 2. Initialize Smart Selection
-        const tableSelector = window.initSmartTableSelection({
-            batchBarId: 'batch-action-bar',
-            countId: 'selected-count'
-        });
-
-        // 3. Initialize List.js
-        const userList = new List('table-default', {
-            valueNames: [
-                { name: 'sort-name', attr: 'data-name' },
-                { name: 'sort-email', attr: 'data-email' },
-                { name: 'sort-role', attr: 'data-role' },
-                { name: 'sort-date', attr: 'data-date' }
-            ],
-            page: 20,
-            pagination: { innerWindow: 2, outerWindow: 1 }
-        });
-
-        // 4. Interface Updates
-        userList.on('updated', function (list) {
-            const paginationWrapper = document.getElementById('pagination-wrapper');
-            if (list.items.length > 0) {
-                paginationWrapper.classList.remove('d-none');
-                document.getElementById('pagination-info-start').innerText = list.i;
-                document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.page - 1, list.items.length);
-                document.getElementById('pagination-info-total').innerText = list.items.length;
-            } else {
-                paginationWrapper.classList.add('d-none');
-            }
-            tableSelector.syncCheckboxes();
-        });
-
-        document.getElementById('page-count-input')?.addEventListener('change', function(e) {
-            userList.show(1, parseInt(e.target.value) || 20);
-        });
-
-        // 5. Bulk Action Implementation
-        document.getElementById('btn-bulk-delete-confirm')?.addEventListener('click', function() {
-            const ids = tableSelector.getSelectedIds();
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('master.users.bulk-delete') }}";
-            
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            ids.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'ids[]';
-                input.value = id;
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        });
     });
 </script>
+<x-datatable.list-init :valueNames="[
+    { name: 'sort-name', attr: 'data-name' },
+    { name: 'sort-email', attr: 'data-email' },
+    { name: 'sort-role', attr: 'data-role' },
+    { name: 'sort-date', attr: 'data-date' }
+]" :perPage="20" listVar="userList" />
 @endpush

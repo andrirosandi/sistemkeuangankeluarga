@@ -11,7 +11,7 @@
             <i class="ti ti-hourglass" style="font-size:24px"></i>
         </span>
         <div>
-            <div class="h2 mb-0 fw-bold">Rp {{ number_format($data['totalAmount'], 0, ',', '.') }}</div>
+            <div class="h2 mb-0 fw-bold">@uang($data['totalAmount'])</div>
             <div class="text-secondary">{{ $data['totalCount'] }} pengajuan outstanding</div>
         </div>
     </div>
@@ -22,21 +22,21 @@
             <div class="border rounded p-2 text-center">
                 <div class="text-yellow fw-bold">{{ $data['requestedCount'] }}</div>
                 <div class="text-secondary" style="font-size:0.7rem">Menunggu Approval</div>
-                <div style="font-size:0.7rem">Rp {{ number_format($data['requestedAmount'], 0, ',', '.') }}</div>
+                <div style="font-size:0.7rem">@uang($data['requestedAmount'])</div>
             </div>
         </div>
         <div class="col-4">
             <div class="border rounded p-2 text-center">
                 <div class="text-blue fw-bold">{{ $data['approvedDraftCount'] }}</div>
                 <div class="text-secondary" style="font-size:0.7rem">Belum Cair</div>
-                <div style="font-size:0.7rem">Rp {{ number_format($data['approvedDraftAmount'], 0, ',', '.') }}</div>
+                <div style="font-size:0.7rem">@uang($data['approvedDraftAmount'])</div>
             </div>
         </div>
         <div class="col-4">
             <div class="border rounded p-2 text-center">
                 <div class="text-purple fw-bold">{{ $data['partialCount'] }}</div>
                 <div class="text-secondary" style="font-size:0.7rem">Parsial</div>
-                <div style="font-size:0.7rem">Rp {{ number_format($data['partialAmount'], 0, ',', '.') }}</div>
+                <div style="font-size:0.7rem">@uang($data['partialAmount'])</div>
             </div>
         </div>
     </div>

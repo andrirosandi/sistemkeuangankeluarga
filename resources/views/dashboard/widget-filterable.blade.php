@@ -54,10 +54,18 @@
             </template>
 
             {{-- Empty state --}}
-            <template x-if="!loading && !html">
+            <template x-if="!loading && !error && !html">
                 <div class="text-center text-secondary py-4">
                     <i class="ti ti-database-off" style="font-size:32px"></i>
                     <div class="mt-2">Tidak ada data</div>
+                </div>
+            </template>
+
+            {{-- Error state --}}
+            <template x-if="!loading && error">
+                <div class="text-center text-danger py-4">
+                    <i class="ti ti-alert-circle" style="font-size:32px"></i>
+                    <div class="mt-2">Gagal memuat data</div>
                 </div>
             </template>
         </div>

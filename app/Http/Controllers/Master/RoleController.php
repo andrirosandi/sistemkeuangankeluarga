@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\BulkDeletable;
 use App\Models\RoleVisibility;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
@@ -10,6 +11,25 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
+    use BulkDeletable;
+
+    protected function bulkDeleteConfig(): array
+    {
+        return [
+            'model' => Role::class,
+            'table' => 'roles',
+            'label' => 'role',
+        ];
+    }
+
+    protected function beforeBulkDelete(Request $request): ?\Illuminate\Http\RedirectResponse
+    {
+        $rolesToDelete = Role::whereIn('id', $request->ids)->get();
+        if ($rolesToDelete->contains('name', 'admin')) {
+            return redirect()->back()->with('error', 'Operasi dibatalkan! Salah satu role yang dipilih adalah [admin].');
+        }
+        return null;
+    }
     /**
      * Tampilkan daftar role beserta jumlah user dan permission.
      */
@@ -132,28 +152,4 @@ class RoleController extends Controller
         }
     }
 
-    /**
-     * Hapus banyak role.
-     */
-    public function bulkDelete(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:roles,id'
-        ]);
-
-        $rolesToDelete = Role::whereIn('id', $request->ids)->get();
-
-        // Cek jika ada admin di dalam list
-        if ($rolesToDelete->contains('name', 'admin')) {
-            return redirect()->back()->with('error', 'Operasi dibatalkan! Salah satu role yang dipilih adalah [admin].');
-        }
-
-        try {
-            Role::whereIn('id', $request->ids)->delete(); // CASCADE visibility
-            return redirect()->back()->with('success', count($request->ids) . ' role berhasil dihapus.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus beberapa role! Silakan periksa keterkaitan data.');
-        }
-    }
 }

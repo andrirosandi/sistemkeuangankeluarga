@@ -47,7 +47,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Total Outstanding</div>
                         <div class="fw-bold">{{ $totalCount }} request</div>
-                        <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($totalAmount, 0, ',', '.') }}</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($totalAmount)</div>
                     </div>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Menunggu Approval</div>
                         <div class="fw-bold text-yellow">{{ $requested->count() }}</div>
-                        <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($requested->sum('amount'), 0, ',', '.') }}</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($requested->sum('amount'))</div>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Cair</div>
                         <div class="fw-bold text-blue">{{ $approvedDraft->count() }}</div>
-                        <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($approvedDraft->sum('amount'), 0, ',', '.') }}</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($approvedDraft->sum('amount'))</div>
                     </div>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Realisasi Parsial</div>
                         <div class="fw-bold text-purple">{{ $partial->count() }}</div>
-                        <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($partial->sum('amount'), 0, ',', '.') }}</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($partial->sum('amount'))</div>
                     </div>
                 </div>
             </div>
@@ -115,7 +115,7 @@
                     <td>{{ Str::limit($r->description, 40) }}</td>
                     <td><span class="badge" style="background:{{ $r->category->color ?? '#6c757d' }}20; color:{{ $r->category->color ?? '#6c757d' }}">{{ $r->category->name ?? '-' }}</span></td>
                     <td>{{ $r->creator->name ?? '-' }}</td>
-                    <td class="text-end fw-bold">Rp {{ number_format($r->amount, 0, ',', '.') }}</td>
+                    <td class="text-end fw-bold">@uang($r->amount)</td>
                     <td>
                         @php $days = now()->diffInDays($r->created_at) @endphp
                         <span class="badge {{ $days > 7 ? 'bg-red-lt text-red' : ($days > 3 ? 'bg-yellow-lt text-yellow' : 'bg-green-lt text-green') }}">
@@ -148,7 +148,7 @@
                     <td>{{ Str::limit($r->description, 40) }}</td>
                     <td><span class="badge" style="background:{{ $r->category->color ?? '#6c757d' }}20; color:{{ $r->category->color ?? '#6c757d' }}">{{ $r->category->name ?? '-' }}</span></td>
                     <td>{{ $r->creator->name ?? '-' }}</td>
-                    <td class="text-end fw-bold">Rp {{ number_format($r->amount, 0, ',', '.') }}</td>
+                    <td class="text-end fw-bold">@uang($r->amount)</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -175,7 +175,7 @@
                     <td>{{ Str::limit($r->description, 40) }}</td>
                     <td><span class="badge" style="background:{{ $r->category->color ?? '#6c757d' }}20; color:{{ $r->category->color ?? '#6c757d' }}">{{ $r->category->name ?? '-' }}</span></td>
                     <td>{{ $r->creator->name ?? '-' }}</td>
-                    <td class="text-end fw-bold">Rp {{ number_format($r->amount, 0, ',', '.') }}</td>
+                    <td class="text-end fw-bold">@uang($r->amount)</td>
                 </tr>
                 @endforeach
             </tbody>

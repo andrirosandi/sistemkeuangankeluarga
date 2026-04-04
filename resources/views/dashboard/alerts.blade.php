@@ -19,8 +19,8 @@
                 </div>
             </div>
             <div class="text-end">
-                <div class="fw-bold">Rp {{ number_format($alert['amount'], 0, ',', '.') }}</div>
-                <span class="badge bg-yellow-lt text-yellow" style="font-size:0.65rem">Pending</span>
+                <div class="fw-bold">@uang($alert['amount'])</div>
+                <span class="badge {{ $alert['badge_class'] }}" style="font-size:0.65rem">{{ $alert['badge_label'] }}</span>
             </div>
         </a>
         @endforeach

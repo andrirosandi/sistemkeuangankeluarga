@@ -21,23 +21,7 @@
                 </div>
             </div>
             
-            <div class="card-body border-bottom py-3">
-                <div class="d-flex">
-                    <div class="text-secondary">
-                        Tampilkan
-                        <div class="mx-2 d-inline-block">
-                            <input type="text" class="form-control form-control-sm" value="10" size="3" id="page-count-input">
-                        </div>
-                        data
-                    </div>
-                    <div class="ms-auto text-secondary">
-                        Pencarian:
-                        <div class="ms-2 d-inline-block">
-                            <input type="search" class="search form-control form-control-sm" aria-label="Cari template">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-datatable.controls :perPage="10" searchLabel="Cari template" />
 
             <div class="table-responsive">
                 <table class="table table-vcenter card-table text-nowrap">
@@ -74,7 +58,7 @@
                                     @endif
                                 </td>
                                 <td class="sort-amount text-end fw-bold" data-amount="{{ $template->amount }}">
-                                    Rp {{ number_format($template->amount, 0, ',', '.') }}
+                                    @uang($template->amount)
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -129,61 +113,12 @@
     </div>
 </div>
 
-{{-- Delete Single Confirmation Modal --}}
-<div class="modal modal-blur fade" id="modal-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Konfirmasi Hapus</h3>
-                <div class="text-secondary">Hapus template <strong id="delete-name"></strong>? Data rincian di dalamnya juga akan terhapus.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col">
-                            <form id="form-delete" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger w-100">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Bulk Delete Confirmation Modal --}}
-<div class="modal modal-blur fade" id="modal-bulk-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Hapus Terpilih</h3>
-                <div class="text-secondary">Anda yakin menghapus semua template yang dipilih?</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col"><button type="button" class="btn btn-danger w-100" id="confirm-bulk-delete">Hapus Semua</button></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<x-datatable.delete-modal message="Hapus template <strong id='delete-name'></strong>? Data rincian di dalamnya juga akan terhapus." />
+<x-datatable.bulk-delete-modal message="Anda yakin menghapus semua template yang dipilih?" route="{{ route('master.templates.bulk-delete') }}" confirmId="confirm-bulk-delete" />
 
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
     function deleteTemplate(id, name) {
         const form = document.getElementById('form-delete');
@@ -192,64 +127,11 @@
         label.innerText = name;
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // 1. Initialize List.js
-        const templateList = new List('table-default', {
-            valueNames: [
-                { name: 'sort-name', attr: 'data-name' },
-                { name: 'sort-category', attr: 'data-category' },
-                { name: 'sort-type', attr: 'data-type' },
-                { name: 'sort-amount', attr: 'data-amount' }
-            ],
-            page: 10,
-            pagination: { innerWindow: 2, outerWindow: 1 }
-        });
-
-        // 2. Initialize Selection Handler
-        const tableSelector = window.initSmartTableSelection({
-            batchBarId: 'batch-action-bar',
-            countId: 'selected-count'
-        });
-
-        // 3. Sync events
-        templateList.on('updated', function (list) {
-            const paginationWrapper = document.getElementById('pagination-wrapper');
-            if (list.items.length > 0) {
-                paginationWrapper.classList.remove('d-none');
-                document.getElementById('pagination-info-start').innerText = list.i;
-                document.getElementById('pagination-info-end').innerText = Math.min(list.i + list.page - 1, list.items.length);
-                document.getElementById('pagination-info-total').innerText = list.items.length;
-            } else {
-                paginationWrapper.classList.add('d-none');
-            }
-            tableSelector.syncCheckboxes();
-        });
-
-        document.getElementById('page-count-input')?.addEventListener('change', function(e) {
-            templateList.show(1, parseInt(e.target.value) || 10);
-        });
-
-        // Bulk Delete Confirm
-        document.getElementById('confirm-bulk-delete')?.addEventListener('click', function() {
-            const ids = tableSelector.getSelectedIds();
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('master.templates.bulk-delete') }}";
-            
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden'; csrf.name = '_token'; csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            ids.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden'; input.name = 'ids[]'; input.value = id;
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        });
-    });
 </script>
+<x-datatable.list-init :valueNames="[
+    { name: 'sort-name', attr: 'data-name' },
+    { name: 'sort-category', attr: 'data-category' },
+    { name: 'sort-type', attr: 'data-type' },
+    { name: 'sort-amount', attr: 'data-amount' }
+]" :perPage="10" listVar="templateList" />
 @endpush

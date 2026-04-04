@@ -47,7 +47,7 @@
                         <span class="bg-blue-lt rounded p-2"><i class="ti ti-file-text text-blue"></i></span>
                         <div>
                             <div class="text-secondary" style="font-size:0.75rem">Total Diajukan</div>
-                            <div class="fw-bold">Rp {{ number_format($data['totalRequested'], 0, ',', '.') }}</div>
+                            <div class="fw-bold">@uang($data['totalRequested'])</div>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         <span class="bg-green-lt rounded p-2"><i class="ti ti-check text-green"></i></span>
                         <div>
                             <div class="text-secondary" style="font-size:0.75rem">Total Terealisasi</div>
-                            <div class="fw-bold text-green">Rp {{ number_format($data['totalRealized'], 0, ',', '.') }}</div>
+                            <div class="fw-bold text-green">@uang($data['totalRealized'])</div>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                         <span class="bg-teal-lt rounded p-2"><i class="ti ti-piggy-bank text-teal"></i></span>
                         <div>
                             <div class="text-secondary" style="font-size:0.75rem">Penghematan</div>
-                            <div class="fw-bold text-teal">Rp {{ number_format($data['totalSavings'], 0, ',', '.') }}</div>
+                            <div class="fw-bold text-teal">@uang($data['totalSavings'])</div>
                         </div>
                     </div>
                 </div>
@@ -130,9 +130,9 @@
                                     <span class="badge me-1" style="background:{{ $cat['color'] }}; width:12px; height:12px; padding:0"></span>
                                     {{ $cat['name'] }}
                                 </td>
-                                <td class="text-end">Rp {{ number_format($cat['requested'], 0, ',', '.') }}</td>
-                                <td class="text-end text-green">Rp {{ number_format($cat['realized'], 0, ',', '.') }}</td>
-                                <td class="text-end text-teal">Rp {{ number_format($cat['savings'], 0, ',', '.') }}</td>
+                                <td class="text-end">@uang($cat['requested'])</td>
+                                <td class="text-end text-green">@uang($cat['realized'])</td>
+                                <td class="text-end text-teal">@uang($cat['savings'])</td>
                             </tr>
                             @empty
                             <tr><td colspan="4" class="text-center text-secondary py-3">Belum ada data</td></tr>

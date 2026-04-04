@@ -74,8 +74,8 @@
                                     <span class="badge me-1" style="background:{{ $cat['color'] }}; width:12px; height:12px; padding:0"></span>
                                     {{ $cat['name'] }}
                                 </td>
-                                <td class="text-end text-green">Rp {{ number_format($cat['totalIn'], 0, ',', '.') }}</td>
-                                <td class="text-end text-red">Rp {{ number_format($cat['totalOut'], 0, ',', '.') }}</td>
+                                <td class="text-end text-green">@uang($cat['totalIn'])</td>
+                                <td class="text-end text-red">@uang($cat['totalOut'])</td>
                                 <td class="text-end">{{ $cat['countIn'] + $cat['countOut'] }}</td>
                             </tr>
                             @empty
@@ -88,8 +88,8 @@
                         <tfoot>
                             <tr class="fw-bold">
                                 <td>Total</td>
-                                <td class="text-end text-green">Rp {{ number_format(collect($data)->sum('totalIn'), 0, ',', '.') }}</td>
-                                <td class="text-end text-red">Rp {{ number_format(collect($data)->sum('totalOut'), 0, ',', '.') }}</td>
+                                <td class="text-end text-green">@uang(collect($data)->sum('totalIn'))</td>
+                                <td class="text-end text-red">@uang(collect($data)->sum('totalOut'))</td>
                                 <td class="text-end">{{ collect($data)->sum('countIn') + collect($data)->sum('countOut') }}</td>
                             </tr>
                         </tfoot>

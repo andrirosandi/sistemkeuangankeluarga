@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasHeaderRelations;
 
 class TransactionHeader extends Model
 {
+    use HasHeaderRelations;
     protected $table = 'transaction_header';
     protected $fillable = [
         'category_id',
@@ -24,18 +26,8 @@ class TransactionHeader extends Model
         return $this->hasMany(TransactionDetail::class, 'header_id');
     }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
     public function requestHeader()
     {
         return $this->belongsTo(RequestHeader::class, 'request_id');
-    }
-
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 }

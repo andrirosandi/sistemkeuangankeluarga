@@ -29,7 +29,7 @@
                         </span>
                     </td>
                     <td class="text-end fw-bold {{ $trx['type'] === 'in' ? 'text-green' : 'text-red' }}">
-                        {{ $trx['type'] === 'in' ? '+' : '-' }}{{ number_format($trx['amount'], 0, ',', '.') }}
+                        {{ $trx['type'] === 'in' ? '+' : '-' }}@uang($trx['amount'])
                     </td>
                     <td class="text-secondary" style="font-size:0.8rem">{{ $trx['creator'] }}</td>
                 </tr>

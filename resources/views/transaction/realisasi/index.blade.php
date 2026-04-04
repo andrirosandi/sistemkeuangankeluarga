@@ -57,23 +57,7 @@
             </div>
 
             <!-- Controls -->
-            <div class="card-body border-bottom py-3">
-                <div class="d-flex">
-                    <div class="text-secondary">
-                        Tampilkan
-                        <div class="mx-2 d-inline-block">
-                            <input type="text" class="form-control form-control-sm" value="20" size="3" aria-label="In page count" id="page-count-input">
-                        </div>
-                        data
-                    </div>
-                    <div class="ms-auto text-secondary">
-                        Pencarian:
-                        <div class="ms-2 d-inline-block">
-                            <input type="search" class="search form-control form-control-sm" aria-label="Search transaction">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-datatable.controls :perPage="20" searchLabel="Search transaction" />
 
             <!-- Table -->
             <div class="table-responsive">
@@ -103,7 +87,7 @@
                                 {{ \Carbon\Carbon::parse($trx->transaction_date)->format('d M Y') }}
                             </td>
                             <td class="sort-amount text-end fw-bold" data-amount="{{ $trx->amount }}">
-                                Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                                @uang($trx->amount)
                             </td>
                             <td class="sort-status" data-status="{{ $trx->status }}">
                                 @if($trx->status == 'draft') <span class="badge bg-warning">Draft</span>
@@ -240,37 +224,10 @@
     </div>
 </div>
 
-{{-- Modal Delete --}}
-<div class="modal modal-blur fade" id="modal-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
-                <h3>Hapus Realisasi</h3>
-                <div class="text-secondary">Hapus draft realisasi <strong id="delete-name"></strong>? Jika berasal dari pengajuan, status akan dikembalikan menjadi <strong>Requested</strong>.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col">
-                            <form id="form-delete" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger w-100">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<x-datatable.delete-modal title="Hapus Realisasi" message="Hapus draft realisasi <strong id='delete-name'></strong>? Jika berasal dari pengajuan, status akan dikembalikan menjadi <strong>Requested</strong>." />
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
     const baseUrl = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/realisasi') }}`;
 
@@ -291,37 +248,11 @@
         document.getElementById('delete-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const trxList = new List('table-default', {
-            valueNames: [
-                { name: 'sort-desc', attr: 'data-desc' },
-                { name: 'sort-date', attr: 'data-date' },
-                { name: 'sort-amount', attr: 'data-amount' },
-                { name: 'sort-status', attr: 'data-status' }
-            ],
-            page: 20,
-            pagination: { innerWindow: 2, outerWindow: 1 }
-        });
-
-        trxList.on('updated', function (list) {
-            const paginationWrapper = document.getElementById('pagination-wrapper');
-            if (list.items.length > 0) {
-                paginationWrapper.classList.remove('d-none');
-                const startNode = document.getElementById('pagination-info-start');
-                if (startNode) startNode.innerText = list.i;
-                const endNode = document.getElementById('pagination-info-end');
-                if (endNode) endNode.innerText = Math.min(list.i + list.page - 1, list.items.length);
-                const totalNode = document.getElementById('pagination-info-total');
-                if (totalNode) totalNode.innerText = list.items.length;
-            } else {
-                paginationWrapper.classList.add('d-none');
-            }
-        });
-
-        document.getElementById('page-count-input')?.addEventListener('change', function(e) {
-            trxList.show(1, parseInt(e.target.value) || 20);
-        });
-    });
 </script>
+<x-datatable.list-init :valueNames="[
+    { name: 'sort-desc', attr: 'data-desc' },
+    { name: 'sort-date', attr: 'data-date' },
+    { name: 'sort-amount', attr: 'data-amount' },
+    { name: 'sort-status', attr: 'data-status' }
+]" :perPage="20" listVar="trxList" />
 @endpush

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\BulkDeletable;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,24 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    use BulkDeletable;
+
+    protected function bulkDeleteConfig(): array
+    {
+        return [
+            'model' => User::class,
+            'table' => 'users',
+            'label' => 'anggota keluarga',
+        ];
+    }
+
+    protected function beforeBulkDelete(Request $request): ?\Illuminate\Http\RedirectResponse
+    {
+        if (in_array(auth()->id(), $request->ids)) {
+            return redirect()->back()->with('error', 'Operasi dibatalkan! Salah satu akun adalah akun Anda sendiri.');
+        }
+        return null;
+    }
     /**
      * Tampilkan daftar pengguna / anggota keluarga.
      */
@@ -119,26 +138,4 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Hapus banyak pengguna sekaligus.
-     */
-    public function bulkDelete(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:users,id'
-        ]);
-
-        // Prevent self-deletion in bulk
-        if (in_array(auth()->id(), $request->ids)) {
-            return redirect()->back()->with('error', 'Operasi dibatalkan! Salah satu akun adalah akun Anda sendiri.');
-        }
-
-        try {
-            User::whereIn('id', $request->ids)->delete();
-            return redirect()->back()->with('success', count($request->ids) . ' anggota keluarga berhasil dihapus.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus beberapa akun! Beberapa data mungkin sudah digunakan.');
-        }
-    }
 }

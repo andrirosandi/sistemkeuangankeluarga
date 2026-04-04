@@ -40,25 +40,25 @@
         <div class="col-3">
             <div class="border p-2 rounded">
                 <div class="text-muted small">Saldo Awal</div>
-                <div class="fw-bold">Rp {{ number_format($beginBalance, 0, ',', '.') }}</div>
+                <div class="fw-bold">@uang($beginBalance)</div>
             </div>
         </div>
         <div class="col-3">
             <div class="border p-2 rounded">
                 <div class="text-muted small">Total Pemasukan</div>
-                <div class="fw-bold text-success">+ Rp {{ number_format($totalIn, 0, ',', '.') }}</div>
+                <div class="fw-bold text-success">+ @uang($totalIn)</div>
             </div>
         </div>
         <div class="col-3">
             <div class="border p-2 rounded">
                 <div class="text-muted small">Total Pengeluaran</div>
-                <div class="fw-bold text-danger">- Rp {{ number_format($totalOut, 0, ',', '.') }}</div>
+                <div class="fw-bold text-danger">- @uang($totalOut)</div>
             </div>
         </div>
         <div class="col-3">
             <div class="border p-2 rounded bg-light">
                 <div class="text-muted small">Saldo Akhir</div>
-                <div class="fw-bold fs-3">Rp {{ number_format($endBalance, 0, ',', '.') }}</div>
+                <div class="fw-bold fs-3">@uang($endBalance)</div>
             </div>
         </div>
     </div>
@@ -80,7 +80,7 @@
                 <td></td>
                 <td class="text-muted">{{ $monthDate->startOfMonth()->format('d/m/Y') }}</td>
                 <td class="fw-bold" colspan="3">SALDO AWAL BULAN INI</td>
-                <td class="text-end fw-bold">Rp {{ number_format($beginBalance, 0, ',', '.') }}</td>
+                <td class="text-end fw-bold">@uang($beginBalance)</td>
             </tr>
 
             <!-- Mutations -->
@@ -95,13 +95,13 @@
                     </div>
                 </td>
                 <td class="text-end text-success">
-                    {{ $mut->debit > 0 ? '+ ' . number_format($mut->debit, 0, ',', '.') : '-' }}
+                    @if($mut->debit > 0)+ @uang($mut->debit)@else-@endif
                 </td>
                 <td class="text-end text-danger">
-                    {{ $mut->credit > 0 ? '- ' . number_format($mut->credit, 0, ',', '.') : '-' }}
+                    @if($mut->credit > 0)- @uang($mut->credit)@else-@endif
                 </td>
                 <td class="text-end font-monospace">
-                    Rp {{ number_format($mut->balance, 0, ',', '.') }}
+                    @uang($mut->balance)
                 </td>
             </tr>
             @empty
@@ -115,9 +115,9 @@
             <!-- End Balance Row (Footer Info) -->
             <tr class="bg-light">
                 <td colspan="3" class="text-end fw-bold text-uppercase">TOTAL MUTASI / SALDO AKHIR</td>
-                <td class="text-end fw-bold text-success">Rp {{ number_format($totalIn, 0, ',', '.') }}</td>
-                <td class="text-end fw-bold text-danger">Rp {{ number_format($totalOut, 0, ',', '.') }}</td>
-                <td class="text-end fw-bold fs-3">Rp {{ number_format($endBalance, 0, ',', '.') }}</td>
+                <td class="text-end fw-bold text-success">@uang($totalIn)</td>
+                <td class="text-end fw-bold text-danger">@uang($totalOut)</td>
+                <td class="text-end fw-bold fs-3">@uang($endBalance)</td>
             </tr>
         </tbody>
     </table>

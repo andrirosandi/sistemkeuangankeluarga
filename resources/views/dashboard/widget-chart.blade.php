@@ -37,9 +37,17 @@
             </template>
 
             {{-- Chart container --}}
-            <template x-if="!loading">
+            <template x-if="!loading && !error">
                 <div>
                     <div x-ref="chartContainer" style="min-height:250px"></div>
+                </div>
+            </template>
+
+            {{-- Error state --}}
+            <template x-if="!loading && error">
+                <div class="text-center text-danger py-4">
+                    <i class="ti ti-alert-circle" style="font-size:32px"></i>
+                    <div class="mt-2">Gagal memuat grafik</div>
                 </div>
             </template>
         </div>

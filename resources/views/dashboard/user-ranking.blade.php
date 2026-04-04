@@ -17,7 +17,7 @@
                 <div class="flex-fill">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-medium">{{ $user['name'] }}</span>
-                        <span class="fw-bold text-red">Rp {{ number_format($user['totalOut'], 0, ',', '.') }}</span>
+                        <span class="fw-bold text-red">@uang($user['totalOut'])</span>
                     </div>
                     {{-- Progress bar --}}
                     <div class="progress progress-sm">
@@ -25,10 +25,10 @@
                     </div>
                     <div class="d-flex justify-content-between mt-1">
                         <span class="text-secondary" style="font-size:0.7rem">
-                            <i class="ti ti-trending-up text-green"></i> Masuk: Rp {{ number_format($user['totalIn'], 0, ',', '.') }}
+                            <i class="ti ti-trending-up text-green"></i> Masuk: @uang($user['totalIn'])
                         </span>
                         <span class="text-secondary" style="font-size:0.7rem">
-                            Net: <span class="{{ $user['net'] >= 0 ? 'text-green' : 'text-red' }}">Rp {{ number_format($user['net'], 0, ',', '.') }}</span>
+                            Net: <span class="{{ $user['net'] >= 0 ? 'text-green' : 'text-red' }}">@uang($user['net'])</span>
                         </span>
                     </div>
                 </div>

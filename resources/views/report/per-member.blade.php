@@ -48,9 +48,9 @@
                                 <td class="fw-medium">{{ $m['name'] }}</td>
                                 <td><span class="badge bg-secondary-lt">{{ ucfirst($m['role']) }}</span></td>
                                 <td class="text-end">{{ $m['requestCount'] }}</td>
-                                <td class="text-end text-green">Rp {{ number_format($m['totalIn'], 0, ',', '.') }}</td>
-                                <td class="text-end text-red">Rp {{ number_format($m['totalOut'], 0, ',', '.') }}</td>
-                                <td class="text-end fw-bold {{ $m['net'] >= 0 ? 'text-green' : 'text-red' }}">Rp {{ number_format($m['net'], 0, ',', '.') }}</td>
+                                <td class="text-end text-green">@uang($m['totalIn'])</td>
+                                <td class="text-end text-red">@uang($m['totalOut'])</td>
+                                <td class="text-end fw-bold {{ $m['net'] >= 0 ? 'text-green' : 'text-red' }}">@uang($m['net'])</td>
                             </tr>
                             @empty
                             <tr><td colspan="7" class="text-center text-secondary py-3">Belum ada data</td></tr>

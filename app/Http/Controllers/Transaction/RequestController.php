@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\TransactionType;
 use App\Models\Category;
 use App\Models\RequestHeader;
 use App\Models\RequestDetail;
@@ -12,56 +13,11 @@ use App\Models\TemporaryMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\RoleVisibility;
+use App\Services\NotificationService;
 
 class RequestController extends Controller
 {
-    private function getTransCode($type) {
-        return $type === 'out' ? 2 : 1;
-    }
-
-    private function getTypeLabel($type) {
-        return $type === 'out' ? 'Kas Keluar' : 'Kas Masuk';
-    }
-
-    protected function notifyApprovers($req, $type)
-    {
-        $permissionName = $type == 'in' ? 'in.request.approve' : 'out.request.approve';
-        $approvers = \App\Models\User::permission($permissionName)->get();
-
-        $keyword = 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong>';
-        $notifications = [];
-        foreach($approvers as $approver) {
-            $exists = \DB::table('notifications')
-                ->where('user_id', $approver->id)
-                ->where('message', 'like', '%' . addcslashes($req->description, '%_') . '%')
-                ->where('is_read', 0)
-                ->exists();
-
-            if (!$exists) {
-                $notifications[] = [
-                    'user_id' => $approver->id,
-                    'message' => $keyword . ' dari ' . auth()->user()->name,
-                    'is_read' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-        }
-        if (!empty($notifications)) {
-            \DB::table('notifications')->insert($notifications);
-        }
-    }
-
-    protected function notifyUser($userId, $message)
-    {
-        \DB::table('notifications')->insert([
-            'user_id' => $userId,
-            'message' => $message,
-            'is_read' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
+    use TransactionType;
 
     /**
      * Approve a request: set status approved, auto-create draft transaction.
@@ -115,7 +71,7 @@ class RequestController extends Controller
             }
 
             // 4. Notify the requester
-            $this->notifyUser(
+            NotificationService::notifyUser(
                 $req->created_by,
                 'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-success">disetujui</span> oleh ' . auth()->user()->name . '.'
             );
@@ -161,7 +117,7 @@ class RequestController extends Controller
             ]);
 
             // Notify the requester
-            $this->notifyUser(
+            NotificationService::notifyUser(
                 $req->created_by,
                 'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-danger">ditolak</span> oleh ' . auth()->user()->name . '. Alasan: ' . htmlspecialchars($request->rejection_reason)
             );
@@ -311,7 +267,7 @@ class RequestController extends Controller
             }
 
             if ($status === 'requested') {
-                $this->notifyApprovers($header, $type);
+                NotificationService::notifyApprovers($header, $type);
             }
 
             DB::commit();
@@ -435,7 +391,7 @@ class RequestController extends Controller
             }
 
             if ($status === 'requested') {
-                $this->notifyApprovers($req, $type);
+                NotificationService::notifyApprovers($req, $type);
             }
 
             DB::commit();
@@ -465,7 +421,7 @@ class RequestController extends Controller
             DB::beginTransaction();
             $req->update(['status' => 'requested']);
 
-            $this->notifyApprovers($req, $type);
+            NotificationService::notifyApprovers($req, $type);
 
             DB::commit();
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disubmit. Menunggu persetujuan Admin.');

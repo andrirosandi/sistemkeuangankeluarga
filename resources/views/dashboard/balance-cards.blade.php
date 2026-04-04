@@ -15,7 +15,11 @@
                         <div class="text-secondary" style="font-size:0.75rem">Bulan ini</div>
                     </div>
                 </div>
-                <div class="mt-3 h2 mb-0 fw-bold" x-text="loading ? '...' : formatRupiah(data.begin)"></div>
+                <div class="mt-3 h2 mb-0 fw-bold">
+                    <template x-if="loading"><span class="text-secondary" style="font-size:1rem">Memuat...</span></template>
+                    <template x-if="error"><span class="text-danger" style="font-size:1rem">Error</span></template>
+                    <template x-if="!loading && !error"><span x-text="formatRupiah(data.begin)"></span></template>
+                </div>
             </div>
         </div>
     </div>
@@ -35,7 +39,11 @@
                         <div class="text-secondary" style="font-size:0.75rem">Bulan ini</div>
                     </div>
                 </div>
-                <div class="mt-3 h2 mb-0 fw-bold text-green" x-text="loading ? '...' : formatRupiah(data.totalIn)"></div>
+                <div class="mt-3 h2 mb-0 fw-bold text-green">
+                    <template x-if="loading"><span class="text-secondary" style="font-size:1rem">Memuat...</span></template>
+                    <template x-if="error"><span class="text-danger" style="font-size:1rem">Error</span></template>
+                    <template x-if="!loading && !error"><span x-text="formatRupiah(data.totalIn)"></span></template>
+                </div>
             </div>
         </div>
     </div>
@@ -55,7 +63,11 @@
                         <div class="text-secondary" style="font-size:0.75rem">Bulan ini</div>
                     </div>
                 </div>
-                <div class="mt-3 h2 mb-0 fw-bold text-red" x-text="loading ? '...' : formatRupiah(data.totalOut)"></div>
+                <div class="mt-3 h2 mb-0 fw-bold text-red">
+                    <template x-if="loading"><span class="text-secondary" style="font-size:1rem">Memuat...</span></template>
+                    <template x-if="error"><span class="text-danger" style="font-size:1rem">Error</span></template>
+                    <template x-if="!loading && !error"><span x-text="formatRupiah(data.totalOut)"></span></template>
+                </div>
             </div>
         </div>
     </div>
@@ -75,7 +87,11 @@
                         <div class="text-secondary" style="font-size:0.75rem">Bulan ini</div>
                     </div>
                 </div>
-                <div class="mt-3 h2 mb-0 fw-bold text-blue" x-text="loading ? '...' : formatRupiah(data.ending)"></div>
+                <div class="mt-3 h2 mb-0 fw-bold text-blue">
+                    <template x-if="loading"><span class="text-secondary" style="font-size:1rem">Memuat...</span></template>
+                    <template x-if="error"><span class="text-danger" style="font-size:1rem">Error</span></template>
+                    <template x-if="!loading && !error"><span x-text="formatRupiah(data.ending)"></span></template>
+                </div>
             </div>
         </div>
     </div>

@@ -35,7 +35,7 @@
             </div>
             @endif
             <div class="ms-auto">
-                <div class="h2 mb-0 text-green">Rp {{ number_format($totalIncome, 0, ',', '.') }}</div>
+                <div class="h2 mb-0 text-green">@uang($totalIncome)</div>
                 <div class="text-secondary small">Total Pemasukan</div>
             </div>
         </div>
@@ -70,7 +70,7 @@
                                 <td>{{ Str::limit($trx->description, 40) }}</td>
                                 <td><span class="badge" style="background:{{ $trx->category->color ?? '#6c757d' }}20; color:{{ $trx->category->color ?? '#6c757d' }}">{{ $trx->category->name ?? '-' }}</span></td>
                                 <td class="text-secondary">{{ $trx->creator->name ?? '-' }}</td>
-                                <td class="text-end fw-bold text-green">+Rp {{ number_format($trx->amount, 0, ',', '.') }}</td>
+                                <td class="text-end fw-bold text-green">+@uang($trx->amount)</td>
                             </tr>
                             @empty
                             <tr><td colspan="5" class="text-center text-secondary py-3">Belum ada pemasukan</td></tr>

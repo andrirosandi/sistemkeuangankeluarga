@@ -100,7 +100,7 @@
                         </tr>
                         <tr class="bg-primary-lt">
                             <td class="font-weight-bold">Total Realisasi</td>
-                            <td class="font-weight-bold h3 mb-0">Rp {{ number_format($transaction->amount, 0, ',', '.') }}</td>
+                            <td class="font-weight-bold h3 mb-0">@uang($transaction->amount)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -160,7 +160,7 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->description }}</td>
-                            <td class="text-end">{{ number_format($item->amount, 0, ',', '.') }}</td>
+                            <td class="text-end">@uang($item->amount)</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -168,7 +168,7 @@
                         <tr class="bg-light">
                             <td colspan="2" class="text-end font-weight-bold">Total:</td>
                             <td class="text-end font-weight-bold" style="font-size: 1.1rem;">
-                                Rp {{ number_format($transaction->amount, 0, ',', '.') }}
+                                @uang($transaction->amount)
                             </td>
                         </tr>
                     </tfoot>

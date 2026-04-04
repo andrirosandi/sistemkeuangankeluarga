@@ -17,7 +17,7 @@
                 <div class="flex-fill">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-medium">{{ ucfirst($group['name']) }}</span>
-                        <span class="fw-bold text-red">Rp {{ number_format($group['totalOut'], 0, ',', '.') }}</span>
+                        <span class="fw-bold text-red">@uang($group['totalOut'])</span>
                     </div>
                     {{-- Progress bar --}}
                     <div class="progress progress-sm">
@@ -25,10 +25,10 @@
                     </div>
                     <div class="d-flex justify-content-between mt-1">
                         <span class="text-secondary" style="font-size:0.7rem">
-                            <i class="ti ti-trending-up text-green"></i> Masuk: Rp {{ number_format($group['totalIn'], 0, ',', '.') }}
+                            <i class="ti ti-trending-up text-green"></i> Masuk: @uang($group['totalIn'])
                         </span>
                         <span class="text-secondary" style="font-size:0.7rem">
-                            Net: <span class="{{ $group['net'] >= 0 ? 'text-green' : 'text-red' }}">Rp {{ number_format($group['net'], 0, ',', '.') }}</span>
+                            Net: <span class="{{ $group['net'] >= 0 ? 'text-green' : 'text-red' }}">@uang($group['net'])</span>
                         </span>
                     </div>
                 </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\BulkDeletable;
 use App\Models\Category;
 use App\Models\TemplateHeader;
 use App\Models\TemplateDetail;
@@ -12,6 +13,17 @@ use Illuminate\Support\Facades\Auth;
 
 class TemplateController extends Controller
 {
+    use BulkDeletable;
+
+    protected function bulkDeleteConfig(): array
+    {
+        return [
+            'model' => TemplateHeader::class,
+            'table' => 'template_header',
+            'label' => 'template',
+            'use_transaction' => true,
+        ];
+    }
     public function index(Request $request)
     {
         $query = TemplateHeader::with(['category', 'creator'])
@@ -134,21 +146,4 @@ class TemplateController extends Controller
         }
     }
 
-    public function bulkDelete(Request $request)
-    {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:template_header,id',
-        ]);
-
-        try {
-            DB::beginTransaction();
-            TemplateHeader::whereIn('id', $request->ids)->delete();
-            DB::commit();
-            return redirect()->route('master.templates.index')->with('success', count($request->ids) . ' template berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menghapus template secara massal: ' . $e->getMessage());
-        }
-    }
 }

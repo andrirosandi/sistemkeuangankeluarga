@@ -225,13 +225,14 @@ function dashboardBalance() {
     return {
         data: { begin: 0, totalIn: 0, totalOut: 0, ending: 0 },
         loading: true,
+        error: false,
         init() {
             fetch('{{ route('api.dashboard.balance') }}', {
                 headers: { 'Accept': 'application/json' }
             })
-            .then(r => r.json())
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(d => { this.data = d; this.loading = false; })
-            .catch(() => { this.loading = false; });
+            .catch(() => { this.loading = false; this.error = true; });
         },
         formatRupiah
     };
@@ -249,6 +250,7 @@ function dashboardWidget(config) {
         categories: config.categories,
         html: '',
         loading: true,
+        error: false,
         init() {
             this.loadContent();
             this.$watch('scope', () => this.loadContent());
@@ -256,6 +258,7 @@ function dashboardWidget(config) {
         },
         loadContent() {
             this.loading = true;
+            this.error = false;
             let url = new URL(this.apiUrl);
             url.searchParams.set('scope', this.scope);
             if (this.categoryId) {
@@ -266,9 +269,9 @@ function dashboardWidget(config) {
             fetch(url.toString(), {
                 headers: { 'Accept': 'text/html' }
             })
-            .then(r => r.text())
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
             .then(html => { this.html = html; this.loading = false; })
-            .catch(() => { this.html = ''; this.loading = false; });
+            .catch(() => { this.html = ''; this.loading = false; this.error = true; });
         }
     };
 }
@@ -282,6 +285,7 @@ function dashboardChart(config) {
         scopes: config.scopes,
         chartType: config.chartType,
         loading: true,
+        error: false,
         chartInstance: null,
         init() {
             this.loadChart();
@@ -289,19 +293,20 @@ function dashboardChart(config) {
         },
         loadChart() {
             this.loading = true;
+            this.error = false;
             let url = new URL(this.apiUrl);
             url.searchParams.set('scope', this.scope);
             fetch(url.toString(), {
                 headers: { 'Accept': 'application/json' }
             })
-            .then(r => r.json())
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(data => {
                 this.loading = false;
                 this.$nextTick(() => {
                     this.renderChart(data);
                 });
             })
-            .catch(() => { this.loading = false; });
+            .catch(() => { this.loading = false; this.error = true; });
         },
         renderChart(data) {
             if (this.chartInstance) {

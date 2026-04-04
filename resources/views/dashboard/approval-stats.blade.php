@@ -2,21 +2,21 @@
 <div class="row g-3">
     {{-- Reviewed this month --}}
     <div class="col-6 col-md-3">
-        <div class="d-flex align-items-center gap-2">
-            <span class="bg-green-lt rounded p-2"><i class="ti ti-check text-green"></i></span>
-            <div>
+        <div class="d-flex align-items-center gap-2" style="min-height: 60px">
+            <span class="bg-green-lt rounded p-2 flex-shrink-0 align-self-center"><i class="ti ti-check text-green"></i></span>
+            <div class="text-truncate">
                 <div class="text-secondary" style="font-size:0.75rem">Disetujui</div>
                 <div class="fw-bold text-green">{{ $data['approvedCount'] }}</div>
-                <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($data['approvedAmount'], 0, ',', '.') }}</div>
+                <div class="text-secondary text-truncate" style="font-size:0.7rem">@uang($data['approvedAmount'])</div>
             </div>
         </div>
     </div>
 
     {{-- Rejected --}}
     <div class="col-6 col-md-3">
-        <div class="d-flex align-items-center gap-2">
-            <span class="bg-red-lt rounded p-2"><i class="ti ti-x text-red"></i></span>
-            <div>
+        <div class="d-flex align-items-center gap-2" style="min-height: 60px">
+            <span class="bg-red-lt rounded p-2 flex-shrink-0 align-self-center"><i class="ti ti-x text-red"></i></span>
+            <div class="text-truncate">
                 <div class="text-secondary" style="font-size:0.75rem">Ditolak</div>
                 <div class="fw-bold text-red">{{ $data['rejectedCount'] }}</div>
             </div>
@@ -25,21 +25,21 @@
 
     {{-- Pending --}}
     <div class="col-6 col-md-3">
-        <div class="d-flex align-items-center gap-2">
-            <span class="bg-yellow-lt rounded p-2"><i class="ti ti-clock text-yellow"></i></span>
-            <div>
+        <div class="d-flex align-items-center gap-2" style="min-height: 60px">
+            <span class="bg-yellow-lt rounded p-2 flex-shrink-0 align-self-center"><i class="ti ti-clock text-yellow"></i></span>
+            <div class="text-truncate">
                 <div class="text-secondary" style="font-size:0.75rem">Menunggu</div>
                 <div class="fw-bold text-yellow">{{ $data['pendingCount'] }}</div>
-                <div class="text-secondary" style="font-size:0.7rem">Rp {{ number_format($data['pendingAmount'], 0, ',', '.') }}</div>
+                <div class="text-secondary text-truncate" style="font-size:0.7rem">@uang($data['pendingAmount'])</div>
             </div>
         </div>
     </div>
 
     {{-- Avg Response --}}
     <div class="col-6 col-md-3">
-        <div class="d-flex align-items-center gap-2">
-            <span class="bg-blue-lt rounded p-2"><i class="ti ti-hourglass text-blue"></i></span>
-            <div>
+        <div class="d-flex align-items-center gap-2" style="min-height: 60px">
+            <span class="bg-blue-lt rounded p-2 flex-shrink-0 align-self-center"><i class="ti ti-hourglass text-blue"></i></span>
+            <div class="text-truncate">
                 <div class="text-secondary" style="font-size:0.75rem">Rata-rata Respon</div>
                 <div class="fw-bold text-blue">
                     @if($data['avgResponseHours'] !== null)
