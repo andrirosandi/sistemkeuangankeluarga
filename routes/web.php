@@ -136,6 +136,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dedicated Upload API
     Route::post('/api/upload-media', [\App\Http\Controllers\Api\UploadController::class, 'store'])->name('api.upload');
+
+    // Dashboard Widget API
+    Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {
+        Route::get('/balance', [DashboardController::class, 'widgetBalance'])->name('balance')->middleware('can:dashboard.system.balance');
+        Route::get('/summary', [DashboardController::class, 'widgetSummary'])->name('summary')->middleware('can:dashboard.widget.summary');
+        Route::get('/activity', [DashboardController::class, 'widgetActivity'])->name('activity')->middleware('can:dashboard.widget.activity');
+        Route::get('/alerts', [DashboardController::class, 'widgetAlerts'])->name('alerts')->middleware('can:dashboard.widget.alerts');
+        Route::get('/recent', [DashboardController::class, 'widgetRecent'])->name('recent')->middleware('can:dashboard.widget.recent');
+    });
 });
 
 /*

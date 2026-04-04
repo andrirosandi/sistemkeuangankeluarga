@@ -16,6 +16,16 @@ class RolePermissionSeeder extends Seeder
         // Dashboard
         'dashboard.view',
 
+        // Dashboard Scopes & Widgets
+        'dashboard.scope.self',
+        'dashboard.scope.group',
+        'dashboard.scope.all',
+        'dashboard.system.balance',
+        'dashboard.widget.summary',
+        'dashboard.widget.activity',
+        'dashboard.widget.alerts',
+        'dashboard.widget.recent',
+
         // Kas Masuk - Pengajuan
         'in.request.view',
         'in.request.create',
@@ -89,7 +99,12 @@ class RolePermissionSeeder extends Seeder
      */
     private array $userPermissions = [
         'dashboard.view',
-        
+        'dashboard.scope.self',
+        'dashboard.widget.summary',
+        'dashboard.widget.recent',
+        'dashboard.widget.alerts',
+        'dashboard.widget.activity',
+
         // Pemasukan - Hanya Pengajuan (Create/Edit milik sendiri)
         'in.request.view',
         'in.request.create',
