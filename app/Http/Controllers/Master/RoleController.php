@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Models\RoleVisibility;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -24,7 +25,17 @@ class RoleController extends Controller
             return explode('.', $item->name)[0]; // Group by module (e.g. 'in', 'out', 'user')
         });
 
-        return view('master.role.index', compact('roles', 'roleOptions', 'allPermissions'));
+        // Ambil visibility mapping per role: [role_id => [watched_role_ids]]
+        $visibilityMap = RoleVisibility::all()
+            ->groupBy('watcher_role_id')
+            ->map(fn($items) => $items->pluck('watched_role_id')->toArray());
+
+        // Semua role untuk checkbox visibilitas (kecuali admin)
+        $allRoles = Role::where('name', '!=', 'admin')->orderBy('name')->get();
+
+        return view('master.role.index', compact(
+            'roles', 'roleOptions', 'allPermissions', 'visibilityMap', 'allRoles'
+        ));
     }
 
     /**
@@ -43,10 +54,16 @@ class RoleController extends Controller
                 'guard_name' => 'web'
             ]);
 
-            // Jika ada preset, salin seluruh permissionnya
+            // Jika ada preset, salin seluruh permissionnya + visibility
             if ($request->copy_from_id) {
                 $sourceRole = Role::findById($request->copy_from_id);
                 $role->syncPermissions($sourceRole->permissions);
+
+                // Salin visibility dari source role
+                $sourceVisibility = RoleVisibility::getWatchedRoleIds($sourceRole->id)->toArray();
+                if (!empty($sourceVisibility)) {
+                    RoleVisibility::syncForRole($role->id, $sourceVisibility, auth()->id());
+                }
             }
 
             return redirect()->back()->with('success', "Role '{$role->name}' berhasil dibuat.");
@@ -59,14 +76,16 @@ class RoleController extends Controller
     }
 
     /**
-     * Update role dan sinkronisasi permission.
+     * Update role dan sinkronisasi permission + visibility.
      */
     public function update(Request $request, Role $role)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
             'permissions' => 'nullable|array',
-            'permissions.*' => 'string|exists:permissions,name'
+            'permissions.*' => 'string|exists:permissions,name',
+            'visibility' => 'nullable|array',
+            'visibility.*' => 'integer|exists:roles,id'
         ]);
 
         try {
@@ -77,6 +96,15 @@ class RoleController extends Controller
 
             // Sync Permissions
             $role->syncPermissions($request->permissions ?? []);
+
+            // Sync Visibility (hanya untuk non-admin)
+            if ($role->name !== 'admin') {
+                RoleVisibility::syncForRole(
+                    $role->id,
+                    $request->visibility ?? [],
+                    auth()->id()
+                );
+            }
 
             return redirect()->back()->with('success', "Konfigurasi role '{$role->name}' diperbarui.");
         } catch (\Exception $e) {
@@ -97,7 +125,7 @@ class RoleController extends Controller
         }
 
         try {
-            $role->delete();
+            $role->delete(); // CASCADE akan hapus role_visibility otomatis
             return redirect()->back()->with('success', 'Role berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus role! Mungkin masih digunakan oleh user.');
@@ -122,7 +150,7 @@ class RoleController extends Controller
         }
 
         try {
-            Role::whereIn('id', $request->ids)->delete();
+            Role::whereIn('id', $request->ids)->delete(); // CASCADE visibility
             return redirect()->back()->with('success', count($request->ids) . ' role berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus beberapa role! Silakan periksa keterkaitan data.');

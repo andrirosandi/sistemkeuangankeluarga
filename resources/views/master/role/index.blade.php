@@ -45,6 +45,7 @@
                             <th class="sort" data-sort="sort-name"><button class="table-sort" data-sort="sort-name">Nama Grup</button></th>
                             <th class="sort" data-sort="sort-users"><button class="table-sort" data-sort="sort-users">Jumlah Pengguna</button></th>
                             <th class="sort" data-sort="sort-permissions"><button class="table-sort" data-sort="sort-permissions">Hak Akses</button></th>
+                            <th>Visibilitas</th>
                             <th class="w-1 text-end">Aksi</th>
                         </tr>
                     </thead>
@@ -69,11 +70,25 @@
                             <td class="sort-permissions" data-permissions="{{ $role->permissions_count }}">
                                 <span class="badge bg-blue-lt">{{ $role->permissions_count }} Permissions</span>
                             </td>
+                            <td>
+                                @if($role->name === 'admin')
+                                    <span class="badge bg-green-lt">Semua Data</span>
+                                @elseif(isset($visibilityMap[$role->id]) && count($visibilityMap[$role->id]) > 0)
+                                    @php
+                                        $watchedNames = \Spatie\Permission\Models\Role::whereIn('id', $visibilityMap[$role->id])->pluck('name');
+                                    @endphp
+                                    @foreach($watchedNames as $wName)
+                                        <span class="badge bg-cyan-lt">{{ strtoupper($wName) }}</span>
+                                    @endforeach
+                                @else
+                                    <span class="text-secondary">—</span>
+                                @endif
+                            </td>
                              <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
                                     <x-datatable.row-action 
                                         type="edit" 
-                                        onclick="editRole({{ $role->id }}, '{{ $role->name }}', {{ json_encode($role->permissions->pluck('name')) }})" 
+                                        onclick="editRole({{ $role->id }}, '{{ $role->name }}', {{ json_encode($role->permissions->pluck('name')) }}, {{ json_encode($visibilityMap[$role->id] ?? []) }})" 
                                         title="Kelola Izin" />
                                     
                                     @if($role->name !== 'admin')
@@ -87,7 +102,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5">
+                            <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
                                         <x-icon name="key" class="icon-lg" />
@@ -135,7 +150,7 @@
                                 <option value="{{ $opt->id }}">{{ strtoupper($opt->name) }} ({{ $opt->permissions_count }} Hak Akses)</option>
                             @endforeach
                         </select>
-                        <small class="text-secondary mt-2 d-block">Pilihan ini akan menduplikasi seluruh izin dari grup yang dipilih ke grup baru ini.</small>
+                        <small class="text-secondary mt-2 d-block">Pilihan ini akan menduplikasi seluruh izin dan visibilitas dari grup yang dipilih ke grup baru ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -147,7 +162,7 @@
     </div>
 </div>
 
-{{-- Modal Edit Permissions --}}
+{{-- Modal Edit Permissions + Visibility --}}
 <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -192,6 +207,28 @@
                             </div>
                         </div>
                         @endforeach
+                    </div>
+
+                    {{-- Section Visibilitas Data --}}
+                    <div id="visibility-section">
+                        <div class="hr-text">VISIBILITAS DATA</div>
+                        <p class="text-secondary mb-3">Grup ini dapat melihat data milik grup berikut (selain datanya sendiri):</p>
+
+                        <div class="row">
+                            @foreach($allRoles as $visRole)
+                            <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                <label class="form-check">
+                                    <input type="checkbox" name="visibility[]" value="{{ $visRole->id }}" 
+                                           class="form-check-input visibility-checkbox" data-role-id="{{ $visRole->id }}">
+                                    <span class="form-check-label text-uppercase">{{ $visRole->name }}</span>
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        @if($allRoles->isEmpty())
+                            <p class="text-secondary text-center py-2">Belum ada grup lain selain Admin.</p>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -241,23 +278,35 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/list.js@2.3.1/dist/list.min.js"></script>
 <script>
-    function editRole(id, name, permissions) {
+    function editRole(id, name, permissions, visibility) {
         const form = document.getElementById('form-edit');
         const inputId = document.getElementById('edit-id');
         const inputName = document.getElementById('edit-name');
         const titleName = document.getElementById('edit-title-name');
+        const visSection = document.getElementById('visibility-section');
         
         form.action = `{{ url('master/roles') }}/${id}`;
         inputId.value = id;
         inputName.value = name;
         titleName.innerText = name;
 
-        // Reset & Set Checkboxes
+        // Reset & Set Permission Checkboxes
         document.querySelectorAll('.perm-checkbox').forEach(cb => {
             cb.checked = permissions.includes(cb.value);
         });
 
-        // Disable name editing for admin role (optional safety)
+        // Reset & Set Visibility Checkboxes
+        document.querySelectorAll('.visibility-checkbox').forEach(cb => {
+            const roleId = parseInt(cb.dataset.roleId);
+            cb.checked = visibility.includes(roleId);
+            // Sembunyikan checkbox untuk role yang sedang diedit (jangan watch diri sendiri)
+            cb.closest('.col-md-3').style.display = (roleId === id) ? 'none' : '';
+        });
+
+        // Sembunyikan section visibilitas untuk role admin
+        visSection.style.display = (name === 'admin') ? 'none' : '';
+
+        // Disable name editing for admin role
         inputName.disabled = (name === 'admin');
         
         new bootstrap.Modal(document.getElementById('modal-edit')).show();
