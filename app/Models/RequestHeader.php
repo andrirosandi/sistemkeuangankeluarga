@@ -45,4 +45,9 @@ class RequestHeader extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
+
+    public function transaction()
+    {
+        return $this->hasOne(TransactionHeader::class, 'request_id');
+    }
 }

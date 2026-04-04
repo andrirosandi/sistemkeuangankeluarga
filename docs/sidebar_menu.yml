@@ -2,63 +2,69 @@ menu:
   - label: "Dashboard"
     icon: "home"
     route: "dashboard"
-    roles: ["admin", "user"]
+    permission: "dashboard.view"
 
   - label: "Kas Masuk"
     icon: "trending-down"
     children:
       - label: "Pengajuan"
         route: "in.request.index"
-        roles: ["admin", "user"]
+        permission: "in.request.view"
       - label: "Realisasi"
         route: "in.transaction.index"
-        roles: ["admin"]
+        permission: "in.transaction.view"
 
   - label: "Kas Keluar"
     icon: "trending-up"
     children:
       - label: "Pengajuan"
         route: "out.request.index"
-        roles: ["admin", "user"]
+        permission: "out.request.view"
       - label: "Realisasi"
         route: "out.transaction.index"
-        roles: ["admin"]
+        permission: "out.transaction.view"
 
   - label: "Mutasi"
     icon: "transfer"
     route: "mutation.index"
-    roles: ["admin", "user"]
+    permission: "mutation.view"
 
   - label: "Laporan & Analitik"
     icon: "report-analytics"
     route: "report.index"
-    roles: ["admin"]
+    permission: "report.view.self"
+    # User dengan report.view.self bisa akses (data sendiri)
+    # Admin dengan report.view bisa akses semua + export
 
   - label: "Master Data & Pengaturan"
     icon: "settings"
-    roles: ["admin"]
+    permission: "category.view"
     children:
       - label: "Kategori Kas"
-        route: "master.category.index"
+        route: "master.categories.index"
+        permission: "category.view"
       - label: "Template Rutin"
-        route: "master.template.index"
+        route: "master.templates.index"
+        permission: "template.view"
       - label: "Manajemen Pengguna"
-        route: "master.user.index"
+        route: "master.users.index"
+        permission: "user.view"
       - label: "Group & Akses"
-        route: "master.group.index"
+        route: "master.roles.index"
+        permission: "role.view"
       - label: "Pengaturan Sistem"
         route: "settings.index"
+        permission: "setting.view"
 
 navbar:
   - label: "Notifikasi"
     icon: "bell"
     route: "notification.index"
-    badge: "unread_count" # Muncul titik merah kalau ada yang unread
-    roles: ["admin", "user"]
+    badge: "unread_count"
+    permission: "notification.view"
 
   - label: "Profile Menu"
-    icon: "user-circle" # Berisi Avatar & Nama
-    roles: ["admin", "user"]
+    icon: "user-circle"
     children:
       - label: "Profile Settings"
         route: "profile.edit"

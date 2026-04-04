@@ -50,7 +50,7 @@ return [
             'label'      => 'Laporan',
             'icon'       => 'report-analytics',
             'route'      => 'report.index',
-            'permission' => 'report.view',
+            'permission' => 'report.view.self',
         ],
         [
             'label' => 'Master',

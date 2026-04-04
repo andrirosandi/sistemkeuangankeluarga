@@ -1,36 +1,77 @@
-# Module: Reporting & Analitik (Admin)
+# Module: Reporting & Analitik
 
 ## Deskripsi
-Modul khusus yang merangkum kesehatan finansial keluarga dalam bentuk grafik (Visual/Chart) dan tabel data (Eksport Excel/PDF). Fitur ini eksklusif bagi Admin.
+Modul yang merangkum kesehatan finansial keluarga dalam bentuk grafik (ApexCharts) dan tabel data. **Admin** bisa mengakses semua laporan dengan scope all/group/self. **User biasa** dengan permission `report.view.self` bisa mengakses laporan terbatas (hanya data miliknya sendiri).
+
+## Akses & Permission
+
+| Permission | Admin | User |
+|---|---|---|
+| `report.view` | ✅ | ❌ |
+| `report.view.self` | ✅ | ✅ |
+| `report.export` | ✅ | ❌ |
+
+User dengan `report.view.self` hanya bisa melihat data `created_by = auth()->id()`. Scope dropdown tidak ditampilkan.
 
 ## Pages / Jenis Laporan
 
-### 1. Laporan Tahunan (Annual Report)
-- **Data Source:** Agregasi dari tabel `balance` (akumulasi *begin*, *total_in*, *total_out*, *ending* per bulan).
-- **Tampilan:** Grafik Tren Garis (Line Chart) 12 Bulan. Menunjukkan pergerakan naiknya Pemasukan (Garis Biru) versus Pengeluaran (Garis Merah).
-- **Tujuan:** Evaluasi besar seberapa sehat sisa/tabungan uang rumah tangga dalam 1 tahun terakhir.
+### Landing Page (`/laporan`)
+Grid card berisi link ke setiap jenis laporan. User biasa hanya melihat laporan yang boleh diakses.
 
-### 2. Laporan Pengeluaran per-Kategori
-- **Data Source:** Tabel `transaction_header` difilter dengan `trans_code = 2` (Out/Pengeluaran). Di-grup berdasarkan `category_id`.
-- **Tampilan:** Diagram Lingkaran (Pie Chart / Donut Chart).
-- **Tujuan:** Admin dapat melihat porsi kebocoran dana terbesar, misal: "Bulan ini 60% habis di Kategori Baju Anak, cuma 20% di Dapur".
-- **Filter Bar:** Periode Bulanan / Custom Rentang Hari.
+### R1. Laporan Tahunan (`/laporan/tahunan`)
+- **Data Source:** Tabel `balance` (12 bulan)
+- **Tampilan:** Area Chart (ApexCharts) — 3 garis: Pemasukan, Pengeluaran, Saldo Akhir
+- **Tabel:** Ringkasan bulanan 12 bulan
+- **Filter:** Tahun
+- **Akses:** Admin only (butuh `report.view`)
 
-### 3. Laporan Mutasi Detail (Ekspor Arsip)
-- **Data Source:** Tabel `transaction_header` & `transaction_detail`.
-- **Tampilan:** Data berbentuk Grid Tabel riil layaknya rekening koran bank.
-- **Tujuan:** Bukti konkret kas riil yang bisa difilter tanggalnya, lalu terdapat tombol aksi:
-  - **Export to PDF:** Untuk dicetak.
-  - **Export to Excel/CSV:** Untuk dicatat/dikalkulasi ulang secara manual jika suami membutuhkannya.
+### R2. Laporan per Kategori (`/laporan/kategori`)
+- **Data Source:** `transaction_header` GROUP BY `category_id`
+- **Tampilan:** Donut Chart + tabel detail per kategori
+- **Filter:** Bulan, Scope
+- **Akses:** Admin + User (self)
 
-### 4. Laporan Realisasi vs Pengajuan (Efisiensi)
-- **Data Source:** Membandingkan nilai sum `request_header.amount` (Angka Mentah yang Diminta) berhadapan dengan `transaction_header.amount` (Angka Realisasi yang Disetujui Suami).
-- **Tujuan:** Menunjukkan rasio "Penyelamatan/Penghematan Budget". Misal: Total Istri request Rp5.000.000, tapi Admin cuma mengeksekusi cair Rp3.500.000. Tersisa penghematan/rejected Rp1.500.000.
+### R3. Laporan Mutasi Detail (`/laporan/mutasi`)
+- **Data Source:** `transaction_header` + `transaction_detail`
+- **Tampilan:** Paginated table (rekening koran)
+- **Filter:** Bulan, Jenis (Masuk/Keluar/Semua), Scope
+- **Export:** PDF (`barryvdh/laravel-dompdf`), Excel (`maatwebsite/excel`)
+- **Akses:** Admin + User (self), Export admin only
 
-### 5. Laporan Outstanding (Tanggungan Belum Cair)
-- **Data Source:** Tabel `request_header` yang berstatus `requested` (belum dijawab) ditambah tabel `transaction_header` yang masih nyangkut berstatus `draft` (disetujui tapi uangnya belum ditransfer/kasikan).
-- **Tujuan:** Evaluasi tanggungan hutang internal keluarga. Menunjukkan total Nominal Rupiah dari pengajuan-pengajuan milik Istri/Anak yang belum direalisasikan oleh Suami sampai detik ini. Membantu *monitoring* agar tidak ada request yang kadaluarsa atau terlupakan.
+### R4. Realisasi vs Pengajuan / Efisiensi (`/laporan/efisiensi`)
+- **Data Source:** `request_header.amount` vs `transaction_header.amount`
+- **Tampilan:** Bar chart requested vs realized per kategori + summary cards
+- **Metrics:** Total diajukan, terealisasi, penghematan, rasio efisiensi %
+- **Filter:** Bulan, Scope
+- **Akses:** Admin + User (self)
+
+### R5. Laporan Outstanding (`/laporan/outstanding`)
+- **Data Source:** `request_header` (requested/approved) + `transaction_header` (draft)
+- **Tampilan:** 3 section tabel terpisah: Menunggu Approval, Approved Belum Cair, Realisasi Parsial
+- **Fitur:** Aging indicator per request (warna hijau/kuning/merah)
+- **Filter:** Scope
+- **Akses:** Admin + User (self)
+
+### R6. Laporan per Anggota (`/laporan/per-anggota`) — **NEW**
+- **Data Source:** `transaction_header` GROUP BY `created_by`
+- **Tampilan:** Horizontal bar chart + ranking table
+- **Metrics:** Request count, pemasukan, pengeluaran, net per user
+- **Filter:** Bulan
+- **Akses:** Admin only (butuh `report.view`)
+
+### R7. Laporan Pemasukan (`/laporan/pemasukan`) — **NEW**
+- **Data Source:** `transaction_header` WHERE `trans_code = 1`
+- **Tampilan:** Donut chart by category + detail table pemasukan
+- **Filter:** Bulan, Scope
+- **Akses:** Admin + User (self)
+
+## Library & Package
+- **Chart:** ApexCharts (CDN: `cdn.jsdelivr.net/npm/apexcharts`)
+- **Export PDF:** `barryvdh/laravel-dompdf`
+- **Export Excel:** `maatwebsite/excel` (Maatwebsite\Laravel-Excel)
+- Chart diinisialisasi via Alpine.js component
 
 ## Aturan Bisnis
-- Penggunaan package seperti `Maatwebsite/Laravel-Excel` atau `barryvdh/laravel-dompdf` digunakan pada modul ke-3 untuk mengekspor data transaksi.
-- Visualisasi Chart (poin 1 dan 2) disarankan menggunakan library JavaScript modern paling ringan (misal *Chart.js* atau *ApexCharts*) yang diinisialisasi melalui Alpine.js.
+- User self-only tidak bisa melihat data orang lain walau manipulasi URL
+- Export hanya tersedia untuk user dengan permission `report.export`
+- Semua query menggunakan scope enforcement server-side (`resolveScope()`)

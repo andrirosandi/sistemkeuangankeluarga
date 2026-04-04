@@ -50,34 +50,37 @@ class TransactionController extends Controller
     }
 
     /**
-     * Update balance table for a given month.
+     * Update balance table for a given month with row-level locking.
      */
     protected function updateBalance($transactionDate, $transCode, $amount, $operation = 'add')
     {
         $month = \Carbon\Carbon::parse($transactionDate)->format('Y-m');
+        $sign = $operation === 'add' ? 1 : -1;
 
-        $balance = Balance::firstOrCreate(
-            ['month' => $month],
-            ['begin' => 0, 'total_in' => 0, 'total_out' => 0, 'ending' => 0]
-        );
+        DB::transaction(function () use ($month, $transCode, $amount, $sign) {
+            // Lock the row to prevent concurrent read-modify-write races
+            $balance = Balance::where('month', $month)->lockForUpdate()->first();
 
-        if ($operation === 'add') {
-            if ($transCode == 1) {
-                $balance->total_in += $amount;
-            } else {
-                $balance->total_out += $amount;
+            if (!$balance) {
+                $balance = Balance::create([
+                    'month' => $month,
+                    'begin' => 0,
+                    'total_in' => 0,
+                    'total_out' => 0,
+                    'ending' => 0,
+                ]);
+                $balance = Balance::where('month', $month)->lockForUpdate()->first();
             }
-        } else {
-            // reverse (for cancel completed)
-            if ($transCode == 1) {
-                $balance->total_in -= $amount;
-            } else {
-                $balance->total_out -= $amount;
-            }
-        }
 
-        $balance->ending = $balance->begin + $balance->total_in - $balance->total_out;
-        $balance->save();
+            if ($transCode == 1) {
+                $balance->total_in += $sign * $amount;
+            } else {
+                $balance->total_out += $sign * $amount;
+            }
+
+            $balance->ending = $balance->begin + $balance->total_in - $balance->total_out;
+            $balance->save();
+        });
     }
 
     public function create(Request $request, $type)
@@ -143,7 +146,8 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('success', $msg);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan realisasi: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan realisasi. Silakan coba lagi.');
         }
     }
 
@@ -240,7 +244,8 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('success', $msg);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate realisasi: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate realisasi. Silakan coba lagi.');
         }
     }
 
@@ -306,10 +311,15 @@ class TransactionController extends Controller
      */
     public function complete(Request $request, $type, $id)
     {
-        $transaction = TransactionHeader::with('details')->findOrFail($id);
+        $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
         if ($transaction->status !== 'draft') {
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat dicairkan.');
+        }
+
+        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
+            abort(403, 'Akses ditolak.');
         }
 
         try {
@@ -351,7 +361,8 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('success', 'Dana berhasil dicairkan dan saldo telah diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal mencairkan dana: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal mencairkan dana. Silakan coba lagi.');
         }
     }
 
@@ -360,10 +371,15 @@ class TransactionController extends Controller
      */
     public function cancel(Request $request, $type, $id)
     {
-        $transaction = TransactionHeader::findOrFail($id);
+        $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
         if ($transaction->status !== 'completed') {
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Completed yang dapat dibatalkan (dikembalikan ke Draft).');
+        }
+
+        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
+            abort(403, 'Akses ditolak.');
         }
 
         try {
@@ -405,7 +421,8 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('success', 'Pencairan dibatalkan. Realisasi kembali menjadi Draft.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal membatalkan realisasi: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal membatalkan realisasi. Silakan coba lagi.');
         }
     }
 
@@ -414,10 +431,15 @@ class TransactionController extends Controller
      */
     public function destroy($type, $id)
     {
-        $transaction = TransactionHeader::findOrFail($id);
+        $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
         if ($transaction->status !== 'draft') {
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat dihapus.');
+        }
+
+        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
+            abort(403, 'Akses ditolak.');
         }
 
         try {
@@ -450,7 +472,8 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('success', 'Realisasi dihapus. Pengajuan dikembalikan ke status Requested.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menghapus realisasi: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menghapus realisasi. Silakan coba lagi.');
         }
     }
 }

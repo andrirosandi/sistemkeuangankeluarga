@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Role;
 
 class DashboardController extends Controller
 {
@@ -36,10 +37,13 @@ class DashboardController extends Controller
 
         $defaultScope = $availableScopes[0]['value'] ?? 'self';
 
-        return view('dashboard', compact('categories', 'availableScopes', 'defaultScope'));
+        // Detect if user is an approver (has any *.request.approve permission)
+        $isApprover = $user->can('in.request.approve') || $user->can('out.request.approve');
+
+        return view('dashboard', compact('categories', 'availableScopes', 'defaultScope', 'isApprover'));
     }
 
-    // ─── API Methods ──────────────────────────────────────────────
+    // ─── Existing Widget API Methods ─────────────────────────────
 
     /**
      * Balance cards — system-wide, no scope filter.
@@ -189,6 +193,326 @@ class DashboardController extends Controller
         })->toArray();
 
         return view('dashboard.recent', compact('data'))->render();
+    }
+
+    // ─── NEW Widget API Methods ──────────────────────────────────
+
+    /**
+     * W1: Request Summary — total requests, amounts, status breakdown.
+     */
+    public function widgetRequestSummary(Request $request)
+    {
+        [$userIds] = $this->resolveScope($request);
+        $month = now()->format('Y-m');
+
+        $query = RequestHeader::whereIn('created_by', $userIds)
+            ->where('request_date', 'like', $month . '%');
+
+        $statuses = ['draft', 'requested', 'approved', 'rejected', 'canceled'];
+        $byStatus = [];
+        foreach ($statuses as $status) {
+            $sq = (clone $query)->where('status', $status);
+            $byStatus[$status] = [
+                'count'  => $sq->count(),
+                'amount' => (float) $sq->sum('amount'),
+            ];
+        }
+
+        // Outstanding = requested (belum dijawab) + approved tapi transaksi belum cair/sebagian
+        $outstandingRequested = (clone $query)->where('status', 'requested')->sum('amount');
+        $outstandingApproved = (clone $query)->where('status', 'approved')
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'draft');
+            })->sum('amount');
+
+        // Partial: approved requests whose transaction is completed but has pending detail items
+        $partialRealized = (clone $query)->where('status', 'approved')
+            ->whereHas('details', function ($q) {
+                $q->where('status', 'pending');
+            })->sum('amount');
+
+        $data = [
+            'totalCount'    => (clone $query)->count(),
+            'totalAmount'   => (float) (clone $query)->sum('amount'),
+            'byStatus'      => $byStatus,
+            'outstanding'   => (float) ($outstandingRequested + $outstandingApproved + $partialRealized),
+        ];
+
+        return view('dashboard.request-summary', compact('data'))->render();
+    }
+
+    /**
+     * W2: Category Breakdown — donut chart data (JSON).
+     */
+    public function widgetCategoryBreakdown(Request $request)
+    {
+        [$userIds] = $this->resolveScope($request);
+        $month = now()->format('Y-m');
+
+        // Transaction-based breakdown (completed only)
+        $rows = TransactionHeader::where('status', 'completed')
+            ->whereIn('created_by', $userIds)
+            ->where('transaction_date', 'like', $month . '%')
+            ->selectRaw('category_id, trans_code, SUM(amount) as total')
+            ->groupBy('category_id', 'trans_code')
+            ->get();
+
+        $categories = Category::pluck('color', 'id')->toArray();
+        $names = Category::pluck('name', 'id')->toArray();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $catId = $row->category_id;
+            if (!isset($result[$catId])) {
+                $result[$catId] = [
+                    'category' => $names[$catId] ?? 'Lainnya',
+                    'color'    => $categories[$catId] ?? '#6c757d',
+                    'totalIn'  => 0,
+                    'totalOut' => 0,
+                ];
+            }
+            if ($row->trans_code == 1) {
+                $result[$catId]['totalIn'] = (float) $row->total;
+            } else {
+                $result[$catId]['totalOut'] = (float) $row->total;
+            }
+        }
+
+        return response()->json(array_values($result));
+    }
+
+    /**
+     * W3: Group Ranking — spending/earning by role.
+     */
+    public function widgetGroupRanking(Request $request)
+    {
+        $month = now()->format('Y-m');
+
+        // Get all roles with users and their transactions
+        $roles = Role::where('name', '!=', 'admin')->get();
+
+        $ranking = [];
+        foreach ($roles as $role) {
+            $roleUserIds = User::role($role->name)->pluck('id');
+            if ($roleUserIds->isEmpty()) continue;
+
+            $totalOut = TransactionHeader::where('status', 'completed')
+                ->whereIn('created_by', $roleUserIds)
+                ->where('trans_code', 2)
+                ->where('transaction_date', 'like', $month . '%')
+                ->sum('amount');
+
+            $totalIn = TransactionHeader::where('status', 'completed')
+                ->whereIn('created_by', $roleUserIds)
+                ->where('trans_code', 1)
+                ->where('transaction_date', 'like', $month . '%')
+                ->sum('amount');
+
+            $ranking[] = [
+                'name'     => $role->name,
+                'totalOut' => (float) $totalOut,
+                'totalIn'  => (float) $totalIn,
+                'net'      => (float) ($totalIn - $totalOut),
+            ];
+        }
+
+        // Sort by totalOut descending (paling boros di atas)
+        usort($ranking, fn($a, $b) => $b['totalOut'] <=> $a['totalOut']);
+
+        $maxOut = collect($ranking)->max('totalOut') ?: 1;
+
+        return view('dashboard.group-ranking', compact('ranking', 'maxOut'))->render();
+    }
+
+    /**
+     * W4: User Ranking — spending/earning by user.
+     */
+    public function widgetUserRanking(Request $request)
+    {
+        [$userIds] = $this->resolveScope($request);
+        $month = now()->format('Y-m');
+
+        $users = User::whereIn('id', $userIds)->get(['id', 'name']);
+
+        $ranking = [];
+        foreach ($users as $u) {
+            $totalOut = TransactionHeader::where('status', 'completed')
+                ->where('created_by', $u->id)
+                ->where('trans_code', 2)
+                ->where('transaction_date', 'like', $month . '%')
+                ->sum('amount');
+
+            $totalIn = TransactionHeader::where('status', 'completed')
+                ->where('created_by', $u->id)
+                ->where('trans_code', 1)
+                ->where('transaction_date', 'like', $month . '%')
+                ->sum('amount');
+
+            $ranking[] = [
+                'name'     => $u->name,
+                'totalOut' => (float) $totalOut,
+                'totalIn'  => (float) $totalIn,
+                'net'      => (float) ($totalIn - $totalOut),
+            ];
+        }
+
+        usort($ranking, fn($a, $b) => $b['totalOut'] <=> $a['totalOut']);
+
+        $maxOut = collect($ranking)->max('totalOut') ?: 1;
+
+        return view('dashboard.user-ranking', compact('ranking', 'maxOut'))->render();
+    }
+
+    /**
+     * W5: Outstanding Board — requests not yet fully realized + aging.
+     */
+    public function widgetOutstanding(Request $request)
+    {
+        [$userIds] = $this->resolveScope($request);
+
+        // 1. Status requested (belum dijawab approver)
+        $requested = RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'requested')
+            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
+
+        // 2. Status approved tapi transaksi masih draft (approved belum cair)
+        $approvedNotCashed = RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'approved')
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'draft');
+            })
+            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
+
+        // 3. Approved tapi ada detail yang masih pending (realisasi parsial)
+        $partialRealized = RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'approved')
+            ->whereHas('details', function ($q) {
+                $q->where('status', 'pending');
+            })
+            ->whereDoesntHave('transaction', function ($q) {
+                $q->where('status', 'draft');
+            })
+            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
+
+        $allOutstanding = $requested->merge($approvedNotCashed)->merge($partialRealized);
+
+        // Aging breakdown
+        $now = Carbon::now();
+        $aging = ['fresh' => 0, 'medium' => 0, 'old' => 0];
+        $agingAmount = ['fresh' => 0, 'medium' => 0, 'old' => 0];
+
+        foreach ($allOutstanding as $item) {
+            $days = $now->diffInDays(Carbon::parse($item->created_at));
+            if ($days <= 3) {
+                $aging['fresh']++;
+                $agingAmount['fresh'] += $item->amount;
+            } elseif ($days <= 7) {
+                $aging['medium']++;
+                $agingAmount['medium'] += $item->amount;
+            } else {
+                $aging['old']++;
+                $agingAmount['old'] += $item->amount;
+            }
+        }
+
+        $data = [
+            'totalCount'    => $allOutstanding->count(),
+            'totalAmount'   => (float) $allOutstanding->sum('amount'),
+            'requestedCount'      => $requested->count(),
+            'requestedAmount'     => (float) $requested->sum('amount'),
+            'approvedDraftCount'  => $approvedNotCashed->count(),
+            'approvedDraftAmount' => (float) $approvedNotCashed->sum('amount'),
+            'partialCount'        => $partialRealized->count(),
+            'partialAmount'       => (float) $partialRealized->sum('amount'),
+            'aging'               => $aging,
+            'agingAmount'         => $agingAmount,
+        ];
+
+        return view('dashboard.outstanding', compact('data'))->render();
+    }
+
+    /**
+     * W6: Month Comparison — current vs previous month (JSON for chart).
+     */
+    public function widgetMonthCompare()
+    {
+        $currentMonth = now()->format('Y-m');
+        $prevMonth = now()->subMonth()->format('Y-m');
+
+        $current = Balance::where('month', $currentMonth)->first();
+        $previous = Balance::where('month', $prevMonth)->first();
+
+        $currentIn = (float) ($current->total_in ?? 0);
+        $currentOut = (float) ($current->total_out ?? 0);
+        $prevIn = (float) ($previous->total_in ?? 0);
+        $prevOut = (float) ($previous->total_out ?? 0);
+
+        return response()->json([
+            'labels'  => [now()->subMonth()->translatedFormat('M Y'), now()->translatedFormat('M Y')],
+            'current' => [
+                'in'  => $currentIn,
+                'out' => $currentOut,
+                'net' => $currentIn - $currentOut,
+            ],
+            'previous' => [
+                'in'  => $prevIn,
+                'out' => $prevOut,
+                'net' => $prevIn - $prevOut,
+            ],
+            'deltaIn'  => $prevIn > 0 ? round(($currentIn - $prevIn) / $prevIn * 100, 1) : 0,
+            'deltaOut' => $prevOut > 0 ? round(($currentOut - $prevOut) / $prevOut * 100, 1) : 0,
+        ]);
+    }
+
+    /**
+     * W7: Approval Stats — for users who have approve permission.
+     */
+    public function widgetApprovalStats(Request $request)
+    {
+        $user = auth()->user();
+        $month = now()->format('Y-m');
+
+        // Requests that this user approved/rejected
+        $reviewed = RequestHeader::where('approved_by', $user->id)
+            ->where('approved_at', 'like', $month . '%');
+
+        $approvedCount = (clone $reviewed)->where('status', 'approved')->count();
+        $rejectedCount = (clone $reviewed)->where('status', 'rejected')->count();
+        $approvedAmount = (float) (clone $reviewed)->where('status', 'approved')->sum('amount');
+
+        // Pending requests visible to this user (from visible users)
+        [$userIds] = $this->resolveScope($request);
+        $pendingCount = RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'requested')
+            ->count();
+        $pendingAmount = (float) RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'requested')
+            ->sum('amount');
+
+        // Overdue: pending requests older than 3 days
+        $overdueCount = RequestHeader::whereIn('created_by', $userIds)
+            ->where('status', 'requested')
+            ->where('created_at', '<', now()->subDays(3))
+            ->count();
+
+        // Average response time (in days)
+        $avgResponseHours = RequestHeader::where('approved_by', $user->id)
+            ->whereNotNull('approved_at')
+            ->where('approved_at', 'like', $month . '%')
+            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, approved_at)) as avg_hours')
+            ->value('avg_hours');
+
+        $data = [
+            'approvedCount'  => $approvedCount,
+            'rejectedCount'  => $rejectedCount,
+            'approvedAmount' => $approvedAmount,
+            'pendingCount'   => $pendingCount,
+            'pendingAmount'  => $pendingAmount,
+            'overdueCount'   => $overdueCount,
+            'avgResponseHours' => $avgResponseHours ? round($avgResponseHours, 1) : null,
+        ];
+
+        return view('dashboard.approval-stats', compact('data'))->render();
     }
 
     // ─── Private Helpers ──────────────────────────────────────────

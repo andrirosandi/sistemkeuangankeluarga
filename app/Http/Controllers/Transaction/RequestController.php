@@ -74,6 +74,10 @@ class RequestController extends Controller
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat disetujui.');
         }
 
+        if ($req->created_by === auth()->id()) {
+            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menyetujui pengajuan sendiri.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -120,7 +124,8 @@ class RequestController extends Controller
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disetujui. Draf realisasi telah dibuat.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyetujui pengajuan: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menyetujui pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -133,6 +138,10 @@ class RequestController extends Controller
 
         if ($req->status !== 'requested') {
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat ditolak.');
+        }
+
+        if ($req->created_by === auth()->id()) {
+            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menolak pengajuan sendiri.');
         }
 
         $request->validate([
@@ -161,7 +170,8 @@ class RequestController extends Controller
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil ditolak.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menolak pengajuan: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menolak pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -314,7 +324,8 @@ class RequestController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan pengajuan: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -437,7 +448,8 @@ class RequestController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate pengajuan: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -459,7 +471,8 @@ class RequestController extends Controller
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disubmit. Menunggu persetujuan Admin.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal submit pengajuan: ' . $e->getMessage());
+            report($e);
+            return redirect()->back()->with('error', 'Gagal submit pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -480,6 +493,7 @@ class RequestController extends Controller
             $req->delete();
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil dihapus.');
         } catch (\Exception $e) {
+            report($e);
             return redirect()->back()->with('error', 'Gagal menghapus pengajuan.');
         }
     }

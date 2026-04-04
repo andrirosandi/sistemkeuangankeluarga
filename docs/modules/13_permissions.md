@@ -23,6 +23,23 @@ Permissions atau modul akses yang akan disimpan ke dalam database diberi pola na
 - **Permission Required:** `dashboard.view`
 - **Diizinkan (Roles):** `admin`, `user`
 
+**Widget Permissions:**
+- `dashboard.scope.self` — Melihat data diri sendiri
+- `dashboard.scope.group` — Melihat data grup (via role visibility)
+- `dashboard.scope.all` — Melihat semua data
+- `dashboard.system.balance` — Kartu saldo sistem
+- `dashboard.widget.summary` — Ringkasan transaksi
+- `dashboard.widget.activity` — Aktivitas 7 hari
+- `dashboard.widget.alerts` — Pengajuan pending
+- `dashboard.widget.recent` — Transaksi terkini
+- `dashboard.widget.request-summary` — Ringkasan pengajuan *(NEW)*
+- `dashboard.widget.category` — Breakdown per kategori *(NEW)*
+- `dashboard.widget.group-ranking` — Ranking grup *(NEW)*
+- `dashboard.widget.user-ranking` — Ranking pengguna *(NEW)*
+- `dashboard.widget.outstanding` — Outstanding board *(NEW)*
+- `dashboard.widget.month-compare` — Bulan ini vs bulan lalu *(NEW)*
+- `dashboard.widget.approval-stats` — Statistik approval *(NEW)*
+
 ### B. Modul Kas Masuk
 **1. Pengajuan (Request Dana dari Anak/Istri)**
 - **Permissions:**
@@ -68,9 +85,10 @@ Permissions atau modul akses yang akan disimpan ke dalam database diberi pola na
 ### E. Modul Laporan & Analitik
 - **Nama Menu:** Laporan & Analitik
 - **Permissions:**
-  - `report.view`
+  - `report.view` (Akses semua laporan + semua scope)
+  - `report.view.self` (Akses laporan terbatas — data diri sendiri) *(NEW)*
   - `report.export` (Download PDF/Excel)
-- **Diizinkan (Roles):** **`admin` ONLY**
+- **Diizinkan (Roles):** `admin` (full), `user` (self-only via `report.view.self`)
 
 ### F. Modul Master Data & Pengaturan
 Menu ini murni wilayah otoritas Suami / Admin.

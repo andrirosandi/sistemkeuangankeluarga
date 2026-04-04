@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
@@ -98,8 +99,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/print', [\App\Http\Controllers\Transaction\MutationController::class, 'index'])->name('print')->middleware('can:mutation.view');
     });
 
-    // Laporan
-    Route::get('/laporan', fn() => abort(404))->name('report.index')->middleware('can:report.view');
+    // Laporan & Analitik
+    Route::prefix('laporan')->name('report.')->middleware('can:report.view.self')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/tahunan', [ReportController::class, 'annual'])->name('annual');
+        Route::get('/kategori', [ReportController::class, 'category'])->name('category');
+        Route::get('/mutasi', [ReportController::class, 'mutation'])->name('mutation');
+        Route::get('/efisiensi', [ReportController::class, 'efficiency'])->name('efficiency');
+        Route::get('/outstanding', [ReportController::class, 'outstanding'])->name('outstanding');
+        Route::get('/per-anggota', [ReportController::class, 'perMember'])->name('per-member')->middleware('can:report.view');
+        Route::get('/pemasukan', [ReportController::class, 'income'])->name('income');
+        Route::get('/mutasi/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf')->middleware('can:report.export');
+        Route::get('/mutasi/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel')->middleware('can:report.export');
+    });
 
     // Master Data
     // Notifikasi
@@ -144,6 +156,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/activity', [DashboardController::class, 'widgetActivity'])->name('activity')->middleware('can:dashboard.widget.activity');
         Route::get('/alerts', [DashboardController::class, 'widgetAlerts'])->name('alerts')->middleware('can:dashboard.widget.alerts');
         Route::get('/recent', [DashboardController::class, 'widgetRecent'])->name('recent')->middleware('can:dashboard.widget.recent');
+        Route::get('/request-summary', [DashboardController::class, 'widgetRequestSummary'])->name('request-summary')->middleware('can:dashboard.widget.request-summary');
+        Route::get('/category-breakdown', [DashboardController::class, 'widgetCategoryBreakdown'])->name('category-breakdown')->middleware('can:dashboard.widget.category');
+        Route::get('/group-ranking', [DashboardController::class, 'widgetGroupRanking'])->name('group-ranking')->middleware('can:dashboard.widget.group-ranking');
+        Route::get('/user-ranking', [DashboardController::class, 'widgetUserRanking'])->name('user-ranking')->middleware('can:dashboard.widget.user-ranking');
+        Route::get('/outstanding', [DashboardController::class, 'widgetOutstanding'])->name('outstanding')->middleware('can:dashboard.widget.outstanding');
+        Route::get('/month-compare', [DashboardController::class, 'widgetMonthCompare'])->name('month-compare')->middleware('can:dashboard.widget.month-compare');
+        Route::get('/approval-stats', [DashboardController::class, 'widgetApprovalStats'])->name('approval-stats')->middleware('can:dashboard.widget.approval-stats');
     });
 });
 

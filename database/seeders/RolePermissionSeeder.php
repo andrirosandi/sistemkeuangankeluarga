@@ -25,6 +25,13 @@ class RolePermissionSeeder extends Seeder
         'dashboard.widget.activity',
         'dashboard.widget.alerts',
         'dashboard.widget.recent',
+        'dashboard.widget.request-summary',
+        'dashboard.widget.category',
+        'dashboard.widget.group-ranking',
+        'dashboard.widget.user-ranking',
+        'dashboard.widget.outstanding',
+        'dashboard.widget.month-compare',
+        'dashboard.widget.approval-stats',
 
         // Kas Masuk - Pengajuan
         'in.request.view',
@@ -57,6 +64,7 @@ class RolePermissionSeeder extends Seeder
 
         // Laporan & Analitik
         'report.view',
+        'report.view.self',
         'report.export',
 
         // Master Data: Kategori
@@ -104,6 +112,12 @@ class RolePermissionSeeder extends Seeder
         'dashboard.widget.recent',
         'dashboard.widget.alerts',
         'dashboard.widget.activity',
+        'dashboard.widget.request-summary',
+        'dashboard.widget.category',
+        'dashboard.widget.outstanding',
+
+        // Laporan (Self-only)
+        'report.view.self',
 
         // Pemasukan - Hanya Pengajuan (Create/Edit milik sendiri)
         'in.request.view',
