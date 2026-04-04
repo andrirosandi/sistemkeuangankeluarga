@@ -11,13 +11,47 @@
                 <h3 class="card-title">Daftar {{ $title }}</h3>
                 <div class="card-actions">
                     @can($type . '.request.create')
-                    <a href="{{ route($type . '.request.create') }}" class="btn btn-primary d-none d-sm-inline-block">
-                        <x-icon name="plus" />
-                        Buat Pengajuan
-                    </a>
-                    <a href="{{ route($type . '.request.create') }}" class="btn btn-primary d-sm-none btn-icon" aria-label="Buat Pengajuan">
-                        <x-icon name="plus" />
-                    </a>
+                    <!-- Desktop View -->
+                    <div class="btn-group d-none d-sm-inline-flex" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
+                        <a href="{{ route($type . '.request.create') }}" class="btn btn-primary">
+                            <x-icon name="plus" /> Buat Pengajuan
+                        </a>
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false">
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.125rem; z-index: 1020;" x-transition>
+                            @if(isset($templates) && $templates->count() > 0)
+                                <h6 class="dropdown-header">Gunakan Template</h6>
+                                @foreach($templates as $tmpl)
+                                    <a class="dropdown-item" href="{{ route($type . '.request.create', ['template_id' => $tmpl->id]) }}">
+                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                    </a>
+                                @endforeach
+                            @else
+                                <span class="dropdown-item text-muted">Belum ada template</span>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile View -->
+                    <div class="btn-group d-sm-none" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
+                        <a href="{{ route($type . '.request.create') }}" class="btn btn-primary btn-icon" aria-label="Buat Pengajuan">
+                            <x-icon name="plus" />
+                        </a>
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split btn-icon border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false" style="padding-left: 5px; padding-right: 5px;">
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.125rem; z-index: 1020;" x-transition>
+                            @if(isset($templates) && $templates->count() > 0)
+                                <h6 class="dropdown-header">Gunakan Template</h6>
+                                @foreach($templates as $tmpl)
+                                    <a class="dropdown-item" href="{{ route($type . '.request.create', ['template_id' => $tmpl->id]) }}">
+                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                    </a>
+                                @endforeach
+                            @else
+                                <span class="dropdown-item text-muted">Belum ada template</span>
+                            @endif
+                        </div>
+                    </div>
                     @endcan
                 </div>
             </div>
@@ -112,6 +146,23 @@
                                             type="delete" 
                                             onclick="deleteRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
                                             title="Hapus Draft" />
+                                        @endcan
+                                    @endif
+
+                                    @if($req->status === 'requested')
+                                        @can($type . '.request.approve')
+                                        <button class="btn btn-icon btn-sm btn-ghost-success rounded-2" 
+                                                onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
+                                                data-bs-toggle="tooltip" 
+                                                title="Setujui">
+                                            <x-icon name="circle-check" />
+                                        </button>
+                                        <button class="btn btn-icon btn-sm btn-ghost-danger rounded-2" 
+                                                onclick="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
+                                                data-bs-toggle="tooltip" 
+                                                title="Tolak">
+                                            <x-icon name="circle-x" />
+                                        </button>
                                         @endcan
                                     @endif
                                 </div>
@@ -216,6 +267,60 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Approve --}}
+<div class="modal modal-blur fade" id="modal-approve" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-success"></div>
+            <div class="modal-body text-center py-4">
+                <x-icon name="circle-check" class="text-success icon-lg mb-2" />
+                <h3>Setujui Pengajuan</h3>
+                <div class="text-secondary">Setujui pengajuan <strong id="approve-name"></strong>? Sistem akan otomatis membuat draf realisasi dana.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col">
+                            <form id="form-approve" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100">Setujui</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Reject --}}
+<div class="modal modal-blur fade" id="modal-reject" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-danger"></div>
+            <form id="form-reject" method="POST">
+                @csrf
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <x-icon name="circle-x" class="text-danger icon-lg mb-2" />
+                        <h3>Tolak Pengajuan</h3>
+                        <div class="text-secondary">Tolak pengajuan <strong id="reject-name"></strong>?</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Alasan Penolakan</label>
+                        <textarea class="form-control" name="rejection_reason" rows="3" placeholder="Jelaskan alasan penolakan..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</a>
+                    <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -235,6 +340,22 @@
         form.action = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/pengajuan') }}/${id}/submit`;
         label.innerText = name;
         new bootstrap.Modal(document.getElementById('modal-submit')).show();
+    }
+
+    function approveRequest(id, name) {
+        const form = document.getElementById('form-approve');
+        const label = document.getElementById('approve-name');
+        form.action = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/pengajuan') }}/${id}/approve`;
+        label.innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-approve')).show();
+    }
+
+    function rejectRequest(id, name) {
+        const form = document.getElementById('form-reject');
+        const label = document.getElementById('reject-name');
+        form.action = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/pengajuan') }}/${id}/reject`;
+        label.innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-reject')).show();
     }
 
     document.addEventListener('DOMContentLoaded', function () {

@@ -75,6 +75,22 @@
                         oleh {{ $requestData->approver->name ?? '-' }}
                     </div>
                 @endif
+
+                @if($requestData->status == 'requested')
+                    @can($type . '.request.approve')
+                    <div class="mt-3 d-flex gap-2">
+                        <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="flex-fill">
+                            @csrf
+                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
+                                <i class="ti ti-circle-check me-1"></i> Setujui
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger flex-fill" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
+                            <i class="ti ti-circle-x me-1"></i> Tolak
+                        </button>
+                    </div>
+                    @endcan
+                @endif
             </div>
         </div>
 
@@ -186,4 +202,32 @@
         </div>
     </div>
 </div>
+@if($requestData->status == 'requested')
+{{-- Modal Reject (Show Page) --}}
+<div class="modal modal-blur fade" id="modal-reject-show" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-danger"></div>
+            <form action="{{ route($type . '.request.reject', $requestData->id) }}" method="POST">
+                @csrf
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <x-icon name="circle-x" class="text-danger icon-lg mb-2" />
+                        <h3>Tolak Pengajuan</h3>
+                        <div class="text-secondary">Tolak pengajuan <strong>{{ $requestData->description }}</strong>?</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Alasan Penolakan</label>
+                        <textarea class="form-control" name="rejection_reason" rows="3" placeholder="Jelaskan alasan penolakan..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</a>
+                    <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

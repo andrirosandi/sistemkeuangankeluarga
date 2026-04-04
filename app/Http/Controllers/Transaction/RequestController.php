@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\RequestHeader;
 use App\Models\RequestDetail;
+use App\Models\TransactionHeader;
+use App\Models\TransactionDetail;
 use App\Models\TemporaryMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,10 +35,124 @@ class RequestController extends Controller
                 'message' => 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong> dari ' . auth()->user()->name,
                 'is_read' => 0,
                 'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
         if (!empty($notifications)) {
             \DB::table('notifications')->insert($notifications);
+        }
+    }
+
+    protected function notifyUser($userId, $message)
+    {
+        \DB::table('notifications')->insert([
+            'user_id' => $userId,
+            'message' => $message,
+            'is_read' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Approve a request: set status approved, auto-create draft transaction.
+     */
+    public function approve(Request $request, $type, $id)
+    {
+        $req = RequestHeader::with('details')->findOrFail($id);
+
+        if ($req->status !== 'requested') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat disetujui.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Update request status
+            $req->update([
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
+            // 2. Auto-create transaction header (draft)
+            $transaction = TransactionHeader::create([
+                'category_id' => $req->category_id,
+                'description' => $req->description,
+                'notes' => $req->notes,
+                'amount' => $req->amount,
+                'request_id' => $req->id,
+                'trans_code' => $req->trans_code,
+                'transaction_date' => $req->request_date,
+                'created_by' => auth()->id(),
+                'status' => 'draft',
+            ]);
+
+            // 3. Copy request details → transaction details
+            foreach ($req->details as $detail) {
+                TransactionDetail::create([
+                    'header_id' => $transaction->id,
+                    'description' => $detail->description,
+                    'amount' => $detail->amount,
+                    'request_detail_id' => $detail->id,
+                ]);
+
+                // Mark request detail as pending realization
+                $detail->update(['status' => 'pending']);
+            }
+
+            // 4. Notify the requester
+            $this->notifyUser(
+                $req->created_by,
+                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-success">disetujui</span> oleh ' . auth()->user()->name . '.'
+            );
+
+            DB::commit();
+            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disetujui. Draf realisasi telah dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menyetujui pengajuan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject a request with reason.
+     */
+    public function reject(Request $request, $type, $id)
+    {
+        $req = RequestHeader::findOrFail($id);
+
+        if ($req->status !== 'requested') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat ditolak.');
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ], [
+            'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $req->update([
+                'status' => 'rejected',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'rejection_reason' => $request->rejection_reason,
+            ]);
+
+            // Notify the requester
+            $this->notifyUser(
+                $req->created_by,
+                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-danger">ditolak</span> oleh ' . auth()->user()->name . '. Alasan: ' . htmlspecialchars($request->rejection_reason)
+            );
+
+            DB::commit();
+            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil ditolak.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menolak pengajuan: ' . $e->getMessage());
         }
     }
 
@@ -74,17 +190,45 @@ class RequestController extends Controller
                            created_at DESC");
 
         $requests = $query->get();
+        
+        $templates = \App\Models\TemplateHeader::where('trans_code', $transCode)->orderBy('description')->get();
 
-        return view('transaction.request.index', compact('requests', 'title', 'type'));
+        return view('transaction.request.index', compact('requests', 'title', 'type', 'templates'));
     }
 
-    public function create($type)
+    public function create(Request $request, $type)
     {
         $title = "Buat Pengajuan " . $this->getTypeLabel($type);
         $transCode = $this->getTransCode($type);
         $categories = Category::orderBy('name')->get();
+        
+        $requestData = null;
+        if ($request->has('template_id')) {
+            $templateData = \App\Models\TemplateHeader::with('details')->find($request->template_id);
+            if ($templateData) {
+                // Mock requestData for the form.
+                // We use requestData here because the view uses $requestData.
+                // We mock it as an stdClass or we just use templateData logic mapping in view.
+                // Actually RequestForm view already checks isset($requestData).
+                $requestData = new \App\Models\RequestHeader();
+                $requestData->category_id = $templateData->category_id;
+                $requestData->description = $templateData->description;
+                $requestData->priority = 'normal';
+                
+                // We also need to map details.
+                // The form uses $requestData->details.
+                $details = collect();
+                foreach($templateData->details as $det) {
+                    $details->push(new \App\Models\RequestDetail([
+                        'description' => $det->description,
+                        'amount' => $det->amount
+                    ]));
+                }
+                $requestData->setRelation('details', $details);
+            }
+        }
 
-        return view('transaction.request.form', compact('title', 'type', 'categories'));
+        return view('transaction.request.form', compact('title', 'type', 'categories', 'requestData'));
     }
 
     public function store(Request $request, $type)
