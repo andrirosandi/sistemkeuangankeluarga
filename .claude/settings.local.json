@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l app/Http/Controllers/DashboardController.php)",
+      "Bash(php -l database/seeders/RolePermissionSeeder.php)",
+      "Bash(php artisan:*)"
+    ]
+  }
+}

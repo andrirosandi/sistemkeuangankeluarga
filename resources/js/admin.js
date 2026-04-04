@@ -6,12 +6,16 @@ window.Alpine = Alpine;
 
 import '@tabler/core/dist/js/tabler.esm.min.js';
 import './datatable-handler.js';
+import fileUploadComponent from './components/file-upload.js';
 
-// Start Alpine & Re-init Bootstrap components
+// Register components
+Alpine.data('fileUploadComponent', fileUploadComponent);
+
+// Jalankan Alpine
+Alpine.start();
+
+// Re-init Bootstrap components
 document.addEventListener('DOMContentLoaded', () => {
-    // Jalankan Alpine
-    Alpine.start();
-
     // Re-init Dropdowns (Fix for Alpine intercept)
     const dropdowns = document.querySelectorAll('[data-bs-toggle="dropdown"]');
     dropdowns.forEach(el => new bootstrap.Dropdown(el));
