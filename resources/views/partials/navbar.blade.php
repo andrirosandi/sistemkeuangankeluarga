@@ -44,15 +44,77 @@
 
         <div class="navbar-nav flex-row order-lg-last">
 
-            {{-- Notification Bell --}}
-            <div class="nav-item me-2">
-                <a href="{{ route('notification.index') }}" class="nav-link px-0 position-relative" title="Notifikasi" id="nav-notification">
+            {{-- Notification Bell Dropdown --}}
+            <div class="nav-item me-2 dropdown" x-data="{ open: false }" @click.outside="open = false">
+                @php 
+                    $unreadCount = auth()->user()->notifications()->where('is_read', false)->count(); 
+                    $recentNotifications = auth()->user()->notifications()->orderBy('created_at', 'desc')->take(5)->get();
+                @endphp
+                <a href="#" class="nav-link px-0 position-relative" title="Notifikasi" @click.prevent="open = !open">
                     <i class="ti ti-bell fs-3"></i>
-                    @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
-                    @if($unread > 0)
-                        <span class="badge bg-red badge-notification">{{ $unread > 9 ? '9+' : $unread }}</span>
+                    @if($unreadCount > 0)
+                        <span class="badge bg-red badge-notification badge-blink">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
                     @endif
                 </a>
+                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card shadow-lg" 
+                     :class="{ 'show': open }" 
+                     x-show="open" 
+                     x-transition 
+                     style="display: none; position: absolute; right: 0; top: 100%; width: 320px; z-index: 1050;">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center py-2">
+                            <h3 class="card-title mb-0 fs-5">Notifikasi</h3>
+                            @if($unreadCount > 0)
+                                <form action="{{ route('notification.readAll') }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link link-primary p-0 fs-5 text-decoration-none" title="Tandai semua dibaca">BACA SEMUA</button>
+                                </form>
+                            @endif
+                        </div>
+                        <div class="list-group list-group-flush list-group-hoverable" style="max-height: 350px; overflow-y: auto;">
+                            @forelse($recentNotifications as $notif)
+                                <div class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            @if(!$notif->is_read)
+                                                <span class="status-indicator status-blue status-indicator-animated">
+                                                    <span class="status-indicator-circle"></span>
+                                                    <span class="status-indicator-circle"></span>
+                                                    <span class="status-indicator-circle"></span>
+                                                </span>
+                                            @else
+                                                <span class="status-indicator status-green"></span>
+                                            @endif
+                                        </div>
+                                        <div class="col text-truncate">
+                                            <div class="text-wrap {{ !$notif->is_read ? 'fw-bold' : 'text-muted' }}" style="font-size: 13px;">
+                                                {!! $notif->message !!}
+                                            </div>
+                                            <div class="text-secondary mt-1" style="font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</div>
+                                        </div>
+                                        @if(!$notif->is_read)
+                                            <div class="col-auto">
+                                                <form action="{{ route('notification.read', $notif->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-icon btn-sm btn-ghost-primary border-0" title="Tandai dibaca">
+                                                        <i class="ti ti-check"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="list-group-item text-center py-4 text-muted">
+                                    Belum ada notifikasi baru
+                                </div>
+                            @endforelse
+                        </div>
+                        <div class="card-footer py-2 text-center">
+                            <a href="{{ route('notification.index') }}" class="btn btn-link link-secondary fs-5 text-decoration-none">Lihat Semua Notifikasi</a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Theme Toggle --}}

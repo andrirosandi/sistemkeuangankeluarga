@@ -102,6 +102,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/laporan', fn() => abort(404))->name('report.index')->middleware('can:report.view');
 
     // Master Data
+    // Notifikasi
+    Route::prefix('notifikasi')->name('notification.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('readAll');
+        Route::delete('/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('master')->name('master.')->group(function () {
         // Categories
         Route::post('categories/bulk-delete', [\App\Http\Controllers\Master\CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete')->middleware('can:category.delete');
