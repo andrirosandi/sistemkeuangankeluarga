@@ -9,6 +9,7 @@
             <div class="card-header border-bottom d-flex align-items-center justify-content-between">
                 <h3 class="card-title">Daftar Anggota Keluarga</h3>
                 <div class="card-actions">
+                    @can('user.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
                         <x-icon name="plus" />
                         Tambah Anggota
@@ -16,6 +17,7 @@
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Anggota">
                         <x-icon name="plus" />
                     </button>
+                    @endcan
                 </div>
             </div>
 
@@ -77,21 +79,27 @@
                             </td>
                              <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
+                                    @can('user.edit')
                                     <x-datatable.row-action 
                                         type="edit" 
                                         onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->roles->first()?->name }}')" 
                                         title="Edit Profil" />
+                                    @endcan
                                     
+                                    @can('user.reset-password')
                                     <x-datatable.row-action 
                                         type="reset" 
                                         onclick="resetPassword({{ $user->id }}, '{{ $user->name }}')" 
                                         title="Reset Password" />
+                                    @endcan
                                     
                                     @if($user->id !== auth()->id())
+                                    @can('user.delete')
                                     <x-datatable.row-action 
                                         type="delete" 
                                         onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
                                         title="Hapus Anggota" />
+                                    @endcan
                                     @endif
                                 </div>
                             </td>

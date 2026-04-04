@@ -30,7 +30,7 @@ Route::middleware('setup.guard')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('can:dashboard.view');
 
     // Profile (dari Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -38,66 +38,66 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Placeholder routes (akan diisi saat module dikerjakan)
-    Route::get('/notifications', fn() => abort(404))->name('notification.index');
+    Route::get('/notifications', fn() => abort(404))->name('notification.index')->middleware('can:notification.view');
 
     // Kas Masuk
     Route::prefix('kas-masuk')->name('in.')->group(function () {
-        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'in');
-        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'in');
-        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'in');
-        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'in');
-        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'in');
-        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'in');
-        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'in');
-        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'in');
+        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'in')->middleware('can:in.request.view');
+        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'in')->middleware('can:in.request.create');
+        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'in')->middleware('can:in.request.create');
+        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'in')->middleware('can:in.request.view');
+        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'in')->middleware('can:in.request.edit');
+        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'in')->middleware('can:in.request.edit');
+        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'in')->middleware('can:in.request.delete');
+        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'in')->middleware('can:in.request.edit');
         
-        Route::get('/realisasi', fn() => abort(404))->name('transaction.index');
+        Route::get('/realisasi', fn() => abort(404))->name('transaction.index')->middleware('can:in.transaction.view');
     });
 
     // Kas Keluar
     Route::prefix('kas-keluar')->name('out.')->group(function () {
-        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'out');
-        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'out');
-        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'out');
-        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'out');
-        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'out');
-        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'out');
-        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'out');
-        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'out');
+        Route::get('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'index'])->name('request.index')->defaults('type', 'out')->middleware('can:out.request.view');
+        Route::get('/pengajuan/create', [\App\Http\Controllers\Transaction\RequestController::class, 'create'])->name('request.create')->defaults('type', 'out')->middleware('can:out.request.create');
+        Route::post('/pengajuan', [\App\Http\Controllers\Transaction\RequestController::class, 'store'])->name('request.store')->defaults('type', 'out')->middleware('can:out.request.create');
+        Route::get('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'show'])->name('request.show')->defaults('type', 'out')->middleware('can:out.request.view');
+        Route::get('/pengajuan/{id}/edit', [\App\Http\Controllers\Transaction\RequestController::class, 'edit'])->name('request.edit')->defaults('type', 'out')->middleware('can:out.request.edit');
+        Route::put('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'update'])->name('request.update')->defaults('type', 'out')->middleware('can:out.request.edit');
+        Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Transaction\RequestController::class, 'destroy'])->name('request.destroy')->defaults('type', 'out')->middleware('can:out.request.delete');
+        Route::post('/pengajuan/{id}/submit', [\App\Http\Controllers\Transaction\RequestController::class, 'submit'])->name('request.submit')->defaults('type', 'out')->middleware('can:out.request.edit');
 
-        Route::get('/realisasi', fn() => abort(404))->name('transaction.index');
+        Route::get('/realisasi', fn() => abort(404))->name('transaction.index')->middleware('can:out.transaction.view');
     });
 
     // Mutasi
-    Route::get('/mutasi', fn() => abort(404))->name('mutation.index');
+    Route::get('/mutasi', fn() => abort(404))->name('mutation.index')->middleware('can:mutation.view');
 
     // Laporan
-    Route::get('/laporan', fn() => abort(404))->name('report.index');
+    Route::get('/laporan', fn() => abort(404))->name('report.index')->middleware('can:report.view');
 
     // Master Data
     Route::prefix('master')->name('master.')->group(function () {
         // Categories
-        Route::post('categories/bulk-delete', [\App\Http\Controllers\Master\CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete');
+        Route::post('categories/bulk-delete', [\App\Http\Controllers\Master\CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete')->middleware('can:category.delete');
         Route::resource('categories', \App\Http\Controllers\Master\CategoryController::class);
 
         // Users
-        Route::post('users/bulk-delete', [\App\Http\Controllers\Master\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
-        Route::put('users/{user}/reset-password', [\App\Http\Controllers\Master\UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('users/bulk-delete', [\App\Http\Controllers\Master\UserController::class, 'bulkDelete'])->name('users.bulk-delete')->middleware('can:user.delete');
+        Route::put('users/{user}/reset-password', [\App\Http\Controllers\Master\UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('can:user.reset-password');
         Route::resource('users', \App\Http\Controllers\Master\UserController::class);
         
         // Roles & Permissions
-        Route::post('roles/bulk-delete', [\App\Http\Controllers\Master\RoleController::class, 'bulkDelete'])->name('roles.bulk-delete');
+        Route::post('roles/bulk-delete', [\App\Http\Controllers\Master\RoleController::class, 'bulkDelete'])->name('roles.bulk-delete')->middleware('can:role.delete');
         Route::resource('roles', \App\Http\Controllers\Master\RoleController::class);
         
         // Transaction Templates (Presets)
-        Route::post('templates/bulk-delete', [\App\Http\Controllers\Master\TemplateController::class, 'bulkDelete'])->name('templates.bulk-delete');
+        Route::post('templates/bulk-delete', [\App\Http\Controllers\Master\TemplateController::class, 'bulkDelete'])->name('templates.bulk-delete')->middleware('can:template.delete');
         Route::resource('templates', \App\Http\Controllers\Master\TemplateController::class);
     });
 
     // Pengaturan
-    Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index');
-    Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update');
-    Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp');
+    Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index')->middleware('can:setting.view');
+    Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update')->middleware('can:setting.edit');
+    Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp')->middleware('can:setting.edit');
 
     // Dedicated Upload API
     Route::post('/api/upload-media', [\App\Http\Controllers\Api\UploadController::class, 'store'])->name('api.upload');

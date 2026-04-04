@@ -10,6 +10,7 @@
             <div class="card-header border-bottom d-flex align-items-center justify-content-between">
                 <h3 class="card-title">Daftar {{ $title }}</h3>
                 <div class="card-actions">
+                    @can($type . '.request.create')
                     <a href="{{ route($type . '.request.create') }}" class="btn btn-primary d-none d-sm-inline-block">
                         <x-icon name="plus" />
                         Buat Pengajuan
@@ -17,6 +18,7 @@
                     <a href="{{ route($type . '.request.create') }}" class="btn btn-primary d-sm-none btn-icon" aria-label="Buat Pengajuan">
                         <x-icon name="plus" />
                     </a>
+                    @endcan
                 </div>
             </div>
 
@@ -92,6 +94,7 @@
                                     </a>
                                     
                                     @if($req->status === 'draft')
+                                        @can($type . '.request.edit')
                                         <a href="{{ route($type . '.request.edit', $req->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-2" data-bs-toggle="tooltip" title="Edit">
                                             <x-icon name="pencil" />
                                         </a>
@@ -102,11 +105,14 @@
                                                 title="Ajukan">
                                             <x-icon name="send" />
                                         </button>
+                                        @endcan
                                         
+                                        @can($type . '.request.delete')
                                         <x-datatable.row-action 
                                             type="delete" 
                                             onclick="deleteRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
                                             title="Hapus Draft" />
+                                        @endcan
                                     @endif
                                 </div>
                             </td>

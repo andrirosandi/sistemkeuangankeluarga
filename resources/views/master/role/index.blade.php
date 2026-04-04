@@ -9,6 +9,7 @@
             <div class="card-header border-bottom">
                 <h3 class="card-title">Daftar Peran dan Akses</h3>
                 <div class="card-actions">
+                    @can('role.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
                         <x-icon name="plus" />
                         Tambah Grup
@@ -16,6 +17,7 @@
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Role">
                         <x-icon name="plus" />
                     </button>
+                    @endcan
                 </div>
             </div>
 
@@ -86,16 +88,20 @@
                             </td>
                              <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
+                                    @can('role.edit')
                                     <x-datatable.row-action 
                                         type="edit" 
                                         onclick="editRole({{ $role->id }}, '{{ $role->name }}', {{ json_encode($role->permissions->pluck('name')) }}, {{ json_encode($visibilityMap[$role->id] ?? []) }})" 
                                         title="Kelola Izin" />
+                                    @endcan
                                     
                                     @if($role->name !== 'admin')
+                                    @can('role.delete')
                                     <x-datatable.row-action 
                                         type="delete" 
                                         onclick="deleteRole({{ $role->id }}, '{{ $role->name }}')" 
                                         title="Hapus Grup" />
+                                    @endcan
                                     @endif
                                 </div>
                             </td>

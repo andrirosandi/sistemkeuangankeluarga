@@ -33,7 +33,6 @@ class RequestController extends Controller
                 'message' => 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong> dari ' . auth()->user()->name,
                 'is_read' => 0,
                 'created_at' => now(),
-                'updated_at' => now(),
             ];
         }
         if (!empty($notifications)) {
@@ -207,6 +206,11 @@ class RequestController extends Controller
         
         if ($req->status !== 'draft') {
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft yang dapat diedit.');
+        }
+
+        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+        if (!$visibleUserIds->contains($req->created_by)) {
+            abort(403, 'Akses ditolak.');
         }
 
         $request->validate([

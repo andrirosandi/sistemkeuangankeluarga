@@ -9,6 +9,7 @@
             <div class="card-header border-bottom">
                 <h3 class="card-title">Daftar Template Rutin</h3>
                 <div class="card-actions">
+                    @can('template.create')
                     <a href="{{ route('master.templates.create') }}" class="btn btn-primary d-none d-sm-inline-block">
                         <x-icon name="plus" />
                         Tambah Template
@@ -16,6 +17,7 @@
                     <a href="{{ route('master.templates.create') }}" class="btn btn-primary d-sm-none btn-icon" aria-label="Tambah Template">
                         <x-icon name="plus" />
                     </a>
+                    @endcan
                 </div>
             </div>
             
@@ -87,15 +89,19 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center justify-content-end gap-2">
+                                        @can('template.edit')
                                         <x-datatable.row-action 
                                             type="edit" 
                                             onclick="window.location.href='{{ route('master.templates.edit', $template->id) }}'"
                                             title="Edit Template" />
+                                        @endcan
                                         
+                                        @can('template.delete')
                                         <x-datatable.row-action 
                                             type="delete" 
                                             onclick="deleteTemplate({{ $template->id }}, '{{ $template->description }}')" 
                                             title="Hapus Template" />
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

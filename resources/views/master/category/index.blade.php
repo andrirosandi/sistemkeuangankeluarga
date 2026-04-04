@@ -9,6 +9,7 @@
             <div class="card-header border-bottom">
                 <h3 class="card-title">Daftar Kategori</h3>
                 <div class="card-actions">
+                    @can('category.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
                         <x-icon name="plus" />
                         Tambah Kategori
@@ -16,6 +17,7 @@
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Kategori">
                         <x-icon name="plus" />
                     </button>
+                    @endcan
                 </div>
             </div>
             <div class="card-body border-bottom py-3">
@@ -58,15 +60,19 @@
                             </td>
                              <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
+                                    @can('category.edit')
                                     <x-datatable.row-action 
                                         type="edit" 
                                         onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->color ?? '#616876' }}')" 
                                         title="Edit Kategori" />
+                                    @endcan
                                     
+                                    @can('category.delete')
                                     <x-datatable.row-action 
                                         type="delete" 
                                         onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" 
                                         title="Hapus Kategori" />
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
