@@ -49,23 +49,17 @@
                                     @endif
                                 </div>
                                 <div class="col text-truncate">
-                                    <div class="text-wrap {{ !$notif->is_read ? 'fw-bold' : 'text-muted' }} mb-1" style="font-size: 14px;">
-                                        {!! $notif->message !!}
-                                    </div>
-                                    <div class="text-secondary" style="font-size: 12px;">
-                                        <i class="ti ti-clock" style="width: 14px; height: 14px;"></i> {{ $notif->created_at->translatedFormat('d F Y, H:i') }}
-                                        ({{ $notif->created_at->diffForHumans() }})
-                                    </div>
+                                    <a href="{{ $notif->getRedirectUrl() }}" class="text-decoration-none">
+                                        <div class="text-wrap {{ !$notif->is_read ? 'fw-bold text-body' : 'text-muted' }} mb-1" style="font-size: 14px;">
+                                            {!! $notif->message !!}
+                                        </div>
+                                        <div class="text-secondary" style="font-size: 12px;">
+                                            <i class="ti ti-clock" style="width: 14px; height: 14px;"></i> {{ $notif->created_at->translatedFormat('d F Y, H:i') }}
+                                            ({{ $notif->created_at->diffForHumans() }})
+                                        </div>
+                                    </a>
                                 </div>
                                 <div class="col-auto d-flex gap-2">
-                                    @if(!$notif->is_read)
-                                        <form action="{{ route('notification.read', $notif->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-icon btn-outline-primary" title="Tandai dibaca">
-                                                <i class="ti ti-check"></i>
-                                            </button>
-                                        </form>
-                                    @endif
                                     <form action="{{ route('notification.destroy', $notif->id) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?');">
                                         @csrf
                                         @method('DELETE')

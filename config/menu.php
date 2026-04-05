@@ -47,6 +47,12 @@ return [
             'permission' => 'mutation.view',
         ],
         [
+            'label'      => 'Outstanding',
+            'icon'       => 'alert-circle',
+            'route'      => 'outstanding.index',
+            'permission' => 'outstanding.view',
+        ],
+        [
             'label'      => 'Laporan',
             'icon'       => 'report-analytics',
             'route'      => 'report.index',

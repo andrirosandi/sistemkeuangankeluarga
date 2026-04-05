@@ -33,13 +33,7 @@ class NotificationController extends Controller
             ]);
         }
 
-        // Kalau ada URL redirect di dalam pesan atau route khusus,  bisa dialihkan.
-        // Saat ini redirect back.
-        if ($request->ajax()) {
-            return response()->json(['success' => true]);
-        }
-        
-        return redirect()->back();
+        return redirect($notif->getDestinationUrl());
     }
 
     /**

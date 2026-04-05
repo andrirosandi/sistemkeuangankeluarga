@@ -38,7 +38,7 @@ class FinanceRequestService
             // Notifikasi approver jika langsung diajukan
             if ($header->status === 'requested') {
                 $type = $header->trans_code == 1 ? 'in' : 'out';
-                NotificationService::notifyApprovers($header, $type);
+                NotificationService::notifyApprovers($header, $type, "{$type}.request.show", ['id' => $header->id]);
             }
 
             return $header;
@@ -75,7 +75,7 @@ class FinanceRequestService
             // Notifikasi approver jika langsung diajukan
             if ($req->status === 'requested') {
                 $type = $req->trans_code == 1 ? 'in' : 'out';
-                NotificationService::notifyApprovers($req, $type);
+                NotificationService::notifyApprovers($req, $type, "{$type}.request.show", ['id' => $req->id]);
             }
 
             return $req->fresh();
@@ -124,9 +124,12 @@ class FinanceRequestService
 
             // 4. Notifikasi ke pembuat pengajuan
             $approverName = auth()->user()->name ?? 'Sistem';
+            $type = $req->trans_code == 1 ? 'in' : 'out';
             NotificationService::notifyUser(
                 $req->created_by,
-                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-success">disetujui</span> oleh ' . $approverName . '.'
+                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-success">disetujui</span> oleh ' . $approverName . '.',
+                "{$type}.request.show",
+                ['id' => $req->id]
             );
 
             return $transaction;
@@ -147,9 +150,12 @@ class FinanceRequestService
             ]);
 
             $approverName = auth()->user()->name ?? 'Sistem';
+            $type = $req->trans_code == 1 ? 'in' : 'out';
             NotificationService::notifyUser(
                 $req->created_by,
-                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-danger">ditolak</span> oleh ' . $approverName . '. Alasan: ' . htmlspecialchars($reason)
+                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-danger">ditolak</span> oleh ' . $approverName . '. Alasan: ' . htmlspecialchars($reason),
+                "{$type}.request.show",
+                ['id' => $req->id]
             );
         });
     }
@@ -163,7 +169,7 @@ class FinanceRequestService
             $req->update(['status' => 'requested']);
 
             $type = $req->trans_code == 1 ? 'in' : 'out';
-            NotificationService::notifyApprovers($req, $type);
+            NotificationService::notifyApprovers($req, $type, "{$type}.request.show", ['id' => $req->id]);
         });
     }
 
@@ -174,6 +180,19 @@ class FinanceRequestService
     {
         DB::transaction(function () use ($req) {
             $req->update(['status' => 'canceled']);
+        });
+    }
+
+    /**
+     * Write-off sisa outstanding — tutup semua detail yang masih pending.
+     * Hanya bisa dilakukan oleh requestor (pemilik pengajuan).
+     */
+    public function writeOffRequest(RequestHeader $req): void
+    {
+        DB::transaction(function () use ($req) {
+            $req->details()
+                ->where('status', 'pending')
+                ->update(['status' => 'closed']);
         });
     }
 

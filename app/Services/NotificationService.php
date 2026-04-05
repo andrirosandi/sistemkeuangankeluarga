@@ -11,11 +11,13 @@ class NotificationService
     /**
      * Kirim notifikasi ke satu user.
      */
-    public static function notifyUser($userId, $message): void
+    public static function notifyUser($userId, $message, $routeName = null, $routeParams = []): void
     {
         Notification::create([
             'user_id' => $userId,
             'message' => $message,
+            'route_name' => $routeName,
+            'route_params' => $routeParams,
             'is_read' => false,
         ]);
     }
@@ -24,7 +26,7 @@ class NotificationService
      * Kirim notifikasi ke semua user yang punya permission approve.
      * Anti-duplikat: cek apakah ada notifikasi belum dibaca dengan deskripsi yang sama.
      */
-    public static function notifyApprovers($req, $type): void
+    public static function notifyApprovers($req, $type, $routeName = null, $routeParams = []): void
     {
         $permissionName = $type == 'in' ? 'in.request.approve' : 'out.request.approve';
         $approvers = User::permission($permissionName)->get();
@@ -46,6 +48,8 @@ class NotificationService
                 Notification::create([
                     'user_id' => $approver->id,
                     'message' => $keyword . ' dari ' . auth()->user()->name,
+                    'route_name' => $routeName,
+                    'route_params' => $routeParams,
                     'is_read' => false,
                 ]);
             }

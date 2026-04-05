@@ -70,6 +70,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     }
 
+    // Outstanding (combined IN + OUT)
+    Route::get('/outstanding', [\App\Http\Controllers\Transaction\OutstandingController::class, 'index'])
+        ->name('outstanding.index')
+        ->middleware('can:outstanding.view');
+
+    // Write-off outstanding (requestor or approver closes remaining items)
+    foreach (['in' => 'kas-masuk', 'out' => 'kas-keluar'] as $type => $prefix) {
+        Route::post("/{$prefix}/pengajuan/{id}/writeoff", [\App\Http\Controllers\Transaction\RequestController::class, 'writeoff'])
+            ->name("{$type}.request.writeoff")
+            ->defaults('type', $type)
+            ->middleware("can:{$type}.request.view");
+    }
+
     // Mutasi
     Route::prefix('mutasi')->name('mutation.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Transaction\MutationController::class, 'index'])->name('index')->middleware('can:mutation.view');
@@ -94,7 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Notifikasi
     Route::prefix('notifikasi')->name('notification.')->group(function () {
         Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
-        Route::post('/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+        Route::get('/{id}/redirect', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('readAll');
         Route::delete('/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
     });

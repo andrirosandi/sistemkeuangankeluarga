@@ -10,6 +10,8 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'message',
+        'route_name',
+        'route_params',
         'is_read',
         'read_at'
     ];
@@ -17,10 +19,25 @@ class Notification extends Model
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'route_params' => 'array',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getRedirectUrl()
+    {
+        return route('notification.read', $this->id);
+    }
+
+    public function getDestinationUrl()
+    {
+        if ($this->route_name) {
+            return route($this->route_name, $this->route_params ?? []);
+        }
+        
+        return route('notification.index');
     }
 }

@@ -186,15 +186,21 @@ class DashboardController extends Controller
             ]);
         }
 
-        // 3. Partial realized — approved with pending detail items
+        // 3. Partial realized — approved with pending detail items or amount mismatch
         $partialRealized = RequestHeader::with(['category', 'creator'])
             ->whereIn('created_by', $userIds)
             ->where('status', 'approved')
-            ->whereHas('details', function ($q) {
-                $q->where('status', 'pending');
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'completed');
             })
-            ->whereDoesntHave('transaction', function ($q) {
-                $q->where('status', 'draft');
+            ->where(function ($q) {
+                $q->whereHas('details', function ($dq) {
+                    $dq->where('status', 'pending');
+                })
+                ->orWhereHas('transaction', function ($tq) {
+                    $tq->where('status', 'completed')
+                       ->whereColumn('amount', '<', 'request_header.amount');
+                });
             })
             ->orderBy('approved_at', 'desc')
             ->limit(10)
@@ -289,10 +295,18 @@ class DashboardController extends Controller
                 $q->where('status', 'draft');
             })->sum('amount');
 
-        // Partial: approved requests whose transaction is completed but has pending detail items
+        // Partial: approved requests whose transaction is completed but has pending detail items or amount mismatch
         $partialRealized = (clone $query)->where('status', 'approved')
-            ->whereHas('details', function ($q) {
-                $q->where('status', 'pending');
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'completed');
+            })
+            ->where(function ($q) {
+                $q->whereHas('details', function ($dq) {
+                    $dq->where('status', 'pending');
+                })->orWhereHas('transaction', function ($tq) {
+                    $tq->where('status', 'completed')
+                       ->whereColumn('amount', '<', 'request_header.amount');
+                });
             })->sum('amount');
 
         $data = [
@@ -468,14 +482,20 @@ class DashboardController extends Controller
             })
             ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
 
-        // 3. Approved tapi ada detail yang masih pending (realisasi parsial)
+        // 3. Approved tapi ada detail yang masih pending (realisasi parsial) atau nominal kurang
         $partialRealized = RequestHeader::whereIn('created_by', $userIds)
             ->where('status', 'approved')
-            ->whereHas('details', function ($q) {
-                $q->where('status', 'pending');
+            ->whereHas('transaction', function ($q) {
+                $q->where('status', 'completed');
             })
-            ->whereDoesntHave('transaction', function ($q) {
-                $q->where('status', 'draft');
+            ->where(function ($q) {
+                $q->whereHas('details', function ($dq) {
+                    $dq->where('status', 'pending');
+                })
+                ->orWhereHas('transaction', function ($tq) {
+                    $tq->where('status', 'completed')
+                       ->whereColumn('amount', '<', 'request_header.amount');
+                });
             })
             ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
 

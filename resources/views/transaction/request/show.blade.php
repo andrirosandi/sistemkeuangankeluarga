@@ -156,6 +156,7 @@
                         <tr>
                             <th class="w-1">#</th>
                             <th>Deskripsi Item</th>
+                            <th class="text-center" style="width: 120px;">Status</th>
                             <th class="text-end" style="width: 200px;">Nominal (Rp)</th>
                         </tr>
                     </thead>
@@ -164,6 +165,17 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->description }}</td>
+                            <td class="text-center">
+                                @if($item->status == 'realized')
+                                    <span class="badge bg-green-lt"><i class="ti ti-check me-1"></i> Realized</span>
+                                @elseif($item->status == 'closed')
+                                    <span class="badge bg-red-lt"><i class="ti ti-ban me-1"></i> Write-Off</span>
+                                @elseif($requestData->status == 'approved')
+                                    <span class="badge bg-yellow-lt"><i class="ti ti-clock me-1"></i> Pending</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="text-end">@uang($item->amount)</td>
                         </tr>
                         @endforeach
@@ -207,6 +219,16 @@
                     <a href="{{ route($type . '.request.edit', $requestData->id) }}" class="btn btn-primary shadow-sm">
                         <i class="ti ti-pencil me-2"></i> Edit Pengajuan Ini
                     </a>
+                @endif
+                @if($requestData->status == 'approved' && $requestData->transaction && $requestData->transaction->status == 'completed')
+                    @php
+                       $isPartial = $requestData->transaction->amount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
+                    @endphp
+                    @if($isPartial && (auth()->id() === $requestData->created_by || auth()->user()->can($type . '.request.approve')))
+                        <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-writeoff-show">
+                            <i class="ti ti-ban me-1"></i> Batalkan Sisa Realisasi
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -266,5 +288,39 @@
         </div>
     </div>
 </div>
+@endif
+
+{{-- Modal Writeoff (Show Page) --}}
+@if($requestData->status == 'approved' && $requestData->transaction && $requestData->transaction->status == 'completed')
+    @php
+       $isPartial = $requestData->transaction->amount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
+    @endphp
+    @if($isPartial)
+    <div class="modal modal-blur fade" id="modal-writeoff-show" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-status bg-danger"></div>
+                <div class="modal-body text-center py-4">
+                    <i class="ti ti-ban text-danger icon-lg mb-2"></i>
+                    <h3>Batalkan Sisanya</h3>
+                    <div class="text-secondary">Tutup sisa pengajuan <strong>{{ $requestData->description }}</strong> yang belum terealisasi?</div>
+                </div>
+                <div class="modal-footer">
+                    <div class="w-100">
+                        <div class="row">
+                            <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
+                            <div class="col">
+                                <form action="{{ route($type . '.request.writeoff', $requestData->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger w-100">Ya, Batalkan</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 @endif
 @endsection

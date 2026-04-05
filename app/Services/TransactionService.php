@@ -136,9 +136,12 @@ class TransactionService
             if ($transaction->request_id) {
                 $reqHeader = RequestHeader::find($transaction->request_id);
                 if ($reqHeader) {
+                    $type = $reqHeader->trans_code == 1 ? 'in' : 'out';
                     NotificationService::notifyUser(
                         $reqHeader->created_by,
-                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">dicairkan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.')
+                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">dicairkan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.'),
+                        "{$type}.request.show",
+                        ['id' => $reqHeader->id]
                     );
                 }
             }
@@ -176,9 +179,12 @@ class TransactionService
             if ($transaction->request_id) {
                 $reqHeader = RequestHeader::find($transaction->request_id);
                 if ($reqHeader) {
+                    $type = $reqHeader->trans_code == 1 ? 'in' : 'out';
                     NotificationService::notifyUser(
                         $reqHeader->created_by,
-                        'Pencairan dana untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.'
+                        'Pencairan dana untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.',
+                        "{$type}.request.show",
+                        ['id' => $reqHeader->id]
                     );
                 }
             }

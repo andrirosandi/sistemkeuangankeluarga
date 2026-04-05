@@ -64,6 +64,9 @@ class RolePermissionSeeder extends Seeder
         // Mutasi Kas
         'mutation.view',
 
+        // Outstanding
+        'outstanding.view',
+
         // Laporan & Analitik
         'report.view',
         'report.view.self',

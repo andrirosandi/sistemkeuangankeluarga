@@ -308,4 +308,30 @@ class RequestController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus pengajuan.');
         }
     }
+
+    public function writeoff(Request $request, $id, $type)
+    {
+        $req = RequestHeader::with(['details', 'transaction'])->findOrFail($id);
+
+        $isCreator = $req->created_by === auth()->id();
+        $isApprover = auth()->user()->can("{$type}.request.approve");
+
+        if (!$isCreator && !$isApprover) {
+            abort(403, 'Akses ditolak. Anda bukan pemilik pengajuan ini atau tidak memiliki hak akses.');
+        }
+
+        // Hanya bisa write-off request yang sudah approved dengan transaksi completed
+        if ($req->status !== 'approved' || !$req->transaction || $req->transaction->status !== 'completed') {
+            return redirect()->route('outstanding.index')->with('error', 'Write-off hanya bisa dilakukan pada pengajuan dengan realisasi parsial.');
+        }
+
+        try {
+            $this->requestService->writeOffRequest($req);
+
+            return redirect()->route('outstanding.index')->with('success', 'Sisa outstanding berhasil ditiadakan (write-off).');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal melakukan write-off. Silakan coba lagi.');
+        }
+    }
 }

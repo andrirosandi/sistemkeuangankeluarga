@@ -73,7 +73,7 @@
                         </div>
                         <div class="list-group list-group-flush list-group-hoverable" style="max-height: 350px; overflow-y: auto;">
                             @forelse($recentNotifications as $notif)
-                                <div class="list-group-item">
+                                <a href="{{ $notif->getRedirectUrl() }}" class="list-group-item list-group-item-action text-decoration-none">
                                     <div class="row align-items-center">
                                         <div class="col-auto">
                                             @if(!$notif->is_read)
@@ -87,23 +87,13 @@
                                             @endif
                                         </div>
                                         <div class="col text-truncate">
-                                            <div class="text-wrap {{ !$notif->is_read ? 'fw-bold' : 'text-muted' }}" style="font-size: 13px;">
+                                            <div class="text-wrap {{ !$notif->is_read ? 'fw-bold text-body' : 'text-muted' }}" style="font-size: 13px;">
                                                 {!! $notif->message !!}
                                             </div>
                                             <div class="text-secondary mt-1" style="font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</div>
                                         </div>
-                                        @if(!$notif->is_read)
-                                            <div class="col-auto">
-                                                <form action="{{ route('notification.read', $notif->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-icon btn-sm btn-ghost-primary border-0" title="Tandai dibaca">
-                                                        <i class="ti ti-check"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        @endif
                                     </div>
-                                </div>
+                                </a>
                             @empty
                                 <div class="list-group-item text-center py-4 text-muted">
                                     Belum ada notifikasi baru
