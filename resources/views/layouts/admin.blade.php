@@ -17,6 +17,9 @@
     {{-- Tabler via npm (bundled by Vite) --}}
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 
+    {{-- Disable HTMX Boost cache to prevent stale HTML on deployed server --}}
+    <meta name="htmx-config" content='{"useCache": false}'>
+
     <style>
         /* HTMX Loading Indicator */
         .htmx-indicator {
