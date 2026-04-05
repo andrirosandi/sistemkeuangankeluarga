@@ -224,7 +224,7 @@
 
 @push('scripts')
 <script>
-    const baseUrl = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/realisasi') }}`;
+    var baseUrl = `{{ url('kas-' . ($type == 'in' ? 'masuk' : 'keluar') . '/realisasi') }}`;
 
     function completeTransaction(id, name) {
         document.getElementById('form-complete').action = `${baseUrl}/${id}/complete`;

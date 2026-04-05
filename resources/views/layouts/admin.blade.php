@@ -17,9 +17,37 @@
     {{-- Tabler via npm (bundled by Vite) --}}
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 
+    <style>
+        /* HTMX Loading Indicator */
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 200ms ease-in;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #206bc4; /* Tabler primary color */
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .htmx-request .htmx-indicator,
+        .htmx-request.htmx-indicator {
+            opacity: 1;
+            /* Simple animated loading bar effect */
+            animation: htmx-loading 2s linear infinite;
+        }
+        @keyframes htmx-loading {
+            0% { width: 0%; opacity: 1; }
+            50% { width: 50%; opacity: 1; }
+            100% { width: 100%; opacity: 0; }
+        }
+    </style>
+
     @stack('styles')
 </head>
-<body class="antialiased h-full">
+<body class="antialiased h-full" hx-boost="true" hx-indicator=".htmx-indicator">
+    <div class="htmx-indicator"></div>
     <div class="wrapper">
 
         {{-- Sidebar --}}
