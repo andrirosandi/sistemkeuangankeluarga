@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\RoleVisibility;
 use App\Models\User;
 
 class NotificationService
@@ -31,6 +32,11 @@ class NotificationService
         $keyword = 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong>';
 
         foreach ($approvers as $approver) {
+            $visibleUserIds = RoleVisibility::getVisibleUserIds($approver);
+            if (!$visibleUserIds->contains($req->created_by)) {
+                continue;
+            }
+
             $exists = Notification::where('user_id', $approver->id)
                 ->where('message', 'like', '%' . addcslashes($req->description, '%_') . '%')
                 ->where('is_read', false)

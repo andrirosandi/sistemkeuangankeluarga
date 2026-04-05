@@ -168,6 +168,16 @@ class FinanceRequestService
     }
 
     /**
+     * Cancel pengajuan draft -> canceled.
+     */
+    public function cancelRequest(RequestHeader $req): void
+    {
+        DB::transaction(function () use ($req) {
+            $req->update(['status' => 'canceled']);
+        });
+    }
+
+    /**
      * Attach temporary media ke pengajuan.
      */
     private function attachMedia(RequestHeader $header, ?array $mediaIds, int $userId): void

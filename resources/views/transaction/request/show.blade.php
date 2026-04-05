@@ -184,6 +184,11 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 @if($requestData->status == 'requested')
+                    @if($requestData->created_by === auth()->id())
+                        <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modal-cancel-show">
+                            <i class="ti ti-ban me-1"></i> Batalkan Pengajuan
+                        </button>
+                    @endif
                     @can($type . '.request.approve')
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
                             <i class="ti ti-circle-x me-1"></i> Tolak
@@ -229,6 +234,33 @@
                     <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Cancel (Show Page) --}}
+<div class="modal modal-blur fade" id="modal-cancel-show" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-dark"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-ban text-dark icon-lg mb-2"></i>
+                <h3>Batalkan Pengajuan</h3>
+                <div class="text-secondary">Batalkan pengajuan <strong>{{ $requestData->description }}</strong>? Data akan tetap tersimpan sebagai riwayat pembatalan.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
+                        <div class="col">
+                            <form action="{{ route($type . '.request.cancel', $requestData->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-dark w-100">Batalkan</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

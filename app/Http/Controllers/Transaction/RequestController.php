@@ -30,7 +30,11 @@ class RequestController extends Controller
 
         $query = RequestHeader::with(['creator', 'category'])
             ->where('trans_code', $transCode)
-            ->whereIn('created_by', $visibleUserIds);
+            ->whereIn('created_by', $visibleUserIds)
+            ->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('status', '!=', 'draft');
+            });
 
         if ($request->filled('search')) {
             $query->where('description', 'like', '%' . $request->search . '%');
@@ -203,13 +207,16 @@ class RequestController extends Controller
         }
 
         if ($req->created_by === auth()->id()) {
-            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menyetujui pengajuan sendiri.');
+            if (!auth()->user()->can("{$type}.request.self-approve")) {
+                return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak memiliki hak untuk menyetujui pengajuan milik sendiri.');
+            }
         }
 
         try {
-            $this->requestService->approveRequest($req, auth()->id());
+            $transaction = $this->requestService->approveRequest($req, auth()->id());
 
-            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disetujui. Draf realisasi telah dibuat.');
+            return redirect()->route("{$type}.transaction.edit", $transaction->id)
+                ->with('success', 'Pengajuan berhasil disetujui. Silakan selesaikan draf realisasi berikut.');
         } catch (\Exception $e) {
             report($e);
             return redirect()->back()->with('error', 'Gagal menyetujui pengajuan. Silakan coba lagi.');
@@ -225,7 +232,9 @@ class RequestController extends Controller
         }
 
         if ($req->created_by === auth()->id()) {
-            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menolak pengajuan sendiri.');
+            if (!auth()->user()->can("{$type}.request.self-approve")) {
+                return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak memiliki hak untuk menolak pengajuan milik sendiri.');
+            }
         }
 
         try {
@@ -256,12 +265,34 @@ class RequestController extends Controller
         }
     }
 
+    public function cancel(Request $request, $id, $type)
+    {
+        $req = RequestHeader::findOrFail($id);
+
+        if ($req->status !== 'requested') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat dibatalkan.');
+        }
+
+        if ($req->created_by !== auth()->id()) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        try {
+            $this->requestService->cancelRequest($req);
+
+            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil dibatalkan.');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal membatalkan pengajuan. Silakan coba lagi.');
+        }
+    }
+
     public function destroy($id, $type)
     {
         $req = RequestHeader::findOrFail($id);
 
-        if (!in_array($req->status, ['draft', 'canceled'])) {
-            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft atau Canceled yang dapat dihapus.');
+        if ($req->status !== 'draft') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft yang dapat dihapus.');
         }
 
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());

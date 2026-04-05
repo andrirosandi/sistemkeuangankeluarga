@@ -39,6 +39,7 @@ class RolePermissionSeeder extends Seeder
         'in.request.edit',
         'in.request.delete',
         'in.request.approve',
+        'in.request.self-approve',
 
         // Kas Masuk - Realisasi / Transaksi
         'in.transaction.view',
@@ -52,6 +53,7 @@ class RolePermissionSeeder extends Seeder
         'out.request.edit',
         'out.request.delete',
         'out.request.approve',
+        'out.request.self-approve',
 
         // Kas Keluar - Realisasi / Transaksi
         'out.transaction.view',

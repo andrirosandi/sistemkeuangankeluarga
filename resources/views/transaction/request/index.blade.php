@@ -134,6 +134,14 @@
                                     @endif
 
                                     @if($req->status === 'requested')
+                                        @if($req->created_by === auth()->id())
+                                            <button class="btn btn-icon btn-sm btn-ghost-dark rounded-2"
+                                                    onclick="cancelRequest({{ $req->id }}, '{{ addslashes($req->description) }}')"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Batalkan">
+                                                <i class="ti ti-ban"></i>
+                                            </button>
+                                        @endif
                                         @can($type . '.request.approve')
                                         <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
                                             <div class="btn-group">
@@ -256,6 +264,33 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Cancel --}}
+<div class="modal modal-blur fade" id="modal-cancel" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-dark"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-ban text-dark icon-lg mb-2"></i>
+                <h3>Batalkan Pengajuan</h3>
+                <div class="text-secondary">Batalkan pengajuan <strong id="cancel-name"></strong>? Data akan tetap tersimpan sebagai riwayat pembatalan.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
+                        <div class="col">
+                            <form id="form-cancel" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-dark w-100">Batalkan</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -284,6 +319,12 @@
         document.getElementById('form-reject').action = `${baseUrl}/${id}/reject`;
         document.getElementById('reject-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-reject')).show();
+    }
+
+    function cancelRequest(id, name) {
+        document.getElementById('form-cancel').action = `${baseUrl}/${id}/cancel`;
+        document.getElementById('cancel-name').innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-cancel')).show();
     }
 </script>
 <x-datatable.list-init valueNames="[

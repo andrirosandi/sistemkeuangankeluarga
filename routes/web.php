@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/pengajuan/{id}', [$requestCtrl, 'update'])->name('request.update')->defaults('type', $type)->middleware("can:{$type}.request.edit");
             Route::delete('/pengajuan/{id}', [$requestCtrl, 'destroy'])->name('request.destroy')->defaults('type', $type)->middleware("can:{$type}.request.delete");
             Route::post('/pengajuan/{id}/submit', [$requestCtrl, 'submit'])->name('request.submit')->defaults('type', $type)->middleware("can:{$type}.request.edit");
+            Route::post('/pengajuan/{id}/cancel', [$requestCtrl, 'cancel'])->name('request.cancel')->defaults('type', $type)->middleware("can:{$type}.request.edit");
             Route::post('/pengajuan/{id}/approve', [$requestCtrl, 'approve'])->name('request.approve')->defaults('type', $type)->middleware("can:{$type}.request.approve");
             Route::post('/pengajuan/{id}/reject', [$requestCtrl, 'reject'])->name('request.reject')->defaults('type', $type)->middleware("can:{$type}.request.approve");
 
