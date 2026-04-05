@@ -322,13 +322,13 @@ class RequestController extends Controller
 
         // Hanya bisa write-off request yang sudah approved dengan transaksi completed
         if ($req->status !== 'approved' || !$req->transaction || $req->transaction->status !== 'completed') {
-            return redirect()->route('outstanding.index')->with('error', 'Write-off hanya bisa dilakukan pada pengajuan dengan realisasi parsial.');
+            return redirect()->back()->with('error', 'Write-off hanya bisa dilakukan pada pengajuan dengan realisasi parsial.');
         }
 
         try {
             $this->requestService->writeOffRequest($req);
 
-            return redirect()->route('outstanding.index')->with('success', 'Sisa outstanding berhasil ditiadakan (write-off).');
+            return redirect()->back()->with('success', 'Sisa outstanding berhasil ditiadakan (write-off).');
         } catch (\Exception $e) {
             report($e);
             return redirect()->back()->with('error', 'Gagal melakukan write-off. Silakan coba lagi.');

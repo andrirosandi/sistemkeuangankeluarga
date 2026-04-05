@@ -38,7 +38,7 @@ class FinanceRequestService
             // Notifikasi approver jika langsung diajukan
             if ($header->status === 'requested') {
                 $type = $header->trans_code == 1 ? 'in' : 'out';
-                NotificationService::notifyApprovers($header, $type, "{$type}.request.show", ['id' => $header->id]);
+                NotificationService::notifyApprovers($header, $type, 'outstanding.index', []);
             }
 
             return $header;
@@ -75,7 +75,7 @@ class FinanceRequestService
             // Notifikasi approver jika langsung diajukan
             if ($req->status === 'requested') {
                 $type = $req->trans_code == 1 ? 'in' : 'out';
-                NotificationService::notifyApprovers($req, $type, "{$type}.request.show", ['id' => $req->id]);
+                NotificationService::notifyApprovers($req, $type, 'outstanding.index', []);
             }
 
             return $req->fresh();
@@ -169,7 +169,7 @@ class FinanceRequestService
             $req->update(['status' => 'requested']);
 
             $type = $req->trans_code == 1 ? 'in' : 'out';
-            NotificationService::notifyApprovers($req, $type, "{$type}.request.show", ['id' => $req->id]);
+            NotificationService::notifyApprovers($req, $type, 'outstanding.index', []);
         });
     }
 

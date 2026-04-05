@@ -119,16 +119,16 @@
                             <th>Keterangan Transaksi</th>
                             <th class="text-end">Debet (Masuk)</th>
                             <th class="text-end">Kredit (Keluar)</th>
-                            <th class="text-end bg-primary-subtle border-start border-end">Saldo</th>
+                            <th class="text-end border-start border-end">Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
                         <!-- Begin Balance Row -->
-                        <tr class="table-light">
+                        <tr class="bg-primary-lt font-weight-bold">
                             <td></td>
                             <td class="text-muted">{{ $monthDate->startOfMonth()->format('d/m/Y') }}</td>
                             <td class="fw-bold" colspan="3">SALDO AWAL BULAN INI</td>
-                            <td class="text-end fw-bold bg-primary-subtle border-start border-end">@uang($beginBalance)</td>
+                            <td class="text-end fw-bold border-start border-end">@uang($beginBalance)</td>
                         </tr>
 
                         <!-- Mutations -->
@@ -149,7 +149,7 @@
                             <td class="text-end text-danger">
                                 @if($mut->credit > 0)- @uang($mut->credit)@else-@endif
                             </td>
-                            <td class="text-end font-monospace tracking-wide bg-primary-subtle border-start border-end fw-medium">
+                            <td class="text-end font-monospace tracking-wide border-start border-end fw-medium">
                                 @uang($mut->balance)
                             </td>
                         </tr>
@@ -162,15 +162,15 @@
                         @endforelse
 
                         <!-- End Balance Row (Footer Info) -->
-                        <tr class="table-light">
+                        <tr class="bg-blue-lt">
                             <td colspan="3" class="text-end fw-bold">TOTAL MUTASI</td>
                             <td class="text-end fw-bold text-success">@uang($totalIn)</td>
                             <td class="text-end fw-bold text-danger">@uang($totalOut)</td>
-                            <td class="bg-primary-subtle border-start border-end"></td>
+                            <td class="border-start border-end"></td>
                         </tr>
-                        <tr class="table-active">
+                        <tr class="bg-primary-lt">
                             <td colspan="5" class="text-end fw-bold text-uppercase">SALDO AKHIR BULAN INI</td>
-                            <td class="text-end fw-bold fs-3 text-primary bg-primary-subtle border-start border-end">@uang($endBalance)</td>
+                            <td class="text-end fw-bold fs-3 text-primary border-start border-end">@uang($endBalance)</td>
                         </tr>
                     </tbody>
                 </table>

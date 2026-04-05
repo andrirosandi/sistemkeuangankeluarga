@@ -47,7 +47,7 @@ return [
             'permission' => 'mutation.view',
         ],
         [
-            'label'      => 'Outstanding',
+            'label'      => 'Perlu Tindakan',
             'icon'       => 'alert-circle',
             'route'      => 'outstanding.index',
             'permission' => 'outstanding.view',
