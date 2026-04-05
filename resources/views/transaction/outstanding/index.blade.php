@@ -122,10 +122,21 @@
                             </a>
                             @if($r->created_by !== auth()->id() || auth()->user()->can($typeKey . '.request.self-approve'))
                                 @can($typeKey . '.request.approve')
-                                <button class="btn btn-sm btn-success rounded-2"
-                                        onclick="approveRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}')">
-                                    <i class="ti ti-circle-check me-1"></i> Approve
-                                </button>
+                                <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-success rounded-start-2"
+                                                onclick="approveRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}')">
+                                            <i class="ti ti-circle-check me-1"></i> Approve
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                            <button class="dropdown-item text-danger" @click="rejectRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
+                                                <i class="ti ti-circle-x me-2"></i> Tolak Pengajuan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                                 @endcan
                             @endif
                         </div>
@@ -187,9 +198,20 @@
                             </a>
                             @if($r->transaction)
                                 @can($typeKey . '.transaction.edit')
-                                <a href="{{ route($typeKey . '.transaction.edit', $r->transaction->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Edit Realisasi">
-                                    <i class="ti ti-pencil me-1"></i> Cairkan
-                                </a>
+                                <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                    <div class="btn-group">
+                                        <a href="{{ route($typeKey . '.transaction.edit', $r->transaction->id) }}" class="btn btn-sm btn-primary rounded-start-2">
+                                            <i class="ti ti-pencil me-1"></i> Cairkan
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                            <button class="dropdown-item text-danger" @click="deleteTransaction({{ $r->transaction->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
+                                                <i class="ti ti-trash me-2"></i> Hapus Draft Realisasi
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                                 @endcan
                             @endif
                         </div>
@@ -263,10 +285,23 @@
                                 </a>
                             @endif
                             @can($typeKey . '.request.approve')
-                                <button class="btn btn-sm btn-outline-danger rounded-2 ms-1"
-                                        onclick="writeoffRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}')">
-                                    <i class="ti ti-ban me-1" style="font-size: 0.8rem"></i> Batalkan Sisanya
-                                </button>
+                                <div class="dropdown ms-1" x-data="{ open: false }" @click.outside="open = false">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-danger rounded-start-2"
+                                                onclick="writeoffRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}')">
+                                            <i class="ti ti-ban me-1" style="font-size: 0.8rem"></i> Batalkan Sisanya
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                            @if($r->transaction && $r->transaction->status === 'completed')
+                                            <button class="dropdown-item text-warning" @click="cancelTransaction({{ $r->transaction->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
+                                                <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
                             @endcan
                         </div>
                     </td>
@@ -293,20 +328,31 @@
 <div class="modal modal-blur fade" id="modal-approve" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-success"></div>
             <div class="modal-body text-center py-4">
-                <i class="ti ti-circle-check text-success icon-lg mb-2"></i>
-                <h3>Setujui Pengajuan</h3>
-                <div class="text-secondary">Setujui pengajuan <strong id="approve-name"></strong>? Sistem akan otomatis membuat draf realisasi dana.</div>
+                <div class="mb-3">
+                    <span class="avatar avatar-xl rounded-circle bg-success-lt">
+                        <i class="ti ti-circle-check text-success" style="font-size: 40px;"></i>
+                    </span>
+                </div>
+                <h3 class="mb-1">Setujui Pengajuan</h3>
+                <div class="text-secondary px-2">Apakah Anda yakin ingin menyetujui pengajuan <strong class="text-dark" id="approve-name"></strong>? Sistem akan segera membuat draf realisasi dana.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
                     <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col">
+                            <a href="#" class="btn btn-link link-secondary w-100" data-bs-dismiss="modal">
+                                Batal
+                            </a>
+                        </div>
                         <div class="col">
                             <form id="form-approve" method="POST">
                                 @csrf
-                                <button type="submit" class="btn btn-success w-100">Setujui</button>
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="ti ti-check me-1"></i> Ya, Setujui
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -316,24 +362,69 @@
     </div>
 </div>
 
+{{-- Modal Reject --}}
+<div class="modal modal-blur fade" id="modal-reject" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-status bg-danger"></div>
+            <form id="form-reject" method="POST">
+                @csrf
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <span class="avatar avatar-xl rounded-circle bg-danger-lt">
+                                <i class="ti ti-circle-x text-danger" style="font-size: 40px;"></i>
+                            </span>
+                        </div>
+                        <h3 class="mb-1">Tolak Pengajuan</h3>
+                        <div class="text-secondary">Berikan alasan mengapa pengajuan <strong class="text-dark" id="reject-name"></strong> ini ditolak.</div>
+                    </div>
+                    <div class="card p-3 bg-light-lt border-dashed">
+                        <label class="form-label required">Alasan Penolakan</label>
+                        <textarea class="form-control border-0 bg-transparent p-0" name="rejection_reason" rows="3" placeholder="Contoh: Lampiran kurang lengkap atau nominal tidak sesuai..." style="resize: none;" required autofocus></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="ti ti-x me-1"></i> Tolak Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Writeoff --}}
 <div class="modal modal-blur fade" id="modal-writeoff" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <i class="ti ti-ban text-danger icon-lg mb-2"></i>
-                <h3>Batalkan Sisanya</h3>
-                <div class="text-secondary">Tutup sisa pengajuan <strong id="writeoff-name"></strong> yang belum terealisasi?</div>
+                <div class="mb-3">
+                    <span class="avatar avatar-xl rounded-circle bg-danger-lt">
+                        <i class="ti ti-ban text-danger" style="font-size: 40px;"></i>
+                    </span>
+                </div>
+                <h3 class="mb-1">Batalkan Sisa Pengajuan</h3>
+                <div class="text-secondary px-2">Apakah Anda yakin ingin menutup sisa pengajuan <strong class="text-dark" id="writeoff-name"></strong> yang belum terealisasi?</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
                     <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col">
+                            <a href="#" class="btn btn-link link-secondary w-100" data-bs-dismiss="modal">
+                                Batal
+                            </a>
+                        </div>
                         <div class="col">
                             <form id="form-writeoff" method="POST">
                                 @csrf
-                                <button type="submit" class="btn btn-danger w-100">Ya, Batalkan</button>
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="ti ti-ban me-1"></i> Ya, Batalkan
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -342,6 +433,34 @@
         </div>
     </div>
 </div>
+{{-- Modal Cancel Transaction --}}
+<div class="modal modal-blur fade" id="modal-cancel-trx" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-warning"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-rotate-2 text-warning icon-lg mb-2"></i>
+                <h3>Batalkan Pencairan</h3>
+                <div class="text-secondary px-2">Batalkan pencairan dana untuk <strong id="cancel-trx-name"></strong>? Realisasi akan kembali menjadi Draft.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Kembali</a></div>
+                        <div class="col">
+                            <form id="form-cancel-trx" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning w-100">Batalkan</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<x-datatable.delete-modal title="Hapus Draft Realisasi" message="Hapus draft realisasi untuk pengajuan <strong id='delete-trx-name'></strong>? Status pengajuan akan dikembalikan menjadi <strong>Requested</strong>." />
 @endsection
 
 @push('scripts')
@@ -353,11 +472,32 @@
         new bootstrap.Modal(document.getElementById('modal-approve')).show();
     }
     
+    function rejectRequest(id, name, typeKey) {
+        var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
+        document.getElementById('form-reject').action = `/${prefix}/pengajuan/${id}/reject`;
+        document.getElementById('reject-name').innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-reject')).show();
+    }
+    
     function writeoffRequest(id, name, typeKey) {
         var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
         document.getElementById('form-writeoff').action = `/${prefix}/pengajuan/${id}/writeoff`;
         document.getElementById('writeoff-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-writeoff')).show();
+    }
+
+    function cancelTransaction(id, name, typeKey) {
+        var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
+        document.getElementById('form-cancel-trx').action = `/${prefix}/realisasi/${id}/cancel`;
+        document.getElementById('cancel-trx-name').innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-cancel-trx')).show();
+    }
+
+    function deleteTransaction(id, name, typeKey) {
+        var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
+        document.getElementById('form-delete').action = `/${prefix}/realisasi/${id}`;
+        document.getElementById('delete-trx-name').innerText = name;
+        new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
 </script>
 @endpush

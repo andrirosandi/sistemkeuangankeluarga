@@ -206,12 +206,9 @@
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
                                 <i class="ti ti-circle-x me-1"></i> Tolak
                             </button>
-                            <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="m-0">
-                                @csrf
-                                <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
-                                    <i class="ti ti-circle-check me-1"></i> Setujui
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-approve-show">
+                                <i class="ti ti-circle-check me-1"></i> Setujui
+                            </button>
                         @endcan
                     @endif
                 @endif
@@ -235,6 +232,33 @@
     </div>
 </div>
 @if($requestData->status == 'requested')
+{{-- Modal Approve (Show Page) --}}
+<div class="modal modal-blur fade" id="modal-approve-show" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-success"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-circle-check text-success icon-lg mb-2"></i>
+                <h3>Setujui Pengajuan</h3>
+                <div class="text-secondary">Setujui pengajuan <strong>{{ $requestData->description }}</strong>? Draf realisasi akan otomatis dibuat.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
+                        <div class="col">
+                            <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100">Ya, Setujui</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Reject (Show Page) --}}
 <div class="modal modal-blur fade" id="modal-reject-show" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
