@@ -1,8 +1,8 @@
 services:
   app:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: skk_app
     restart: unless-stopped
     ports:
@@ -14,7 +14,7 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
     env_file:
-      - ../.env
+      - .env
     volumes:
       - app-storage:/app/storage/app
     depends_on:
@@ -37,7 +37,7 @@ services:
     volumes:
       - db-data:/var/lib/mysql
     env_file:
-      - ../.env
+      - .env
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-p${DB_ROOT_PASSWORD}"]
       interval: 10s
