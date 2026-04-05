@@ -20,23 +20,25 @@ jobs:
           port: 22
           envs: APP_DIR
           script: |
-            # Masuk ke direktori web
             cd $APP_DIR
-            
+
             # Tarik kode terbaru dari GitHub
             git pull origin main
-            
+
+            # Copy docker config dari folder docker/ ke root project
+            cp docker/docker-compose.yml docker-compose.yml
+            cp docker/Dockerfile Dockerfile
+
             # Matikan dan bangun ulang docker sesuai kode terbaru
-            # Menggunakan --build agar kalau ada package baru di composer/npm otomatis terinstal
             docker compose down
             docker compose up -d --build
-            
+
             # Jalankan migrasi database otomatis jika ada tabel baru
             docker exec skk_app php artisan migrate --force
-            
+
             # Optimasi cache framework laravel
             docker exec skk_app php artisan optimize:clear
             docker exec skk_app php artisan view:cache
             docker exec skk_app php artisan config:cache
-            
-            echo "🔥 Deployment Selesai!"
+
+            echo "Deployment Selesai!"
