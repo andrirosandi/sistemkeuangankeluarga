@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\BulkDeletable;
+use App\Http\Requests\Master\StoreRoleRequest;
+use App\Http\Requests\Master\UpdateRoleRequest;
 use App\Models\RoleVisibility;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
@@ -61,12 +63,8 @@ class RoleController extends Controller
     /**
      * Simpan role baru.
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name',
-            'copy_from_id' => 'nullable|exists:roles,id'
-        ]);
 
         try {
             $role = Role::create([
@@ -98,15 +96,8 @@ class RoleController extends Controller
     /**
      * Update role dan sinkronisasi permission + visibility.
      */
-    public function update(Request $request, Role $role)
+    public function update(UpdateRoleRequest $request, Role $role)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'string|exists:permissions,name',
-            'visibility' => 'nullable|array',
-            'visibility.*' => 'integer|exists:roles,id'
-        ]);
 
         try {
             // Update nama (jangan allow ganti name role 'admin' jika mau lebih strict)

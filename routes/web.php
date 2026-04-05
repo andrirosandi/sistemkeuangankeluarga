@@ -38,9 +38,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Placeholder routes (akan diisi saat module dikerjakan)
-    Route::get('/notifications', fn() => abort(404))->name('notification.index')->middleware('can:notification.view');
-
     // Kas Masuk & Kas Keluar (register once via loop)
     foreach (['in' => 'kas-masuk', 'out' => 'kas-keluar'] as $type => $prefix) {
         Route::prefix($prefix)->name("{$type}.")->group(function () use ($type) {

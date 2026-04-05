@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\BulkDeletable;
+use App\Http\Requests\Master\StoreUserRequest;
+use App\Http\Requests\Master\UpdateUserRequest;
+use App\Http\Requests\Master\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -43,14 +45,8 @@ class UserController extends Controller
     /**
      * Simpan pengguna baru.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:users,email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => 'required|exists:roles,name'
-        ]);
 
         try {
             $user = User::create([
@@ -73,13 +69,8 @@ class UserController extends Controller
     /**
      * Update data pengguna.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|exists:roles,name'
-        ]);
 
         try {
             $user->update([
@@ -101,11 +92,8 @@ class UserController extends Controller
     /**
      * Reset password pengguna.
      */
-    public function resetPassword(Request $request, User $user)
+    public function resetPassword(ResetPasswordRequest $request, User $user)
     {
-        $request->validate([
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
 
         try {
             $user->update([

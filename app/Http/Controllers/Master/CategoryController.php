@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\BulkDeletable;
+use App\Http\Requests\Master\StoreCategoryRequest;
+use App\Http\Requests\Master\UpdateCategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -31,12 +32,8 @@ class CategoryController extends Controller
     /**
      * Simpan kategori baru.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-            'color' => 'nullable|string|max:10'
-        ]);
 
         try {
             Category::create([
@@ -56,12 +53,8 @@ class CategoryController extends Controller
     /**
      * Update kategori.
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'color' => 'nullable|string|max:10'
-        ]);
 
         try {
             $category->update([

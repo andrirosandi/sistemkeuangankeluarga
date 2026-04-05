@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\TransactionType;
+use App\Http\Requests\Transaction\StoreFinanceRequestRequest;
+use App\Http\Requests\Transaction\RejectRequestRequest;
 use App\Models\Category;
 use App\Models\RequestHeader;
 use App\Models\RequestDetail;
@@ -88,7 +90,7 @@ class RequestController extends Controller
     /**
      * Reject a request with reason.
      */
-    public function reject(Request $request, $type, $id)
+    public function reject(RejectRequestRequest $request, $type, $id)
     {
         $req = RequestHeader::findOrFail($id);
 
@@ -99,12 +101,6 @@ class RequestController extends Controller
         if ($req->created_by === auth()->id()) {
             return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menolak pengajuan sendiri.');
         }
-
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ], [
-            'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
-        ]);
 
         try {
             DB::beginTransaction();
@@ -206,20 +202,8 @@ class RequestController extends Controller
         return view('transaction.request.form', compact('title', 'type', 'categories', 'requestData'));
     }
 
-    public function store(Request $request, $type)
+    public function store(StoreFinanceRequestRequest $request, $type)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'request_date' => 'required|date',
-            'priority' => 'required|in:low,normal,high',
-            'description' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.amount' => 'required|numeric|min:0',
-            'media_ids' => 'nullable|array',
-            'media_ids.*' => 'integer',
-        ]);
 
         try {
             DB::beginTransaction();
@@ -321,7 +305,7 @@ class RequestController extends Controller
         return view('transaction.request.form', compact('title', 'type', 'categories', 'requestData'));
     }
 
-    public function update(Request $request, $type, $id)
+    public function update(StoreFinanceRequestRequest $request, $type, $id)
     {
         $req = RequestHeader::findOrFail($id);
         
@@ -333,19 +317,6 @@ class RequestController extends Controller
         if (!$visibleUserIds->contains($req->created_by)) {
             abort(403, 'Akses ditolak.');
         }
-
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'request_date' => 'required|date',
-            'priority' => 'required|in:low,normal,high',
-            'description' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.amount' => 'required|numeric|min:0',
-            'media_ids' => 'nullable|array',
-            'media_ids.*' => 'integer',
-        ]);
 
         try {
             DB::beginTransaction();

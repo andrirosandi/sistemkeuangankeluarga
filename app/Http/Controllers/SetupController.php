@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Setup\StoreSetupAdminRequest;
+use App\Http\Requests\Setup\StoreSetupSettingsRequest;
+use App\Http\Requests\Setup\StoreSetupMailRequest;
 use App\Models\Setting;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
@@ -41,13 +43,8 @@ class SetupController extends Controller
     /**
      * Step 1: Simpan Admin pertama & assign role admin.
      */
-    public function storeAdmin(Request $request)
+    public function storeAdmin(StoreSetupAdminRequest $request)
     {
-        $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
 
         $user = User::create([
             'name'     => $request->name,
@@ -67,12 +64,8 @@ class SetupController extends Controller
     /**
      * Step 2: Simpan pengaturan aplikasi (currency & timezone).
      */
-    public function storeSettings(Request $request)
+    public function storeSettings(StoreSetupSettingsRequest $request)
     {
-        $request->validate([
-            'currency' => ['required', 'string', 'max:10'],
-            'timezone' => ['required', 'string', 'max:50'],
-        ]);
 
         Setting::set('currency', $request->currency);
         Setting::set('timezone', $request->timezone);
@@ -86,17 +79,9 @@ class SetupController extends Controller
     /**
      * Step 3: Simpan konfigurasi SMTP (atau skip).
      */
-    public function storeMail(Request $request)
+    public function storeMail(StoreSetupMailRequest $request)
     {
         if (!$request->boolean('skip')) {
-            $request->validate([
-                'mail_host'       => ['required', 'string'],
-                'mail_port'       => ['required', 'numeric'],
-                'mail_username'   => ['required', 'string'],
-                'mail_password'   => ['required', 'string'],
-                'mail_encryption' => ['required', 'in:ssl,tls'],
-                'mail_from'       => ['required', 'email'],
-            ]);
 
             Setting::set('mail_host',       $request->mail_host);
             Setting::set('mail_port',       $request->mail_port);

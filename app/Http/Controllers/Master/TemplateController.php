@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\BulkDeletable;
+use App\Http\Requests\Master\StoreTemplateRequest;
 use App\Models\Category;
 use App\Models\TemplateHeader;
 use App\Models\TemplateDetail;
@@ -50,16 +51,8 @@ class TemplateController extends Controller
         return view('master.template.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTemplateRequest $request)
     {
-        $request->validate([
-            'description' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'trans_code' => 'required|in:1,2',
-            'details' => 'required|array|min:1',
-            'details.*.description' => 'required|string|max:255',
-            'details.*.amount' => 'required|numeric|min:0',
-        ]);
 
         try {
             DB::beginTransaction();
@@ -96,16 +89,8 @@ class TemplateController extends Controller
         return view('master.template.edit', compact('template', 'categories'));
     }
 
-    public function update(Request $request, TemplateHeader $template)
+    public function update(StoreTemplateRequest $request, TemplateHeader $template)
     {
-        $request->validate([
-            'description' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'trans_code' => 'required|in:1,2',
-            'details' => 'required|array|min:1',
-            'details.*.description' => 'required|string|max:255',
-            'details.*.amount' => 'required|numeric|min:0',
-        ]);
 
         try {
             DB::beginTransaction();

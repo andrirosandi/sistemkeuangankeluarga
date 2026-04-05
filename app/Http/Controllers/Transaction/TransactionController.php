@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\TransactionType;
+use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\TransactionHeader;
 use App\Models\TransactionDetail;
 use App\Models\RequestHeader;
@@ -81,17 +82,8 @@ class TransactionController extends Controller
         return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'templateData'));
     }
 
-    public function store(Request $request, $type)
+    public function store(StoreTransactionRequest $request, $type)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'transaction_date' => 'required|date',
-            'description' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.amount' => 'required|numeric|min:0',
-        ]);
 
         try {
             DB::beginTransaction();
@@ -157,7 +149,7 @@ class TransactionController extends Controller
         return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData'));
     }
 
-    public function update(Request $request, $type, $id)
+    public function update(StoreTransactionRequest $request, $type, $id)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
@@ -169,16 +161,6 @@ class TransactionController extends Controller
         if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
             abort(403, 'Akses ditolak.');
         }
-
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'transaction_date' => 'required|date',
-            'description' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.amount' => 'required|numeric|min:0',
-        ]);
 
         try {
             DB::beginTransaction();

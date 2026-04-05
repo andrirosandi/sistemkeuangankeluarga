@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Master\UpdateSettingRequest;
+use App\Http\Requests\Master\VerifyOtpRequest;
 use App\Mail\SmtpTestMail;
 use App\Models\Setting;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
@@ -58,23 +59,9 @@ class SettingController extends Controller
     /**
      * Update pengaturan sistem secara massal.
      */
-    public function update(Request $request)
+    public function update(UpdateSettingRequest $request)
     {
-        $rules = [
-            'app_name' => 'required|string|max:255',
-            'logo_media_id' => 'nullable|integer',
-            'favicon_media_id' => 'nullable|integer',
-            'timezone' => 'required|string',
-            'currency' => 'required|string|max:10',
-            'mail_host' => 'nullable|string',
-            'mail_port' => 'nullable|numeric',
-            'mail_username' => 'nullable|string',
-            'mail_password' => 'nullable|string',
-            'mail_encryption' => 'nullable|in:ssl,tls',
-            'mail_from' => 'nullable|email',
-        ];
-
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
 
         try {
             $smtpFields = ['mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_encryption', 'mail_from'];
@@ -138,9 +125,8 @@ class SettingController extends Controller
     /**
      * Verifikasi kode OTP SMTP.
      */
-    public function verifyOtp(Request $request)
+    public function verifyOtp(VerifyOtpRequest $request)
     {
-        $request->validate(['otp' => 'required|string|size:6']);
 
         $storedOtp = Session::get('smtp_verification_otp');
         $expiresAt = Session::get('smtp_verification_expires');
