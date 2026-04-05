@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skk_app
+    restart: unless-stopped
+    ports:
+      # Expose the internal port 80 to 8000 on the host's localhost (127.0.0.1)
+      # This ensures direct access from outside is blocked. 
+      # Caddy Reverse Proxy on the host should forward to 127.0.0.1:8000
+      - "127.0.0.1:8000:80"
+    environment:
+      # These environment variables will override .env
+      # We tell Laravel to look for the database service named 'db'
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - APP_ENV=production
+      - APP_DEBUG=false
+    env_file:
+      - .env
+    volumes:
+      # Persist the /storage/app directory (for media library and uploads)
+      - app-storage:/app/storage/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: skk_db
+    restart: unless-stopped
+    environment:
+      # Values are pulled from the server's .env file
+      MYSQL_DATABASE: ${DB_DATABASE:-sistem_keuangan}
+      MYSQL_USER: ${DB_USERNAME:-skk_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root1234}
+    ports:
+      # Map to localhost so it's not exposed to the internet
+      - "127.0.0.1:3306:3306"
+    volumes:
+      # Persist MySQL data so it survives container restarts
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_ROOT_PASSWORD:-root1234}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  # Define the named volumes
+  db-data:
+  app-storage:
