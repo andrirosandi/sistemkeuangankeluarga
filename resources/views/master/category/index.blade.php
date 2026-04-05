@@ -61,17 +61,12 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="3" class="text-center py-5">
-                                <div class="empty">
-                                    <div class="empty-icon text-secondary">
-                                        <i class="ti ti-folder-plus icon-lg"></i>
-                                    </div>
-                                    <p class="empty-title">Belum ada kategori</p>
-                                    <p class="empty-subtitle text-secondary">Ayo buat kategori pertama Anda.</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <x-datatable.empty 
+                                title="Belum ada kategori" 
+                                icon="ti-folder-plus" 
+                                colspan="3"
+                                subtitle="Ayo buat kategori pertama Anda."
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -232,7 +227,7 @@
 @endpush
 
 <x-datatable.list-init
-    :valueNames="[{ name: 'sort-name', attr: 'data-name' }]"
+    valueNames="[{ name: 'sort-name', attr: 'data-name' }]"
     :perPage="20"
     listVar="categoryList"
 />

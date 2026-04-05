@@ -91,17 +91,12 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="empty">
-                                    <div class="empty-icon text-secondary">
-                                        <i class="ti ti-key icon-lg"></i>
-                                    </div>
-                                    <p class="empty-title">Belum ada Grup Tambahan</p>
-                                    <p class="empty-subtitle text-secondary">Ayo buat grup akses baru untuk keluarga Anda.</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <x-datatable.empty 
+                                title="Belum ada Grup Tambahan" 
+                                icon="ti-key" 
+                                colspan="6"
+                                subtitle="Ayo buat grup akses baru untuk keluarga Anda."
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -293,7 +288,7 @@
         @endif
     });
 </script>
-<x-datatable.list-init :valueNames="[
+<x-datatable.list-init valueNames="[
     { name: 'sort-name', attr: 'data-name' },
     { name: 'sort-users', attr: 'data-users' },
     { name: 'sort-permissions', attr: 'data-permissions' }

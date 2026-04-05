@@ -123,7 +123,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function show($type, $id)
+    public function show($id, $type)
     {
         $transaction = TransactionHeader::with(['details', 'category', 'creator', 'requestHeader.creator'])
             ->findOrFail($id);
@@ -134,7 +134,7 @@ class TransactionController extends Controller
         return view('transaction.realisasi.show', compact('transaction', 'title', 'type'));
     }
 
-    public function edit($type, $id)
+    public function edit($id, $type)
     {
         $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
@@ -151,7 +151,7 @@ class TransactionController extends Controller
         return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData'));
     }
 
-    public function update(StoreTransactionRequest $request, $type, $id)
+    public function update(StoreTransactionRequest $request, $id, $type)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
@@ -187,7 +187,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function complete(Request $request, $type, $id)
+    public function complete(Request $request, $id, $type)
     {
         $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
@@ -207,7 +207,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function cancel(Request $request, $type, $id)
+    public function cancel(Request $request, $id, $type)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
@@ -227,7 +227,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function destroy($type, $id)
+    public function destroy($id, $type)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 

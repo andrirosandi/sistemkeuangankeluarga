@@ -61,13 +61,8 @@
 
                 @if($transaction->status === 'draft')
                     @can($type . '.transaction.edit')
-                    <div class="mt-3">
-                        <form action="{{ route($type . '.transaction.complete', $transaction->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Cairkan dana ini? Saldo akan otomatis diperbarui.')">
-                                <i class="ti ti-cash me-1"></i> Cairkan Dana
-                            </button>
-                        </form>
+                    <div class="mt-3 text-muted small d-none d-print-block">
+                        Menunggu pencairan dana.
                     </div>
                     @endcan
                 @endif
@@ -97,10 +92,6 @@
                         <tr>
                             <td class="text-muted">Tanggal Realisasi</td>
                             <td class="font-weight-bold">{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('d F Y') }}</td>
-                        </tr>
-                        <tr class="bg-primary-lt">
-                            <td class="font-weight-bold">Total Realisasi</td>
-                            <td class="font-weight-bold h3 mb-0">@uang($transaction->amount)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -164,15 +155,34 @@
                         </tr>
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr class="bg-light">
-                            <td colspan="2" class="text-end font-weight-bold">Total:</td>
-                            <td class="text-end font-weight-bold" style="font-size: 1.1rem;">
-                                @uang($transaction->amount)
-                            </td>
-                        </tr>
-                    </tfoot>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Bottom Bar -->
+<div class="position-sticky bottom-0 pb-3 mt-3 d-print-none" style="z-index: 1020;">
+    <div class="card shadow-lg mb-0 border-primary border-opacity-25">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-bold text-uppercase tracking-wide">Total Realisasi</div>
+                <div class="h2 mb-0 text-primary">@uang($transaction->amount)</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @if($transaction->status == 'draft')
+                    @can($type . '.transaction.edit')
+                        <a href="{{ route($type . '.transaction.edit', $transaction->id) }}" class="btn btn-primary shadow-sm">
+                            <i class="ti ti-pencil me-2"></i> Edit Realisasi Ini
+                        </a>
+                        <form action="{{ route($type . '.transaction.complete', $transaction->id) }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Cairkan dana ini? Saldo akan otomatis diperbarui.')">
+                                <i class="ti ti-cash me-1"></i> Cairkan Dana
+                            </button>
+                        </form>
+                    @endcan
+                @endif
             </div>
         </div>
     </div>

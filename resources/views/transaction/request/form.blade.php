@@ -12,12 +12,12 @@
 
 @section('content')
 @php
-    $isEdit = isset($requestData);
+    $isEdit = isset($requestData) && $requestData->exists;
     $actionUrl = $isEdit ? route($type . '.request.update', $requestData->id) : route($type . '.request.store');
     
     // Default items
     $defaultItems = [];
-    if ($isEdit && $requestData->details) {
+    if (isset($requestData) && $requestData->details && $requestData->details->count() > 0) {
         foreach($requestData->details as $det) {
             $defaultItems[] = [
                 'description' => $det->description,

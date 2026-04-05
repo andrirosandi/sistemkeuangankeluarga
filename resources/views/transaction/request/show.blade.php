@@ -77,19 +77,9 @@
                 @endif
 
                 @if($requestData->status == 'requested')
-                    @can($type . '.request.approve')
-                    <div class="mt-3 d-flex gap-2">
-                        <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="flex-fill">
-                            @csrf
-                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
-                                <i class="ti ti-circle-check me-1"></i> Setujui
-                            </button>
-                        </form>
-                        <button type="button" class="btn btn-outline-danger flex-fill" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
-                            <i class="ti ti-circle-x me-1"></i> Tolak
-                        </button>
+                    <div class="mt-3 text-muted small d-none d-print-block">
+                        Menunggu persetujuan.
                     </div>
-                    @endcan
                 @endif
             </div>
         </div>
@@ -113,10 +103,6 @@
                         <tr>
                             <td class="text-muted">Catatan Tambahan</td>
                             <td class="font-weight-bold">{{ $requestData->notes ?: '-' }}</td>
-                        </tr>
-                        <tr class="bg-primary-lt">
-                            <td class="font-weight-bold">Total Pengajuan</td>
-                            <td class="font-weight-bold h3 mb-0">@uang($requestData->amount)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -182,23 +168,40 @@
                         </tr>
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr class="bg-light">
-                            <td colspan="2" class="text-end font-weight-bold">Total:</td>
-                            <td class="text-end font-weight-bold" style="font-size: 1.1rem;">
-                                @uang($requestData->amount)
-                            </td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
-            @if($requestData->status == 'draft')
-                <div class="card-footer text-end d-print-none">
-                    <a href="{{ route($type . '.request.edit', $requestData->id) }}" class="btn btn-primary">
+        </div>
+    </div>
+</div>
+
+<!-- Floating Bottom Bar -->
+<div class="position-sticky bottom-0 pb-3 mt-3 d-print-none" style="z-index: 1020;">
+    <div class="card shadow-lg mb-0 border-primary border-opacity-25">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-bold text-uppercase tracking-wide">Total Pengajuan</div>
+                <div class="h2 mb-0 text-primary">@uang($requestData->amount)</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @if($requestData->status == 'requested')
+                    @can($type . '.request.approve')
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
+                            <i class="ti ti-circle-x me-1"></i> Tolak
+                        </button>
+                        <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
+                                <i class="ti ti-circle-check me-1"></i> Setujui
+                            </button>
+                        </form>
+                    @endcan
+                @endif
+                @if($requestData->status == 'draft')
+                    <a href="{{ route($type . '.request.edit', $requestData->id) }}" class="btn btn-primary shadow-sm">
                         <i class="ti ti-pencil me-2"></i> Edit Pengajuan Ini
                     </a>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
     </div>
 </div>

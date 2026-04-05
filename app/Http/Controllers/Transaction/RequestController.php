@@ -117,7 +117,7 @@ class RequestController extends Controller
         }
     }
 
-    public function show($type, $id)
+    public function show($id, $type)
     {
         $req = RequestHeader::with(['details', 'category', 'creator', 'approver', 'media'])
             ->findOrFail($id);
@@ -132,7 +132,7 @@ class RequestController extends Controller
         return view('transaction.request.show', compact('requestData', 'title', 'type'));
     }
 
-    public function edit($type, $id)
+    public function edit($id, $type)
     {
         $req = RequestHeader::with(['details', 'media'])->findOrFail($id);
 
@@ -152,7 +152,7 @@ class RequestController extends Controller
         return view('transaction.request.form', compact('title', 'type', 'categories', 'requestData'));
     }
 
-    public function update(StoreFinanceRequestRequest $request, $type, $id)
+    public function update(StoreFinanceRequestRequest $request, $id, $type)
     {
         $req = RequestHeader::findOrFail($id);
 
@@ -194,7 +194,7 @@ class RequestController extends Controller
         }
     }
 
-    public function approve(Request $request, $type, $id)
+    public function approve(Request $request, $id, $type)
     {
         $req = RequestHeader::with('details')->findOrFail($id);
 
@@ -216,7 +216,7 @@ class RequestController extends Controller
         }
     }
 
-    public function reject(RejectRequestRequest $request, $type, $id)
+    public function reject(RejectRequestRequest $request, $id, $type)
     {
         $req = RequestHeader::findOrFail($id);
 
@@ -238,7 +238,7 @@ class RequestController extends Controller
         }
     }
 
-    public function submit(Request $request, $type, $id)
+    public function submit(Request $request, $id, $type)
     {
         $req = RequestHeader::findOrFail($id);
 
@@ -256,7 +256,7 @@ class RequestController extends Controller
         }
     }
 
-    public function destroy($type, $id)
+    public function destroy($id, $type)
     {
         $req = RequestHeader::findOrFail($id);
 

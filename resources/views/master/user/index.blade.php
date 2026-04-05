@@ -89,17 +89,12 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="empty">
-                                    <div class="empty-icon text-secondary">
-                                        <i class="ti ti-users-off icon-lg"></i>
-                                    </div>
-                                    <p class="empty-title">Data Pengguna Kosong</p>
-                                    <p class="empty-subtitle text-secondary">Ayo undang anggota keluarga Anda.</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <x-datatable.empty 
+                                title="Data Pengguna Kosong" 
+                                icon="ti-users-off" 
+                                colspan="6"
+                                subtitle="Ayo undang anggota keluarga Anda."
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -299,7 +294,7 @@
         @endif
     });
 </script>
-<x-datatable.list-init :valueNames="[
+<x-datatable.list-init valueNames="[
     { name: 'sort-name', attr: 'data-name' },
     { name: 'sort-email', attr: 'data-email' },
     { name: 'sort-role', attr: 'data-role' },

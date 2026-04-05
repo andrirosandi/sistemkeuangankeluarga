@@ -148,17 +148,12 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="empty">
-                                    <div class="empty-icon text-secondary">
-                                        <i class="ti ti-wallet-off icon-lg"></i>
-                                    </div>
-                                    <p class="empty-title">Belum ada realisasi</p>
-                                    <p class="empty-subtitle text-secondary">Realisasi otomatis dibuat saat pengajuan disetujui.</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <x-datatable.empty 
+                                title="Belum ada realisasi" 
+                                icon="ti-wallet-off" 
+                                colspan="6"
+                                subtitle="Realisasi otomatis dibuat saat pengajuan disetujui."
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -249,7 +244,7 @@
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
 </script>
-<x-datatable.list-init :valueNames="[
+<x-datatable.list-init valueNames="[
     { name: 'sort-desc', attr: 'data-desc' },
     { name: 'sort-date', attr: 'data-date' },
     { name: 'sort-amount', attr: 'data-amount' },

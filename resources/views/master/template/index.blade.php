@@ -90,17 +90,12 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <div class="empty">
-                                        <div class="empty-icon">
-                                            <i class="ti ti-clipboard-off icon-lg"></i>
-                                        </div>
-                                        <p class="empty-title">Belum ada template</p>
-                                        <p class="empty-subtitle text-secondary">Mulai buat template rutin Anda untuk mempercepat input transaksi.</p>
-                                    </div>
-                                </td>
-                            </tr>
+                            <x-datatable.empty 
+                                title="Belum ada template" 
+                                icon="ti-clipboard-off" 
+                                colspan="7"
+                                subtitle="Mulai buat template rutin Anda untuk mempercepat input transaksi."
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -128,7 +123,7 @@
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
 </script>
-<x-datatable.list-init :valueNames="[
+<x-datatable.list-init valueNames="[
     { name: 'sort-name', attr: 'data-name' },
     { name: 'sort-category', attr: 'data-category' },
     { name: 'sort-type', attr: 'data-type' },
