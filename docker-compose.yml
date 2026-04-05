@@ -32,19 +32,18 @@ services:
     container_name: skk_db
     restart: unless-stopped
     environment:
-      # Values are pulled from the server's .env file
-      MYSQL_DATABASE: ${DB_DATABASE:-sistem_keuangan}
-      MYSQL_USER: ${DB_USERNAME:-skk_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root1234}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
-      # Map to localhost so it's not exposed to the internet
       - "127.0.0.1:3306:3306"
     volumes:
-      # Persist MySQL data so it survives container restarts
       - db-data:/var/lib/mysql
+    env_file:
+      - .env
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-p${DB_ROOT_PASSWORD:-root1234}"]
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
