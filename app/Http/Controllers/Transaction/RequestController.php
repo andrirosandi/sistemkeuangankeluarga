@@ -8,140 +8,30 @@ use App\Http\Requests\Transaction\StoreFinanceRequestRequest;
 use App\Http\Requests\Transaction\RejectRequestRequest;
 use App\Models\Category;
 use App\Models\RequestHeader;
-use App\Models\RequestDetail;
-use App\Models\TransactionHeader;
-use App\Models\TransactionDetail;
-use App\Models\TemporaryMedia;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Models\RoleVisibility;
-use App\Services\NotificationService;
+use App\Services\FinanceRequestService;
+use Illuminate\Http\Request;
 
 class RequestController extends Controller
 {
     use TransactionType;
 
-    /**
-     * Approve a request: set status approved, auto-create draft transaction.
-     */
-    public function approve(Request $request, $type, $id)
-    {
-        $req = RequestHeader::with('details')->findOrFail($id);
-
-        if ($req->status !== 'requested') {
-            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat disetujui.');
-        }
-
-        if ($req->created_by === auth()->id()) {
-            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menyetujui pengajuan sendiri.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // 1. Update request status
-            $req->update([
-                'status' => 'approved',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
-
-            // 2. Auto-create transaction header (draft)
-            $transaction = TransactionHeader::create([
-                'category_id' => $req->category_id,
-                'description' => $req->description,
-                'notes' => $req->notes,
-                'amount' => $req->amount,
-                'request_id' => $req->id,
-                'trans_code' => $req->trans_code,
-                'transaction_date' => $req->request_date,
-                'created_by' => auth()->id(),
-                'status' => 'draft',
-            ]);
-
-            // 3. Copy request details → transaction details
-            foreach ($req->details as $detail) {
-                TransactionDetail::create([
-                    'header_id' => $transaction->id,
-                    'description' => $detail->description,
-                    'amount' => $detail->amount,
-                    'request_detail_id' => $detail->id,
-                ]);
-
-                // Mark request detail as pending realization
-                $detail->update(['status' => 'pending']);
-            }
-
-            // 4. Notify the requester
-            NotificationService::notifyUser(
-                $req->created_by,
-                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-success">disetujui</span> oleh ' . auth()->user()->name . '.'
-            );
-
-            DB::commit();
-            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disetujui. Draf realisasi telah dibuat.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return redirect()->back()->with('error', 'Gagal menyetujui pengajuan. Silakan coba lagi.');
-        }
-    }
-
-    /**
-     * Reject a request with reason.
-     */
-    public function reject(RejectRequestRequest $request, $type, $id)
-    {
-        $req = RequestHeader::findOrFail($id);
-
-        if ($req->status !== 'requested') {
-            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat ditolak.');
-        }
-
-        if ($req->created_by === auth()->id()) {
-            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menolak pengajuan sendiri.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $req->update([
-                'status' => 'rejected',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-                'rejection_reason' => $request->rejection_reason,
-            ]);
-
-            // Notify the requester
-            NotificationService::notifyUser(
-                $req->created_by,
-                'Pengajuan <strong>' . htmlspecialchars($req->description) . '</strong> telah <span class="text-danger">ditolak</span> oleh ' . auth()->user()->name . '. Alasan: ' . htmlspecialchars($request->rejection_reason)
-            );
-
-            DB::commit();
-            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil ditolak.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return redirect()->back()->with('error', 'Gagal menolak pengajuan. Silakan coba lagi.');
-        }
-    }
+    public function __construct(
+        private FinanceRequestService $requestService,
+    ) {}
 
     public function index(Request $request, $type)
     {
         $transCode = $this->getTransCode($type);
         $title = "Pengajuan " . $this->getTypeLabel($type);
-        
+
         $user = auth()->user();
-        
-        // Visibility logic
         $visibleUserIds = RoleVisibility::getVisibleUserIds($user);
 
         $query = RequestHeader::with(['creator', 'category'])
             ->where('trans_code', $transCode)
             ->whereIn('created_by', $visibleUserIds);
 
-        // Filters
         if ($request->filled('search')) {
             $query->where('description', 'like', '%' . $request->search . '%');
         }
@@ -155,13 +45,11 @@ class RequestController extends Controller
             $query->whereBetween('request_date', [$request->date_from, $request->date_to]);
         }
 
-        // Default sorting: urgent priority first, then date
         $query->orderByRaw("FIELD(status, 'requested', 'draft', 'approved', 'rejected', 'canceled'),
                            FIELD(priority, 'high', 'normal', 'low'),
                            created_at DESC");
 
         $requests = $query->get();
-        
         $templates = \App\Models\TemplateHeader::where('trans_code', $transCode)->orderBy('description')->get();
 
         return view('transaction.request.index', compact('requests', 'title', 'type', 'templates'));
@@ -172,27 +60,21 @@ class RequestController extends Controller
         $title = "Buat Pengajuan " . $this->getTypeLabel($type);
         $transCode = $this->getTransCode($type);
         $categories = Category::orderBy('name')->get();
-        
+
         $requestData = null;
         if ($request->has('template_id')) {
             $templateData = \App\Models\TemplateHeader::with('details')->find($request->template_id);
             if ($templateData) {
-                // Mock requestData for the form.
-                // We use requestData here because the view uses $requestData.
-                // We mock it as an stdClass or we just use templateData logic mapping in view.
-                // Actually RequestForm view already checks isset($requestData).
                 $requestData = new \App\Models\RequestHeader();
                 $requestData->category_id = $templateData->category_id;
                 $requestData->description = $templateData->description;
                 $requestData->priority = 'normal';
-                
-                // We also need to map details.
-                // The form uses $requestData->details.
+
                 $details = collect();
-                foreach($templateData->details as $det) {
+                foreach ($templateData->details as $det) {
                     $details->push(new \App\Models\RequestDetail([
                         'description' => $det->description,
-                        'amount' => $det->amount
+                        'amount'      => $det->amount,
                     ]));
                 }
                 $requestData->setRelation('details', $details);
@@ -204,66 +86,32 @@ class RequestController extends Controller
 
     public function store(StoreFinanceRequestRequest $request, $type)
     {
-
         try {
-            DB::beginTransaction();
-
             $transCode = $this->getTransCode($type);
-            $totalAmount = collect($request->items)->sum('amount');
-
             $status = $request->input('action_type', 'draft') === 'requested' ? 'requested' : 'draft';
 
-            // 1. Create Header
-            $header = RequestHeader::create([
-                'category_id' => $request->category_id,
-                'request_date' => $request->request_date,
-                'trans_code' => $transCode,
-                'priority' => $request->priority,
-                'description' => $request->description,
-                'notes' => $request->notes,
-                'amount' => $totalAmount,
-                'status' => $status,
-                'created_by' => auth()->id(),
-            ]);
-
-            // 2. Create Details
-            foreach ($request->items as $item) {
-                RequestDetail::create([
-                    'header_id' => $header->id,
-                    'description' => $item['description'],
-                    'amount' => $item['amount'],
-                ]);
-            }
-
-            // 3. Attach Media
-            if ($request->media_ids) {
-                $tempMedia = TemporaryMedia::whereIn('id', $request->media_ids)
-                    ->where('user_id', auth()->id())
-                    ->get();
-
-                foreach ($tempMedia as $temp) {
-                    $mediaItems = $temp->getMedia('temp');
-                    foreach ($mediaItems as $media) {
-                        $media->move($header, 'requests');
-                    }
-                    $temp->delete(); // Clean up temp
-                }
-            }
-
-            if ($status === 'requested') {
-                NotificationService::notifyApprovers($header, $type);
-            }
-
-            DB::commit();
+            $this->requestService->createRequest(
+                headerData: [
+                    'category_id'  => $request->category_id,
+                    'request_date' => $request->request_date,
+                    'trans_code'   => $transCode,
+                    'priority'     => $request->priority,
+                    'description'  => $request->description,
+                    'notes'        => $request->notes,
+                    'status'       => $status,
+                    'created_by'   => auth()->id(),
+                ],
+                items: $request->items,
+                mediaIds: $request->media_ids,
+                userId: auth()->id(),
+            );
 
             $msg = $status === 'requested'
                 ? 'Pengajuan berhasil disimpan dan langsung diajukan.'
                 : 'Pengajuan berhasil disimpan sebagai Draft.';
 
             return redirect()->route("{$type}.request.index")->with('success', $msg);
-
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->withInput()->with('error', 'Gagal menyimpan pengajuan. Silakan coba lagi.');
         }
@@ -274,7 +122,6 @@ class RequestController extends Controller
         $req = RequestHeader::with(['details', 'category', 'creator', 'approver', 'media'])
             ->findOrFail($id);
 
-        // Cek visibilitas
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
         if (!$visibleUserIds->contains($req->created_by)) {
             abort(403, 'Akses ditolak.');
@@ -292,7 +139,7 @@ class RequestController extends Controller
         if ($req->status !== 'draft') {
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft yang dapat diedit.');
         }
-        
+
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
         if (!$visibleUserIds->contains($req->created_by)) {
             abort(403, 'Akses ditolak.');
@@ -308,7 +155,7 @@ class RequestController extends Controller
     public function update(StoreFinanceRequestRequest $request, $type, $id)
     {
         $req = RequestHeader::findOrFail($id);
-        
+
         if ($req->status !== 'draft') {
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft yang dapat diedit.');
         }
@@ -319,64 +166,75 @@ class RequestController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-
-            $totalAmount = collect($request->items)->sum('amount');
-
             $status = $request->input('action_type', 'draft') === 'requested' ? 'requested' : 'draft';
 
-            $req->update([
-                'category_id' => $request->category_id,
-                'request_date' => $request->request_date,
-                'priority' => $request->priority,
-                'description' => $request->description,
-                'notes' => $request->notes,
-                'amount' => $totalAmount,
-                'status' => $status,
-            ]);
-
-            // Delete old details
-            $req->details()->delete();
-
-            // Recreate details
-            foreach ($request->items as $item) {
-                RequestDetail::create([
-                    'header_id' => $req->id,
-                    'description' => $item['description'],
-                    'amount' => $item['amount'],
-                ]);
-            }
-
-            // Media attachment
-            if ($request->media_ids) {
-                $tempMedia = TemporaryMedia::whereIn('id', $request->media_ids)
-                    ->where('user_id', auth()->id())
-                    ->get();
-                foreach ($tempMedia as $temp) {
-                    $mediaItems = $temp->getMedia('temp');
-                    foreach ($mediaItems as $media) {
-                        $media->move($req, 'requests');
-                    }
-                    $temp->delete();
-                }
-            }
-
-            if ($status === 'requested') {
-                NotificationService::notifyApprovers($req, $type);
-            }
-
-            DB::commit();
+            $this->requestService->updateRequest(
+                req: $req,
+                headerData: [
+                    'category_id'  => $request->category_id,
+                    'request_date' => $request->request_date,
+                    'priority'     => $request->priority,
+                    'description'  => $request->description,
+                    'notes'        => $request->notes,
+                    'status'       => $status,
+                ],
+                items: $request->items,
+                mediaIds: $request->media_ids,
+                userId: auth()->id(),
+            );
 
             $msg = $status === 'requested'
                 ? 'Draft pengajuan berhasil diupdate dan diajukan.'
                 : 'Draft pengajuan berhasil diupdate.';
 
             return redirect()->route("{$type}.request.index")->with('success', $msg);
-
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->withInput()->with('error', 'Gagal mengupdate pengajuan. Silakan coba lagi.');
+        }
+    }
+
+    public function approve(Request $request, $type, $id)
+    {
+        $req = RequestHeader::with('details')->findOrFail($id);
+
+        if ($req->status !== 'requested') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat disetujui.');
+        }
+
+        if ($req->created_by === auth()->id()) {
+            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menyetujui pengajuan sendiri.');
+        }
+
+        try {
+            $this->requestService->approveRequest($req, auth()->id());
+
+            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disetujui. Draf realisasi telah dibuat.');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menyetujui pengajuan. Silakan coba lagi.');
+        }
+    }
+
+    public function reject(RejectRequestRequest $request, $type, $id)
+    {
+        $req = RequestHeader::findOrFail($id);
+
+        if ($req->status !== 'requested') {
+            return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan berstatus Requested yang dapat ditolak.');
+        }
+
+        if ($req->created_by === auth()->id()) {
+            return redirect()->route("{$type}.request.index")->with('error', 'Anda tidak dapat menolak pengajuan sendiri.');
+        }
+
+        try {
+            $this->requestService->rejectRequest($req, auth()->id(), $request->rejection_reason);
+
+            return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil ditolak.');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menolak pengajuan. Silakan coba lagi.');
         }
     }
 
@@ -389,15 +247,10 @@ class RequestController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-            $req->update(['status' => 'requested']);
+            $this->requestService->submitRequest($req);
 
-            NotificationService::notifyApprovers($req, $type);
-
-            DB::commit();
             return redirect()->route("{$type}.request.index")->with('success', 'Pengajuan berhasil disubmit. Menunggu persetujuan Admin.');
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->with('error', 'Gagal submit pengajuan. Silakan coba lagi.');
         }
@@ -410,7 +263,7 @@ class RequestController extends Controller
         if (!in_array($req->status, ['draft', 'canceled'])) {
             return redirect()->route("{$type}.request.index")->with('error', 'Hanya pengajuan Draft atau Canceled yang dapat dihapus.');
         }
-        
+
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
         if (!$visibleUserIds->contains($req->created_by)) {
             abort(403, 'Akses ditolak.');

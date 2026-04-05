@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Balance;
 use App\Models\Category;
 use App\Models\RequestHeader;
-use App\Models\RoleVisibility;
 use App\Models\TransactionHeader;
 use App\Models\User;
+use App\Services\ScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -15,6 +15,9 @@ use Spatie\Permission\Models\Role;
 
 class ReportController extends Controller
 {
+    public function __construct(
+        private ScopeService $scopeService,
+    ) {}
     /**
      * Report landing page — card grid with links to each report.
      */
@@ -377,57 +380,21 @@ class ReportController extends Controller
     // ─── Private Helpers ──────────────────────────────────────────
 
     /**
-     * Resolve scope — same logic as DashboardController.
+     * Resolve scope via ScopeService (report context).
      */
     private function resolveScope(Request $request): array
     {
         $user = auth()->user();
         $scope = $request->input('scope', 'self');
 
-        // If user only has report.view.self (not report.view), force self scope
-        if (!$user->can('report.view') && $user->can('report.view.self')) {
-            $scope = 'self';
-        }
-
-        if ($scope === 'all' && !$user->can('dashboard.scope.all')) {
-            $scope = $user->can('dashboard.scope.group') ? 'group' : 'self';
-        }
-        if ($scope === 'group' && !$user->can('dashboard.scope.group')) {
-            $scope = 'self';
-        }
-
-        $userIds = match ($scope) {
-            'all'   => User::pluck('id'),
-            'group' => RoleVisibility::getVisibleUserIds($user),
-            default => collect([$user->id]),
-        };
-
-        return [$userIds, $scope];
+        return $this->scopeService->resolveScopeForReport($user, $scope);
     }
 
     /**
-     * Build available scope options for the filter dropdown.
+     * Build available scope options via ScopeService.
      */
     private function buildAvailableScopes(): array
     {
-        $user = auth()->user();
-        $scopes = [];
-
-        // If user only has report.view.self, only show self scope
-        if (!$user->can('report.view')) {
-            return [['value' => 'self', 'label' => 'Diri Sendiri']];
-        }
-
-        if ($user->can('dashboard.scope.self')) {
-            $scopes[] = ['value' => 'self', 'label' => 'Diri Sendiri'];
-        }
-        if ($user->can('dashboard.scope.group')) {
-            $scopes[] = ['value' => 'group', 'label' => 'Grup'];
-        }
-        if ($user->can('dashboard.scope.all')) {
-            $scopes[] = ['value' => 'all', 'label' => 'Semua'];
-        }
-
-        return $scopes;
+        return $this->scopeService->buildAvailableScopes(auth()->user(), reportContext: true);
     }
 }

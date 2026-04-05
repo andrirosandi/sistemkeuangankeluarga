@@ -4,16 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Balance;
 use App\Models\Category;
-use App\Models\RoleVisibility;
 use App\Models\TransactionHeader;
 use App\Models\RequestHeader;
 use App\Models\User;
+use App\Services\ScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private ScopeService $scopeService,
+    ) {}
     /**
      * Dashboard page — renders permission-driven widget layout.
      */
@@ -22,21 +25,10 @@ class DashboardController extends Controller
         $user = auth()->user();
         $categories = Category::orderBy('name')->get(['id', 'name', 'color']);
 
-        // Build available scopes based on permissions
-        $availableScopes = [];
-        if ($user->can('dashboard.scope.self')) {
-            $availableScopes[] = ['value' => 'self', 'label' => 'Diri Sendiri'];
-        }
-        if ($user->can('dashboard.scope.group')) {
-            $availableScopes[] = ['value' => 'group', 'label' => 'Grup'];
-        }
-        if ($user->can('dashboard.scope.all')) {
-            $availableScopes[] = ['value' => 'all', 'label' => 'Semua'];
-        }
-
+        $availableScopes = $this->scopeService->buildAvailableScopes($user);
         $defaultScope = $availableScopes[0]['value'] ?? 'self';
 
-        // Detect if user is an approver (has any *.request.approve permission)
+        // Detect if user is an approver
         $isApprover = $user->can('in.request.approve') || $user->can('out.request.approve');
 
         return view('dashboard', compact('categories', 'availableScopes', 'defaultScope', 'isApprover'));
@@ -611,8 +603,7 @@ class DashboardController extends Controller
     // ─── Private Helpers ──────────────────────────────────────────
 
     /**
-     * Resolve scope to a list of visible user IDs.
-     * Server-side enforcement: caps scope based on user permissions.
+     * Resolve scope via ScopeService.
      *
      * @return array{Collection, string} [userIds, resolvedScope]
      */
@@ -621,18 +612,6 @@ class DashboardController extends Controller
         $user = auth()->user();
         $scope = $request->input('scope', 'self');
 
-        // Enforce maximum allowed scope
-        if ($scope === 'all' && !$user->can('dashboard.scope.all')) {
-            $scope = $user->can('dashboard.scope.group') ? 'group' : 'self';
-        }
-        if ($scope === 'group' && !$user->can('dashboard.scope.group')) {
-            $scope = 'self';
-        }
-
-        return match ($scope) {
-            'all'   => [User::pluck('id'), 'all'],
-            'group' => [RoleVisibility::getVisibleUserIds($user), 'group'],
-            default => [collect([$user->id]), 'self'],
-        };
+        return $this->scopeService->resolveScope($user, $scope);
     }
 }

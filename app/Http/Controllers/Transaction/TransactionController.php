@@ -6,25 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\TransactionType;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\TransactionHeader;
-use App\Models\TransactionDetail;
-use App\Models\RequestHeader;
-use App\Models\RequestDetail;
 use App\Models\Category;
-use App\Models\Balance;
 use App\Models\RoleVisibility;
-use App\Services\NotificationService;
+use App\Services\TransactionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
     use TransactionType;
 
+    public function __construct(
+        private TransactionService $transactionService,
+    ) {}
+
     /**
      * Cek apakah user boleh melihat transaksi ini.
-     * Visibility: user yang membuat transaksi, ATAU user yang membuat request asalnya.
      */
-    private function isVisibleToUser($transaction, $visibleUserIds)
+    private function isVisibleToUser($transaction, $visibleUserIds): bool
     {
         if ($visibleUserIds->contains($transaction->created_by)) {
             return true;
@@ -36,189 +34,16 @@ class TransactionController extends Controller
     }
 
     /**
-     * Update balance table for a given month with row-level locking.
+     * Authorize visibility — abort 403 jika tidak boleh akses.
      */
-    protected function updateBalance($transactionDate, $transCode, $amount, $operation = 'add')
+    private function authorizeVisibility($transaction): void
     {
-        $month = \Carbon\Carbon::parse($transactionDate)->format('Y-m');
-        $sign = $operation === 'add' ? 1 : -1;
-
-        DB::transaction(function () use ($month, $transCode, $amount, $sign) {
-            // Lock the row to prevent concurrent read-modify-write races
-            $balance = Balance::where('month', $month)->lockForUpdate()->first();
-
-            if (!$balance) {
-                $balance = Balance::create([
-                    'month' => $month,
-                    'begin' => 0,
-                    'total_in' => 0,
-                    'total_out' => 0,
-                    'ending' => 0,
-                ]);
-                $balance = Balance::where('month', $month)->lockForUpdate()->first();
-            }
-
-            if ($transCode == 1) {
-                $balance->total_in += $sign * $amount;
-            } else {
-                $balance->total_out += $sign * $amount;
-            }
-
-            $balance->ending = $balance->begin + $balance->total_in - $balance->total_out;
-            $balance->save();
-        });
-    }
-
-    public function create(Request $request, $type)
-    {
-        $title = "Buat Realisasi " . $this->getTypeLabel($type);
-        $categories = \App\Models\Category::orderBy('name')->get();
-        $templateData = null;
-
-        if ($request->has('template_id')) {
-            $templateData = \App\Models\TemplateHeader::with('details')->find($request->template_id);
-        }
-
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'templateData'));
-    }
-
-    public function store(StoreTransactionRequest $request, $type)
-    {
-
-        try {
-            DB::beginTransaction();
-
-            $transCode = $this->getTransCode($type);
-            $totalAmount = collect($request->items)->sum('amount');
-            $status = $request->input('action_type', 'draft') === 'completed' ? 'completed' : 'draft';
-
-            $header = TransactionHeader::create([
-                'category_id' => $request->category_id,
-                'transaction_date' => $request->transaction_date,
-                'trans_code' => $transCode,
-                'description' => $request->description,
-                'notes' => $request->notes,
-                'amount' => $totalAmount,
-                'status' => $status,
-                'created_by' => auth()->id(),
-                'request_id' => null,
-            ]);
-
-            foreach ($request->items as $item) {
-                TransactionDetail::create([
-                    'header_id' => $header->id,
-                    'description' => $item['description'],
-                    'amount' => $item['amount'],
-                ]);
-            }
-
-            if ($status === 'completed') {
-                $this->updateBalance($header->transaction_date, $header->trans_code, $header->amount, 'add');
-                $msg = 'Realisasi berhasil disimpan dan dana dicairkan/dimasukkan.';
-            } else {
-                $msg = 'Realisasi berhasil disimpan sebagai Draft.';
-            }
-
-            DB::commit();
-            return redirect()->route("{$type}.transaction.index")->with('success', $msg);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan realisasi. Silakan coba lagi.');
-        }
-    }
-
-    public function edit($type, $id)
-    {
-        $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
-
-        if ($transaction->status !== 'draft') {
-            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
-        }
-
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
         if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
             abort(403, 'Akses ditolak.');
         }
-
-        $title = "Edit Realisasi " . $this->getTypeLabel($type);
-        $categories = Category::orderBy('name')->get();
-        // Gunakan variable yang sama dengan create view
-        $transactionData = $transaction;
-
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData'));
     }
 
-    public function update(StoreTransactionRequest $request, $type, $id)
-    {
-        $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
-
-        if ($transaction->status !== 'draft') {
-            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
-        }
-
-        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
-            abort(403, 'Akses ditolak.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $totalAmount = collect($request->items)->sum('amount');
-            $status = $request->input('action_type', 'draft') === 'completed' ? 'completed' : 'draft';
-
-            $transaction->update([
-                'category_id' => $request->category_id,
-                'transaction_date' => $request->transaction_date,
-                'description' => $request->description,
-                'notes' => $request->notes,
-                'amount' => $totalAmount,
-                'status' => $status,
-            ]);
-
-            // Untuk mencegah hilangnya relasi request_detail_id, kita update jika id cocok, atau delete+recreate
-            // Pendekatan sederhana: hapus yang lama (yang tidak ada di request) lalu buat/update
-            $existingItemIds = [];
-            foreach ($request->items as $item) {
-                if (isset($item['id']) && $item['id']) {
-                    TransactionDetail::where('id', $item['id'])->where('header_id', $transaction->id)->update([
-                        'description' => $item['description'],
-                        'amount' => $item['amount']
-                    ]);
-                    $existingItemIds[] = $item['id'];
-                } else {
-                    $newDetail = TransactionDetail::create([
-                        'header_id' => $transaction->id,
-                        'description' => $item['description'],
-                        'amount' => $item['amount'],
-                    ]);
-                    $existingItemIds[] = $newDetail->id;
-                }
-            }
-            
-            // Hapus detail yang di-remove dari UI
-            TransactionDetail::where('header_id', $transaction->id)->whereNotIn('id', $existingItemIds)->delete();
-
-            if ($status === 'completed') {
-                $this->updateBalance($transaction->transaction_date, $transaction->trans_code, $transaction->amount, 'add');
-                $msg = 'Realisasi berhasil diupdate dan dana dicairkan/dimasukkan.';
-            } else {
-                $msg = 'Realisasi berhasil diupdate.';
-            }
-
-            DB::commit();
-            return redirect()->route("{$type}.transaction.index")->with('success', $msg);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            report($e);
-            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate realisasi. Silakan coba lagi.');
-        }
-    }
-
-    /**
-     * Display list of realizations (transactions).
-     */
     public function index(Request $request, $type)
     {
         $transCode = $this->getTransCode($type);
@@ -236,7 +61,6 @@ class TransactionController extends Controller
                   });
             });
 
-        // Filters
         if ($request->filled('search')) {
             $query->where('description', 'like', '%' . $request->search . '%');
         }
@@ -250,32 +74,119 @@ class TransactionController extends Controller
         $query->orderByRaw("FIELD(status, 'draft', 'completed', 'canceled'), created_at DESC");
 
         $transactions = $query->get();
-        
         $templates = \App\Models\TemplateHeader::where('trans_code', $transCode)->orderBy('description')->get();
 
         return view('transaction.realisasi.index', compact('transactions', 'title', 'type', 'templates'));
     }
 
-    /**
-     * Show transaction detail.
-     */
+    public function create(Request $request, $type)
+    {
+        $title = "Buat Realisasi " . $this->getTypeLabel($type);
+        $categories = Category::orderBy('name')->get();
+        $templateData = null;
+
+        if ($request->has('template_id')) {
+            $templateData = \App\Models\TemplateHeader::with('details')->find($request->template_id);
+        }
+
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'templateData'));
+    }
+
+    public function store(StoreTransactionRequest $request, $type)
+    {
+        try {
+            $transCode = $this->getTransCode($type);
+            $status = $request->input('action_type', 'draft') === 'completed' ? 'completed' : 'draft';
+
+            $this->transactionService->createTransaction(
+                headerData: [
+                    'category_id'      => $request->category_id,
+                    'transaction_date' => $request->transaction_date,
+                    'trans_code'       => $transCode,
+                    'description'      => $request->description,
+                    'notes'            => $request->notes,
+                    'created_by'       => auth()->id(),
+                    'request_id'       => null,
+                ],
+                items: $request->items,
+                status: $status,
+            );
+
+            $msg = $status === 'completed'
+                ? 'Realisasi berhasil disimpan dan dana dicairkan/dimasukkan.'
+                : 'Realisasi berhasil disimpan sebagai Draft.';
+
+            return redirect()->route("{$type}.transaction.index")->with('success', $msg);
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan realisasi. Silakan coba lagi.');
+        }
+    }
+
     public function show($type, $id)
     {
         $transaction = TransactionHeader::with(['details', 'category', 'creator', 'requestHeader.creator'])
             ->findOrFail($id);
 
-        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
-            abort(403, 'Akses ditolak.');
-        }
+        $this->authorizeVisibility($transaction);
 
         $title = "Detail Realisasi " . $this->getTypeLabel($type);
         return view('transaction.realisasi.show', compact('transaction', 'title', 'type'));
     }
 
-    /**
-     * Complete a draft transaction (disburse funds).
-     */
+    public function edit($type, $id)
+    {
+        $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
+
+        if ($transaction->status !== 'draft') {
+            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
+        }
+
+        $this->authorizeVisibility($transaction);
+
+        $title = "Edit Realisasi " . $this->getTypeLabel($type);
+        $categories = Category::orderBy('name')->get();
+        $transactionData = $transaction;
+
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData'));
+    }
+
+    public function update(StoreTransactionRequest $request, $type, $id)
+    {
+        $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
+
+        if ($transaction->status !== 'draft') {
+            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
+        }
+
+        $this->authorizeVisibility($transaction);
+
+        try {
+            $status = $request->input('action_type', 'draft') === 'completed' ? 'completed' : 'draft';
+
+            $this->transactionService->updateTransaction(
+                transaction: $transaction,
+                headerData: [
+                    'category_id'      => $request->category_id,
+                    'transaction_date' => $request->transaction_date,
+                    'description'      => $request->description,
+                    'notes'            => $request->notes,
+                ],
+                items: $request->items,
+                status: $status,
+            );
+
+            $msg = $status === 'completed'
+                ? 'Realisasi berhasil diupdate dan dana dicairkan/dimasukkan.'
+                : 'Realisasi berhasil diupdate.';
+
+            return redirect()->route("{$type}.transaction.index")->with('success', $msg);
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->withInput()->with('error', 'Gagal mengupdate realisasi. Silakan coba lagi.');
+        }
+    }
+
     public function complete(Request $request, $type, $id)
     {
         $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
@@ -284,118 +195,38 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat dicairkan.');
         }
 
-        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
-            abort(403, 'Akses ditolak.');
-        }
+        $this->authorizeVisibility($transaction);
 
         try {
-            DB::beginTransaction();
+            $this->transactionService->completeTransaction($transaction);
 
-            $transaction->update(['status' => 'completed']);
-
-            // Update request_detail status to 'realized'
-            if ($transaction->request_id) {
-                TransactionDetail::where('header_id', $transaction->id)
-                    ->whereNotNull('request_detail_id')
-                    ->get()
-                    ->each(function ($td) {
-                        RequestDetail::where('id', $td->request_detail_id)
-                            ->update(['status' => 'realized']);
-                    });
-            }
-
-            // Update balance
-            $this->updateBalance(
-                $transaction->transaction_date,
-                $transaction->trans_code,
-                $transaction->amount,
-                'add'
-            );
-
-            // Notify requester if from a request
-            if ($transaction->request_id) {
-                $reqHeader = RequestHeader::find($transaction->request_id);
-                if ($reqHeader) {
-                    NotificationService::notifyUser(
-                        $reqHeader->created_by,
-                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">dicairkan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.')
-                    );
-                }
-            }
-
-            DB::commit();
             return redirect()->route("{$type}.transaction.index")->with('success', 'Dana berhasil dicairkan dan saldo telah diperbarui.');
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->with('error', 'Gagal mencairkan dana. Silakan coba lagi.');
         }
     }
 
-    /**
-     * Cancel a completed transaction (revert to draft).
-     */
     public function cancel(Request $request, $type, $id)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
         if ($transaction->status !== 'completed') {
-            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Completed yang dapat dibatalkan (dikembalikan ke Draft).');
+            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Completed yang dapat dibatalkan.');
         }
 
-        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
-            abort(403, 'Akses ditolak.');
-        }
+        $this->authorizeVisibility($transaction);
 
         try {
-            DB::beginTransaction();
+            $this->transactionService->cancelTransaction($transaction);
 
-            $transaction->update(['status' => 'draft']);
-
-            // Revert request details to 'pending'
-            if ($transaction->request_id) {
-                TransactionDetail::where('header_id', $transaction->id)
-                    ->whereNotNull('request_detail_id')
-                    ->get()
-                    ->each(function ($td) {
-                        RequestDetail::where('id', $td->request_detail_id)
-                            ->update(['status' => 'pending']);
-                    });
-            }
-
-            // Reverse balance
-            $this->updateBalance(
-                $transaction->transaction_date,
-                $transaction->trans_code,
-                $transaction->amount,
-                'remove'
-            );
-
-            // Notify requester if from a request
-            if ($transaction->request_id) {
-                $reqHeader = RequestHeader::find($transaction->request_id);
-                if ($reqHeader) {
-                    NotificationService::notifyUser(
-                        $reqHeader->created_by,
-                        'Pencairan dana untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.'
-                    );
-                }
-            }
-
-            DB::commit();
             return redirect()->route("{$type}.transaction.index")->with('success', 'Pencairan dibatalkan. Realisasi kembali menjadi Draft.');
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->with('error', 'Gagal membatalkan realisasi. Silakan coba lagi.');
         }
     }
 
-    /**
-     * Delete a draft transaction. Request goes back to 'requested'.
-     */
     public function destroy($type, $id)
     {
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
@@ -404,41 +235,13 @@ class TransactionController extends Controller
             return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat dihapus.');
         }
 
-        $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
-        if (!$this->isVisibleToUser($transaction, $visibleUserIds)) {
-            abort(403, 'Akses ditolak.');
-        }
+        $this->authorizeVisibility($transaction);
 
         try {
-            DB::beginTransaction();
+            $this->transactionService->deleteTransaction($transaction);
 
-            // Revert request to 'requested' so it can be re-approved
-            if ($transaction->request_id) {
-                RequestHeader::where('id', $transaction->request_id)
-                    ->update([
-                        'status' => 'requested',
-                        'approved_by' => null,
-                        'approved_at' => null,
-                    ]);
-
-                // Reset request detail status
-                TransactionDetail::where('header_id', $transaction->id)
-                    ->whereNotNull('request_detail_id')
-                    ->get()
-                    ->each(function ($td) {
-                        RequestDetail::where('id', $td->request_detail_id)
-                            ->update(['status' => null]);
-                    });
-            }
-
-            // Delete transaction details first, then header
-            $transaction->details()->delete();
-            $transaction->delete();
-
-            DB::commit();
             return redirect()->route("{$type}.transaction.index")->with('success', 'Realisasi dihapus. Pengajuan dikembalikan ke status Requested.');
         } catch (\Exception $e) {
-            DB::rollBack();
             report($e);
             return redirect()->back()->with('error', 'Gagal menghapus realisasi. Silakan coba lagi.');
         }
