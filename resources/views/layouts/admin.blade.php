@@ -123,58 +123,6 @@
 
     {{-- Tabler JS is bundled by Vite via admin.js --}}
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-
-        function setTheme(theme) {
-            html.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (themeIcon) {
-                themeIcon.className = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
-            }
-        }
-
-        const savedTheme = localStorage.getItem('theme');
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme) {
-            setTheme(savedTheme);
-        } else {
-            setTheme(systemDark ? 'dark' : 'light');
-        }
-
-        themeToggle?.addEventListener('click', function(e) {
-            e.preventDefault();
-            const currentTheme = html.getAttribute('data-bs-theme');
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // Mobile menu toggle
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const sidebar = document.querySelector('.navbar-vertical');
-        const sidebarMenu = document.getElementById('sidebar-menu');
-
-        mobileMenuToggle?.addEventListener('click', function() {
-            sidebar.classList.toggle('show');
-            if (sidebarMenu) {
-                sidebarMenu.classList.add('show');
-            }
-        });
-
-        // Close sidebar when clicking outside on mobile/tablet
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth < 1200) {
-                if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
-                    sidebar.classList.remove('show');
-                }
-            }
-        });
-    });
-    </script>
-
     @stack('scripts')
 </body>
 </html>

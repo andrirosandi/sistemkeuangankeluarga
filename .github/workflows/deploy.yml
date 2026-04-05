@@ -22,8 +22,9 @@ jobs:
           script: |
             cd $APP_DIR
 
-            # Tarik kode terbaru dari GitHub
-            git pull origin main
+            # Tarik kode terbaru dari GitHub (Paksa overwrite jika ada koflik di server)
+            git fetch origin main
+            git reset --hard origin/main
 
             # Copy docker config dari folder docker/ ke root project
             cp docker/docker-compose.yml docker-compose.yml
