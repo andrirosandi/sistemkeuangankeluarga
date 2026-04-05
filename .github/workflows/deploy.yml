@@ -41,4 +41,7 @@ jobs:
             docker exec skk_app php artisan view:cache
             docker exec skk_app php artisan config:cache
 
+            # Pastikan storage link dibuat agar gambar/file upload bisa diakses
+            docker exec skk_app php artisan storage:link
+
             echo "Deployment Selesai!"
