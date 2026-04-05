@@ -1,6 +1,5 @@
 /.phpunit.cache
 /node_modules
-/public/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -27,4 +26,7 @@ yarn-error.log
 database/*.sqlite
 database/*.sqlite-journal
 error_log
+.claude/settings.local.json
+tmp_test_404.php
+.claude/settings.local.json
 .claude/settings.local.json

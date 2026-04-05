@@ -4,6 +4,14 @@
 /* Tabler Icons webfont */
 @import "@tabler/icons-webfont/dist/tabler-icons.min.css";
 
+/* Fix: Force icon font-weight to normal to prevent bold rendering.
+   This overrides any inherited or conflicting font-weight from parent elements.
+   Necessary because Tabler icons only have one weight variant (normal/400). */
+.ti {
+    font-weight: normal !important;
+    font-style: normal !important;
+}
+
 /* Custom overrides */
 :root {
     --tblr-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
