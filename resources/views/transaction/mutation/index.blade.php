@@ -24,13 +24,13 @@
                     </div>
                     <div>
                         <button type="submit" class="btn btn-primary btn-sm">
-                            <x-icon name="filter" class="me-1" /> Tampilkan
+                            <i class="ti ti-filter me-1"></i> Tampilkan
                         </button>
                         <a href="{{ route('mutation.index') }}" class="btn btn-link link-secondary btn-sm ms-2">Bulan Ini</a>
                     </div>
                     <div class="ms-auto mt-3 mt-md-0">
                         <a href="{{ route('mutation.print', ['month' => $month]) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                            <x-icon name="printer" class="me-1" /> Cetak Buku Kas
+                            <i class="ti ti-printer me-1"></i> Cetak Buku Kas
                         </a>
                     </div>
                 </form>
@@ -46,7 +46,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <span class="bg-secondary text-white avatar"><x-icon name="wallet" /></span>
+                                <span class="bg-secondary text-white avatar"><i class="ti ti-wallet"></i></span>
                             </div>
                             <div class="col">
                                 <div class="font-weight-medium">Saldo Awal</div>
@@ -61,7 +61,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <span class="bg-success text-white avatar"><x-icon name="arrow-down-left" /></span>
+                                <span class="bg-success text-white avatar"><i class="ti ti-arrow-down-left"></i></span>
                             </div>
                             <div class="col">
                                 <div class="font-weight-medium">Kas Masuk</div>
@@ -76,7 +76,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <span class="bg-danger text-white avatar"><x-icon name="arrow-up-right" /></span>
+                                <span class="bg-danger text-white avatar"><i class="ti ti-arrow-up-right"></i></span>
                             </div>
                             <div class="col">
                                 <div class="font-weight-medium">Kas Keluar</div>
@@ -91,7 +91,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <span class="bg-primary text-white avatar"><x-icon name="report-money" /></span>
+                                <span class="bg-primary text-white avatar"><i class="ti ti-report-money"></i></span>
                             </div>
                             <div class="col">
                                 <div class="font-weight-medium">Saldo Akhir</div>

@@ -14,7 +14,7 @@
                     <!-- Desktop View -->
                     <div class="btn-group d-none d-sm-inline-flex" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
                         <a href="{{ route($type . '.request.create') }}" class="btn btn-primary">
-                            <x-icon name="plus" /> Buat Pengajuan
+                            <i class="ti ti-plus"></i> Buat Pengajuan
                         </a>
                         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false">
                         </button>
@@ -23,7 +23,7 @@
                                 <h6 class="dropdown-header">Gunakan Template</h6>
                                 @foreach($templates as $tmpl)
                                     <a class="dropdown-item" href="{{ route($type . '.request.create', ['template_id' => $tmpl->id]) }}">
-                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                        <i class="ti ti-copy me-2 text-muted"></i> {{ $tmpl->description }}
                                     </a>
                                 @endforeach
                             @else
@@ -35,7 +35,7 @@
                     <!-- Mobile View -->
                     <div class="btn-group d-sm-none" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
                         <a href="{{ route($type . '.request.create') }}" class="btn btn-primary btn-icon" aria-label="Buat Pengajuan">
-                            <x-icon name="plus" />
+                            <i class="ti ti-plus"></i>
                         </a>
                         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split btn-icon border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false" style="padding-left: 5px; padding-right: 5px;">
                         </button>
@@ -44,7 +44,7 @@
                                 <h6 class="dropdown-header">Gunakan Template</h6>
                                 @foreach($templates as $tmpl)
                                     <a class="dropdown-item" href="{{ route($type . '.request.create', ['template_id' => $tmpl->id]) }}">
-                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                        <i class="ti ti-copy me-2 text-muted"></i> {{ $tmpl->description }}
                                     </a>
                                 @endforeach
                             @else
@@ -108,20 +108,20 @@
                             <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
                                     <a href="{{ route($type . '.request.show', $req->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat">
-                                        <x-icon name="eye" />
+                                        <i class="ti ti-eye"></i>
                                     </a>
                                     
                                     @if($req->status === 'draft')
                                         @can($type . '.request.edit')
                                         <a href="{{ route($type . '.request.edit', $req->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-2" data-bs-toggle="tooltip" title="Edit">
-                                            <x-icon name="pencil" />
+                                            <i class="ti ti-pencil"></i>
                                         </a>
 
                                         <button class="btn btn-icon btn-sm btn-ghost-success rounded-2" 
                                                 onclick="submitRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
                                                 data-bs-toggle="tooltip" 
                                                 title="Ajukan">
-                                            <x-icon name="send" />
+                                            <i class="ti ti-send"></i>
                                         </button>
                                         @endcan
                                         
@@ -139,13 +139,13 @@
                                                 onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
                                                 data-bs-toggle="tooltip" 
                                                 title="Setujui">
-                                            <x-icon name="circle-check" />
+                                            <i class="ti ti-circle-check"></i>
                                         </button>
                                         <button class="btn btn-icon btn-sm btn-ghost-danger rounded-2" 
                                                 onclick="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
                                                 data-bs-toggle="tooltip" 
                                                 title="Tolak">
-                                            <x-icon name="circle-x" />
+                                            <i class="ti ti-circle-x"></i>
                                         </button>
                                         @endcan
                                     @endif
@@ -157,7 +157,7 @@
                             <td colspan="7" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <x-icon name="file-off" class="icon-lg" />
+                                        <i class="ti ti-file-off icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Belum ada pengajuan</p>
                                 </div>
@@ -184,7 +184,7 @@
         <div class="modal-content">
             <div class="modal-status bg-success"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="send" class="text-success icon-lg mb-2" />
+                <i class="ti ti-send text-success icon-lg mb-2"></i>
                 <h3>Konfirmasi Pengajuan</h3>
                 <div class="text-secondary">Kirim pengajuan <strong id="submit-name"></strong> ke Admin? Anda tidak akan bisa mengeditnya setelah ini.</div>
             </div>
@@ -211,7 +211,7 @@
         <div class="modal-content">
             <div class="modal-status bg-success"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="circle-check" class="text-success icon-lg mb-2" />
+                <i class="ti ti-circle-check text-success icon-lg mb-2"></i>
                 <h3>Setujui Pengajuan</h3>
                 <div class="text-secondary">Setujui pengajuan <strong id="approve-name"></strong>? Sistem akan otomatis membuat draf realisasi dana.</div>
             </div>
@@ -241,7 +241,7 @@
                 @csrf
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">
-                        <x-icon name="circle-x" class="text-danger icon-lg mb-2" />
+                        <i class="ti ti-circle-x text-danger icon-lg mb-2"></i>
                         <h3>Tolak Pengajuan</h3>
                         <div class="text-secondary">Tolak pengajuan <strong id="reject-name"></strong>?</div>
                     </div>

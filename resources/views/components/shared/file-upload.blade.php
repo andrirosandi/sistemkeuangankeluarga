@@ -44,7 +44,7 @@
             {{-- State: Hover --}}
             <template x-if="!isUploading && dropzoneHover">
                 <div class="text-primary text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg mb-2" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                    <i class="ti ti-upload icon-lg mb-2" style="font-size: 48px;"></i>
                     <div class="fw-bold text-truncate" style="max-width: 100%;">Lepas di sini</div>
                 </div>
             </template>
@@ -65,7 +65,7 @@
                     {{-- If Multiple or No File --}}
                     <template x-if="multiple || files.length === 0">
                         <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted mb-1" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /></svg>
+                            <i class="ti ti-upload text-muted mb-1" style="font-size: 32px;"></i>
                             <div class="text-muted small">Tarik file atau <strong>klik</strong></div>
                             <small class="text-secondary small d-block" style="font-size: 0.75rem;">{{ $accept }}</small>
                         </div>

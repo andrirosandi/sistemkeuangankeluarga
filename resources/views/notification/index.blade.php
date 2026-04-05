@@ -6,7 +6,7 @@
 <div class="row align-items-center">
     <div class="col">
         <h2 class="page-title">
-            <x-icon name="bell" class="me-2" /> Semua Notifikasi
+            <i class="ti ti-bell me-2"></i> Semua Notifikasi
         </h2>
         <div class="text-secondary mt-1">Daftar riwayat pemberitahuan aktivitas Anda.</div>
     </div>
@@ -16,10 +16,10 @@
             <form action="{{ route('notification.readAll') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn btn-primary d-none d-sm-inline-block">
-                    <x-icon name="checks" class="me-2" /> Tandai Semua Dibaca
+                    <i class="ti ti-checks me-2"></i> Tandai Semua Dibaca
                 </button>
                 <button type="submit" class="btn btn-primary d-sm-none btn-icon" aria-label="Tandai Dibaca">
-                    <x-icon name="checks" />
+                    <i class="ti ti-checks"></i>
                 </button>
             </form>
             @endif
@@ -53,7 +53,7 @@
                                         {!! $notif->message !!}
                                     </div>
                                     <div class="text-secondary" style="font-size: 12px;">
-                                        <x-icon name="clock" style="width: 14px; height: 14px;" /> {{ $notif->created_at->translatedFormat('d F Y, H:i') }}
+                                        <i class="ti ti-clock" style="width: 14px; height: 14px;"></i> {{ $notif->created_at->translatedFormat('d F Y, H:i') }}
                                         ({{ $notif->created_at->diffForHumans() }})
                                     </div>
                                 </div>
@@ -62,7 +62,7 @@
                                         <form action="{{ route('notification.read', $notif->id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-icon btn-outline-primary" title="Tandai dibaca">
-                                                <x-icon name="check" />
+                                                <i class="ti ti-check"></i>
                                             </button>
                                         </form>
                                     @endif
@@ -70,7 +70,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-icon btn-outline-danger" title="Hapus">
-                                            <x-icon name="trash" />
+                                            <i class="ti ti-trash"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -80,7 +80,7 @@
                         <div class="list-group-item text-center py-5">
                             <div class="empty">
                                 <div class="empty-img text-muted">
-                                    <x-icon name="bell-off" style="width: 64px; height: 64px;" />
+                                    <i class="ti ti-bell-off" style="width: 64px; height: 64px;"></i>
                                 </div>
                                 <p class="empty-title mt-3">Tidak ada Notifikasi</p>
                                 <p class="empty-subtitle text-secondary">

@@ -11,11 +11,11 @@
                 <div class="card-actions">
                     @can('role.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                         Tambah Grup
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Role">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                     </button>
                     @endcan
                 </div>
@@ -95,7 +95,7 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <x-icon name="key" class="icon-lg" />
+                                        <i class="ti ti-key icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Belum ada Grup Tambahan</p>
                                     <p class="empty-subtitle text-secondary">Ayo buat grup akses baru untuk keluarga Anda.</p>
@@ -180,7 +180,7 @@
                                 <div class="card-header bg-primary-lt py-2 d-flex justify-content-between align-items-center">
                                     <h4 class="card-title text-capitalize m-0">{{ $group }}</h4>
                                     <button type="button" class="btn btn-ghost-primary btn-sm btn-icon border-0" onclick="toggleGroup('{{ $group }}')" title="Pilih Semua">
-                                        <x-icon name="plus" />
+                                        <i class="ti ti-plus"></i>
                                     </button>
                                 </div>
                                 <div class="card-body p-3 scrollable" style="max-height: 250px;">

@@ -11,11 +11,11 @@
                 <div class="card-actions">
                     @can('user.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                         Tambah Anggota
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Anggota">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                     </button>
                     @endcan
                 </div>
@@ -93,7 +93,7 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <x-icon name="users-off" class="icon-lg" />
+                                        <i class="ti ti-users-off icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Data Pengguna Kosong</p>
                                     <p class="empty-subtitle text-secondary">Ayo undang anggota keluarga Anda.</p>

@@ -11,11 +11,11 @@
                 <div class="card-actions">
                     @can('category.create')
                     <button class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                         Tambah Kategori
                     </button>
                     <button class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add" aria-label="Tambah Kategori">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                     </button>
                     @endcan
                 </div>
@@ -65,7 +65,7 @@
                             <td colspan="3" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <x-icon name="folder-plus" class="icon-lg" />
+                                        <i class="ti ti-folder-plus icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Belum ada kategori</p>
                                     <p class="empty-subtitle text-secondary">Ayo buat kategori pertama Anda.</p>

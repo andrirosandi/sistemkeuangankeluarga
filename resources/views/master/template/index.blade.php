@@ -11,11 +11,11 @@
                 <div class="card-actions">
                     @can('template.create')
                     <a href="{{ route('master.templates.create') }}" class="btn btn-primary d-none d-sm-inline-block">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                         Tambah Template
                     </a>
                     <a href="{{ route('master.templates.create') }}" class="btn btn-primary d-sm-none btn-icon" aria-label="Tambah Template">
-                        <x-icon name="plus" />
+                        <i class="ti ti-plus"></i>
                     </a>
                     @endcan
                 </div>
@@ -94,7 +94,7 @@
                                 <td colspan="7" class="text-center py-5">
                                     <div class="empty">
                                         <div class="empty-icon">
-                                            <x-icon name="clipboard-off" class="icon-lg" />
+                                            <i class="ti ti-clipboard-off icon-lg"></i>
                                         </div>
                                         <p class="empty-title">Belum ada template</p>
                                         <p class="empty-subtitle text-secondary">Mulai buat template rutin Anda untuk mempercepat input transaksi.</p>

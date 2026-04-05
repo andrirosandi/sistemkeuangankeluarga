@@ -6,7 +6,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="alert-triangle" class="text-danger icon-lg mb-2" />
+                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
                 <h3>{{ $title }}</h3>
                 <div class="text-secondary">{!! $message !!}</div>
             </div>

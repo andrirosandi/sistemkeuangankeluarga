@@ -21,5 +21,5 @@
         title="{{ $finalTitle }}"
         data-bs-toggle="tooltip"
         data-bs-placement="top">
-    <x-icon name="{{ $config['icon'] }}" />
+    <i class="ti ti-{{ $config['icon'] }}"></i>
 </button>

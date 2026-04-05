@@ -212,7 +212,7 @@
                 @csrf
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">
-                        <x-icon name="circle-x" class="text-danger icon-lg mb-2" />
+                        <i class="ti ti-circle-x text-danger icon-lg mb-2"></i>
                         <h3>Tolak Pengajuan</h3>
                         <div class="text-secondary">Tolak pengajuan <strong>{{ $requestData->description }}</strong>?</div>
                     </div>

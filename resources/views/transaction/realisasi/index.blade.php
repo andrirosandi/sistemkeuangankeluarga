@@ -14,7 +14,7 @@
                     <!-- Desktop View -->
                     <div class="btn-group d-none d-sm-inline-flex" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
                         <a href="{{ route($type . '.transaction.create') }}" class="btn btn-primary">
-                            <x-icon name="plus" /> Buat Realisasi Baru
+                            <i class="ti ti-plus"></i> Buat Realisasi Baru
                         </a>
                         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false">
                         </button>
@@ -23,7 +23,7 @@
                                 <h6 class="dropdown-header">Gunakan Template</h6>
                                 @foreach($templates as $tmpl)
                                     <a class="dropdown-item" href="{{ route($type . '.transaction.create', ['template_id' => $tmpl->id]) }}">
-                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                        <i class="ti ti-copy me-2 text-muted"></i> {{ $tmpl->description }}
                                     </a>
                                 @endforeach
                             @else
@@ -35,7 +35,7 @@
                     <!-- Mobile View -->
                     <div class="btn-group d-sm-none" x-data="{ open: false }" @click.outside="open = false" style="position: relative;">
                         <a href="{{ route($type . '.transaction.create') }}" class="btn btn-primary btn-icon">
-                            <x-icon name="plus" />
+                            <i class="ti ti-plus"></i>
                         </a>
                         <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split btn-icon border-start border-light" @click="open = !open" :class="{'show': open}" aria-expanded="false" style="padding-left: 5px; padding-right: 5px;">
                         </button>
@@ -44,7 +44,7 @@
                                 <h6 class="dropdown-header">Gunakan Template</h6>
                                 @foreach($templates as $tmpl)
                                     <a class="dropdown-item" href="{{ route($type . '.transaction.create', ['template_id' => $tmpl->id]) }}">
-                                        <x-icon name="copy" class="me-2 text-muted" /> {{ $tmpl->description }}
+                                        <i class="ti ti-copy me-2 text-muted"></i> {{ $tmpl->description }}
                                     </a>
                                 @endforeach
                             @else
@@ -107,20 +107,20 @@
                             <td>
                                 <div class="d-flex align-items-center justify-content-end gap-2">
                                     <a href="{{ route($type . '.transaction.show', $trx->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
-                                        <x-icon name="eye" />
+                                        <i class="ti ti-eye"></i>
                                     </a>
 
                                     @if($trx->status === 'draft')
                                         @can($type . '.transaction.edit')
                                         <a href="{{ route($type . '.transaction.edit', $trx->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-2" data-bs-toggle="tooltip" title="Edit">
-                                            <x-icon name="pencil" />
+                                            <i class="ti ti-pencil"></i>
                                         </a>
 
                                         <button class="btn btn-icon btn-sm btn-ghost-success rounded-2"
                                                 onclick="completeTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
                                                 data-bs-toggle="tooltip"
                                                 title="Cairkan Dana">
-                                            <x-icon name="cash" />
+                                            <i class="ti ti-cash"></i>
                                         </button>
                                         @endcan
 
@@ -129,7 +129,7 @@
                                                 onclick="deleteTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
                                                 data-bs-toggle="tooltip"
                                                 title="Hapus Draft">
-                                            <x-icon name="trash" />
+                                            <i class="ti ti-trash"></i>
                                         </button>
                                         @endcan
                                     @endif
@@ -140,7 +140,7 @@
                                                 onclick="cancelTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
                                                 data-bs-toggle="tooltip"
                                                 title="Batalkan (Kembali ke Draft)">
-                                            <x-icon name="rotate-2" />
+                                            <i class="ti ti-rotate-2"></i>
                                         </button>
                                         @endcan
                                     @endif
@@ -152,7 +152,7 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon text-secondary">
-                                        <x-icon name="wallet-off" class="icon-lg" />
+                                        <i class="ti ti-wallet-off icon-lg"></i>
                                     </div>
                                     <p class="empty-title">Belum ada realisasi</p>
                                     <p class="empty-subtitle text-secondary">Realisasi otomatis dibuat saat pengajuan disetujui.</p>
@@ -176,7 +176,7 @@
         <div class="modal-content">
             <div class="modal-status bg-success"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="cash" class="text-success icon-lg mb-2" />
+                <i class="ti ti-cash text-success icon-lg mb-2"></i>
                 <h3>Cairkan Dana</h3>
                 <div class="text-secondary">Cairkan dana untuk <strong id="complete-name"></strong>? Saldo akan otomatis diperbarui.</div>
             </div>
@@ -203,7 +203,7 @@
         <div class="modal-content">
             <div class="modal-status bg-warning"></div>
             <div class="modal-body text-center py-4">
-                <x-icon name="rotate-2" class="text-warning icon-lg mb-2" />
+                <i class="ti ti-rotate-2 text-warning icon-lg mb-2"></i>
                 <h3>Batalkan Pencairan</h3>
                 <div class="text-secondary">Batalkan pencairan dana <strong id="cancel-name"></strong>? Realisasi akan kembali menjadi Draft dan saldo akan dikembalikan.</div>
             </div>

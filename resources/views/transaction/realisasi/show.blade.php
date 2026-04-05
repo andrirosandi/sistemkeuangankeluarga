@@ -133,7 +133,7 @@
         @else
         <div class="card">
             <div class="card-body text-center py-4 bg-muted-lt">
-                <x-icon name="edit-circle" class="icon-lg text-secondary mb-2" />
+                <i class="ti ti-edit-circle icon-lg text-secondary mb-2"></i>
                 <p class="text-secondary mb-0">Realisasi ini merupakan input langsung (tanpa melalui tahapan pengajuan).</p>
             </div>
         </div>
