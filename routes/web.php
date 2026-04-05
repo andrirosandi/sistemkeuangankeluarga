@@ -81,6 +81,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name("{$type}.request.writeoff")
             ->defaults('type', $type)
             ->middleware("can:{$type}.request.view");
+            
+        Route::post("/{$prefix}/pengajuan/{id}/continue-realization", [\App\Http\Controllers\Transaction\RequestController::class, 'continueRealization'])
+            ->name("{$type}.request.continue-realization")
+            ->defaults('type', $type)
+            ->middleware("can:{$type}.request.approve");
     }
 
     // Mutasi

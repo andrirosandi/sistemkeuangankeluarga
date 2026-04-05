@@ -311,7 +311,7 @@ class RequestController extends Controller
 
     public function writeoff(Request $request, $id, $type)
     {
-        $req = RequestHeader::with(['details', 'transaction'])->findOrFail($id);
+        $req = RequestHeader::with(['details', 'transactions'])->findOrFail($id);
 
         $isCreator = $req->created_by === auth()->id();
         $isApprover = auth()->user()->can("{$type}.request.approve");

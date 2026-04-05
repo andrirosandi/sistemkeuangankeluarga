@@ -196,17 +196,20 @@
                             <a href="{{ route($typeKey . '.request.show', $r->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat Pengajuan">
                                 <i class="ti ti-eye"></i>
                             </a>
-                            @if($r->transaction)
+                            @php
+                                $draft = $r->transactions->where('status', 'draft')->first();
+                            @endphp
+                            @if($draft)
                                 @can($typeKey . '.transaction.edit')
                                 <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
                                     <div class="btn-group">
-                                        <a href="{{ route($typeKey . '.transaction.edit', $r->transaction->id) }}" class="btn btn-sm btn-primary rounded-start-2">
+                                        <a href="{{ route($typeKey . '.transaction.edit', $draft->id) }}" class="btn btn-sm btn-primary rounded-start-2">
                                             <i class="ti ti-pencil me-1"></i> Cairkan
                                         </a>
                                         <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
-                                            <button class="dropdown-item text-danger" @click="deleteTransaction({{ $r->transaction->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
+                                            <button class="dropdown-item text-danger" @click="deleteTransaction({{ $draft->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
                                                 <i class="ti ti-trash me-2"></i> Hapus Draft Realisasi
                                             </button>
                                         </div>
@@ -253,10 +256,12 @@
                     $typeKey = $r->trans_code == 1 ? 'in' : 'out';
                     $typeLabel = $r->trans_code == 1 ? 'Masuk' : 'Keluar';
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
-                    $realizedAmount = $r->transaction?->amount ?? 0;
+                    $realizedAmount = $r->transactions->where('status', 'completed')->sum('amount');
                     $totalItems = $r->details->count();
                     $realizedItems = $r->details->where('status', 'realized')->count();
                     $pct = $r->amount > 0 ? round($realizedAmount / $r->amount * 100) : 0;
+                    $draft = $r->transactions->where('status', 'draft')->first();
+                    $latestCompleted = $r->transactions->where('status', 'completed')->sortByDesc('transaction_date')->first();
                 @endphp
                 <tr>
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>
@@ -279,14 +284,27 @@
                             <a href="{{ route($typeKey . '.request.show', $r->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat Pengajuan">
                                 <i class="ti ti-eye"></i>
                             </a>
-                            @if($r->transaction)
-                                <a href="{{ route($typeKey . '.transaction.show', $r->transaction->id) }}" class="btn btn-icon btn-sm btn-ghost-purple rounded-2" data-bs-toggle="tooltip" title="Lihat Realisasi">
+                            @if($latestCompleted)
+                                <a href="{{ route($typeKey . '.transaction.show', $latestCompleted->id) }}" class="btn btn-icon btn-sm btn-ghost-purple rounded-2" data-bs-toggle="tooltip" title="Lihat Realisasi Terakhir">
                                     <i class="ti ti-receipt"></i>
                                 </a>
                             @endif
                             @can($typeKey . '.request.approve')
-                                <div class="dropdown ms-1" x-data="{ open: false }" @click.outside="open = false">
-                                    <div class="btn-group">
+                                <div class="d-flex" x-data="{ open: false }" @click.outside="open = false">
+                                    @if($draft)
+                                        <a href="{{ route($typeKey . '.transaction.edit', $draft->id) }}" class="btn btn-sm btn-primary rounded-2 me-1">
+                                            <i class="ti ti-pencil me-1"></i> Cairkan (Draft)
+                                        </a>
+                                    @else
+                                        <form action="{{ route($typeKey . '.request.continue-realization', $r->id) }}" method="POST" class="me-1">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-primary text-nowrap rounded-2">
+                                                <i class="ti ti-arrow-right me-1"></i> Cairkan Sisa
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    <div class="dropdown btn-group">
                                         <button class="btn btn-sm btn-outline-danger rounded-start-2"
                                                 onclick="writeoffRequest({{ $r->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}')">
                                             <i class="ti ti-ban me-1" style="font-size: 0.8rem"></i> Batalkan Sisanya
@@ -294,9 +312,9 @@
                                         <button type="button" class="btn btn-sm btn-outline-danger dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
-                                            @if($r->transaction && $r->transaction->status === 'completed')
-                                            <button class="dropdown-item text-warning" @click="cancelTransaction({{ $r->transaction->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
-                                                <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan
+                                            @if($latestCompleted)
+                                            <button class="dropdown-item text-warning" @click="cancelTransaction({{ $latestCompleted->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
+                                                <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan Terakhir
                                             </button>
                                             @endif
                                         </div>

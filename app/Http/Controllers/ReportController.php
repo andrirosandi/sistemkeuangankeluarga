@@ -225,7 +225,7 @@ class ReportController extends Controller
         $approvedDraft = RequestHeader::with(['category', 'creator'])
             ->whereIn('created_by', $userIds)
             ->where('status', 'approved')
-            ->whereHas('transaction', function ($q) {
+            ->whereHas('transactions', function ($q) {
                 $q->where('status', 'draft');
             })
             ->orderBy('approved_at', 'asc')
@@ -238,7 +238,7 @@ class ReportController extends Controller
             ->whereHas('details', function ($q) {
                 $q->where('status', 'pending');
             })
-            ->whereDoesntHave('transaction', function ($q) {
+            ->whereDoesntHave('transactions', function ($q) {
                 $q->where('status', 'draft');
             })
             ->orderBy('approved_at', 'asc')

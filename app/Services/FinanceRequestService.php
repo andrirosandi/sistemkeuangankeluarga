@@ -110,16 +110,18 @@ class FinanceRequestService
                 'status'           => 'draft',
             ]);
 
-            // 3. Copy request details → transaction details
-            foreach ($req->details as $detail) {
+            // 3. Ambil sisa outstanding lalu copy ke transaction details
+            $outstandings = $this->calculateOutstanding($req);
+            foreach ($outstandings as $out) {
                 TransactionDetail::create([
                     'header_id'         => $transaction->id,
-                    'description'       => $detail->description,
-                    'amount'            => $detail->amount,
-                    'request_detail_id' => $detail->id,
+                    'description'       => $out['description'],
+                    'amount'            => $out['amount'],
+                    'request_detail_id' => $out['request_detail_id'],
                 ]);
-
-                $detail->update(['status' => 'pending']);
+                
+                // Set initial status to pending if not already handled
+                RequestDetail::where('id', $out['request_detail_id'])->update(['status' => 'pending']);
             }
 
             // 4. Notifikasi ke pembuat pengajuan
@@ -131,6 +133,44 @@ class FinanceRequestService
                 "{$type}.request.show",
                 ['id' => $req->id]
             );
+
+            return $transaction;
+        });
+    }
+
+    /**
+     * Buat realisasi draft baru untuk pengajuan yang sudah cair sebagian (Parsial)
+     * tapi masih ada sisa outstanding.
+     *
+     * @return TransactionHeader
+     */
+    public function createDraftFromOutstanding(RequestHeader $req, int $userId): TransactionHeader
+    {
+        return DB::transaction(function () use ($req, $userId) {
+            $outstandings = $this->calculateOutstanding($req);
+
+            $draftAmount = collect($outstandings)->sum('amount');
+
+            $transaction = TransactionHeader::create([
+                'category_id'      => $req->category_id,
+                'description'      => 'Pencairan Lanjutan: ' . $req->description,
+                'notes'            => '',
+                'amount'           => $draftAmount,
+                'request_id'       => $req->id,
+                'trans_code'       => $req->trans_code,
+                'transaction_date' => now(), // default today for lanjutan
+                'created_by'       => $userId,
+                'status'           => 'draft',
+            ]);
+
+            foreach ($outstandings as $out) {
+                TransactionDetail::create([
+                    'header_id'         => $transaction->id,
+                    'description'       => $out['description'],
+                    'amount'            => $out['amount'],
+                    'request_detail_id' => $out['request_detail_id'],
+                ]);
+            }
 
             return $transaction;
         });
@@ -181,6 +221,45 @@ class FinanceRequestService
         DB::transaction(function () use ($req) {
             $req->update(['status' => 'canceled']);
         });
+    }
+
+    /**
+     * Hitung sisa outstanding (belum dicairkan) untuk tiap detail pengajuan.
+     * Mengembalikan array detail item yang sisa nominalnya > 0 dan belum ditutup.
+     *
+     * @return array
+     */
+    public function calculateOutstanding(RequestHeader $request): array
+    {
+        $outstandingItems = [];
+
+        foreach ($request->details as $detail) {
+            // Jika sudah di-writeoff, lompati
+            if ($detail->status === 'closed') {
+                continue;
+            }
+
+            // Total realisasi dari transaksi yang 'completed'
+            $realizedAmount = TransactionDetail::where('request_detail_id', $detail->id)
+                ->whereHas('header', function ($q) {
+                    $q->where('status', 'completed');
+                })
+                ->sum('amount');
+
+            $outstandingAmount = $detail->amount - $realizedAmount;
+
+            if ($outstandingAmount > 0) {
+                $outstandingItems[] = [
+                    'request_detail_id' => $detail->id,
+                    'description'       => $detail->description,
+                    'amount'            => $outstandingAmount,
+                    'original_amount'   => $detail->amount,
+                    'realized_amount'   => $realizedAmount,
+                ];
+            }
+        }
+
+        return $outstandingItems;
     }
 
     /**

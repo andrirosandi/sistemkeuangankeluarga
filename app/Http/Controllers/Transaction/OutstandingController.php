@@ -21,12 +21,15 @@ class OutstandingController extends Controller
             ->orderByRaw("FIELD(priority, 'high', 'normal', 'low'), created_at ASC")
             ->get();
 
-        // 2. Approved, Belum Cair — request.status = 'approved' + transaction.status = 'draft'
-        $approvedDraft = RequestHeader::with(['category', 'creator', 'approver', 'transaction'])
+        // 2. Approved, Belum Cair — request.status = 'approved' + BELUM ADA transaction yg completed
+        $approvedDraft = RequestHeader::with(['category', 'creator', 'approver', 'transactions'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
-            ->whereHas('transaction', function ($q) {
-                $q->where('status', 'draft');
+            ->whereDoesntHave('transactions', function ($q) {
+                $q->where('status', 'completed');
+            })
+            ->whereHas('details', function ($dq) {
+                $dq->where('status', 'pending');
             })
             ->orderBy('approved_at', 'asc')
             ->get();
@@ -36,10 +39,10 @@ class OutstandingController extends Controller
         //      pending  = belum cair (masih outstanding)
         //      realized = sudah cair (selesai)
         //      closed   = di-write-off (selesai)
-        $partial = RequestHeader::with(['category', 'creator', 'approver', 'transaction', 'details'])
+        $partial = RequestHeader::with(['category', 'creator', 'approver', 'transactions', 'details'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
-            ->whereHas('transaction', function ($q) {
+            ->whereHas('transactions', function ($q) {
                 $q->where('status', 'completed');
             })
             ->whereHas('details', function ($dq) {

@@ -217,9 +217,10 @@
                         <i class="ti ti-pencil me-2"></i> Edit Pengajuan Ini
                     </a>
                 @endif
-                @if($requestData->status == 'approved' && $requestData->transaction && $requestData->transaction->status == 'completed')
+                @if($requestData->status == 'approved' && $requestData->transactions->where('status', 'completed')->isNotEmpty())
                     @php
-                       $isPartial = $requestData->transaction->amount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
+                       $realizedAmount = $requestData->transactions->where('status', 'completed')->sum('amount');
+                       $isPartial = $realizedAmount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
                     @endphp
                     @if($isPartial && (auth()->id() === $requestData->created_by || auth()->user()->can($type . '.request.approve')))
                         <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-writeoff-show">
@@ -315,9 +316,10 @@
 @endif
 
 {{-- Modal Writeoff (Show Page) --}}
-@if($requestData->status == 'approved' && $requestData->transaction && $requestData->transaction->status == 'completed')
+@if($requestData->status == 'approved' && $requestData->transactions->where('status', 'completed')->isNotEmpty())
     @php
-       $isPartial = $requestData->transaction->amount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
+       $realizedAmount = $requestData->transactions->where('status', 'completed')->sum('amount');
+       $isPartial = $realizedAmount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
     @endphp
     @if($isPartial)
     <div class="modal modal-blur fade" id="modal-writeoff-show" tabindex="-1" role="dialog" aria-hidden="true">
