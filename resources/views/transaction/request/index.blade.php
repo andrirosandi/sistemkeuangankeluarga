@@ -142,23 +142,25 @@
                                                 <i class="ti ti-ban"></i>
                                             </button>
                                         @endif
-                                        @can($type . '.request.approve')
-                                        <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-success rounded-start-2"
-                                                        onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')">
-                                                    <i class="ti ti-circle-check me-1"></i> Approve
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
-                                                    <button class="dropdown-item text-danger" @click="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false">
-                                                        <i class="ti ti-circle-x me-2"></i> Reject Pengajuan
+                                        @if($req->created_by !== auth()->id() || auth()->user()->can($type . '.request.self-approve'))
+                                            @can($type . '.request.approve')
+                                            <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-success rounded-start-2"
+                                                            onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')">
+                                                        <i class="ti ti-circle-check me-1"></i> Approve
                                                     </button>
+                                                    <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                                        <button class="dropdown-item text-danger" @click="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false">
+                                                            <i class="ti ti-circle-x me-2"></i> Reject Pengajuan
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        @endcan
+                                            @endcan
+                                        @endif
                                     @endif
                                 </div>
                             </td>

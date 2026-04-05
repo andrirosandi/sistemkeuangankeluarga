@@ -189,17 +189,19 @@
                             <i class="ti ti-ban me-1"></i> Batalkan Pengajuan
                         </button>
                     @endif
-                    @can($type . '.request.approve')
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
-                            <i class="ti ti-circle-x me-1"></i> Tolak
-                        </button>
-                        <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="m-0">
-                            @csrf
-                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
-                                <i class="ti ti-circle-check me-1"></i> Setujui
+                    @if($requestData->created_by !== auth()->id() || auth()->user()->can($type . '.request.self-approve'))
+                        @can($type . '.request.approve')
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
+                                <i class="ti ti-circle-x me-1"></i> Tolak
                             </button>
-                        </form>
-                    @endcan
+                            <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Setujui pengajuan ini? Draf realisasi akan otomatis dibuat.')">
+                                    <i class="ti ti-circle-check me-1"></i> Setujui
+                                </button>
+                            </form>
+                        @endcan
+                    @endif
                 @endif
                 @if($requestData->status == 'draft')
                     <a href="{{ route($type . '.request.edit', $requestData->id) }}" class="btn btn-primary shadow-sm">
