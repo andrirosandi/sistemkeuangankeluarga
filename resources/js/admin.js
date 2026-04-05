@@ -18,7 +18,7 @@ Alpine.start();
 document.addEventListener('DOMContentLoaded', () => {
     // Re-init Dropdowns (Fix for Alpine intercept)
     const dropdowns = document.querySelectorAll('[data-bs-toggle="dropdown"]');
-    dropdowns.forEach(el => new bootstrap.Dropdown(el));
+    dropdowns.forEach(el => bootstrap.Dropdown.getOrCreateInstance(el));
     
     // Re-init Modals (Ensuring manual calls work)
     const modals = document.querySelectorAll('.modal');

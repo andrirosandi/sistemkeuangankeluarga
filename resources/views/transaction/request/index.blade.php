@@ -135,34 +135,32 @@
 
                                     @if($req->status === 'requested')
                                         @can($type . '.request.approve')
-                                        <button class="btn btn-icon btn-sm btn-ghost-success rounded-2" 
-                                                onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
-                                                data-bs-toggle="tooltip" 
-                                                title="Setujui">
-                                            <i class="ti ti-circle-check"></i>
-                                        </button>
-                                        <button class="btn btn-icon btn-sm btn-ghost-danger rounded-2" 
-                                                onclick="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
-                                                data-bs-toggle="tooltip" 
-                                                title="Tolak">
-                                            <i class="ti ti-circle-x"></i>
-                                        </button>
+                                        <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-success rounded-start-2"
+                                                        onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')">
+                                                    <i class="ti ti-circle-check me-1"></i> Approve
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                                    <button class="dropdown-item text-danger" @click="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false">
+                                                        <i class="ti ti-circle-x me-2"></i> Reject Pengajuan
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                         @endcan
                                     @endif
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="empty">
-                                    <div class="empty-icon text-secondary">
-                                        <i class="ti ti-file-off icon-lg"></i>
-                                    </div>
-                                    <p class="empty-title">Belum ada pengajuan</p>
-                                </div>
-                            </td>
-                        </tr>
+                            <x-datatable.empty 
+                                title="Belum ada pengajuan" 
+                                icon="ti-file-off" 
+                                colspan="7" 
+                            />
                         @endforelse
                     </tbody>
                 </table>
@@ -288,7 +286,7 @@
         new bootstrap.Modal(document.getElementById('modal-reject')).show();
     }
 </script>
-<x-datatable.list-init :valueNames="[
+<x-datatable.list-init valueNames="[
     { name: 'sort-desc', attr: 'data-desc' },
     { name: 'sort-date', attr: 'data-date' },
     { name: 'sort-amount', attr: 'data-amount' },
