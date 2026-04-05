@@ -31,24 +31,19 @@ class OutstandingController extends Controller
             ->orderBy('approved_at', 'asc')
             ->get();
 
-        // 3. Realisasi Parsial — approved + transaction completed tapi tidak full
-        //    Cek: ada request_detail.status = 'pending' ATAU transaction.amount < request.amount
+        // 3. Realisasi Parsial — approved + transaction completed + masih ada detail pending
+        //    Detail status adalah sumber kebenaran:
+        //      pending  = belum cair (masih outstanding)
+        //      realized = sudah cair (selesai)
+        //      closed   = di-write-off (selesai)
         $partial = RequestHeader::with(['category', 'creator', 'approver', 'transaction', 'details'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
             ->whereHas('transaction', function ($q) {
                 $q->where('status', 'completed');
             })
-            ->where(function ($q) {
-                // Item belum semua ter-realize
-                $q->whereHas('details', function ($dq) {
-                    $dq->where('status', 'pending');
-                })
-                // ATAU nominal realisasi kurang dari nominal request
-                ->orWhereHas('transaction', function ($tq) {
-                    $tq->where('status', 'completed')
-                       ->whereColumn('amount', '<', 'request_header.amount');
-                });
+            ->whereHas('details', function ($dq) {
+                $dq->where('status', 'pending');
             })
             ->orderBy('approved_at', 'asc')
             ->get();
