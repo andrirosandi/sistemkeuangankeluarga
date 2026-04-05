@@ -27,3 +27,4 @@ yarn-error.log
 database/*.sqlite
 database/*.sqlite-journal
 error_log
+.claude/settings.local.json

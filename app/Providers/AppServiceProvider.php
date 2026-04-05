@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         // Usage: @uang(150000) → "Rp 150.000"
         //        @uang($item->amount)
         //        @uang(-5000) → "Rp -5.000"
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
         Blade::directive('uang', function ($expression) {
             return "<?php echo e(App\Models\Setting::get('currency', 'Rp') . ' ' . number_format((float)($expression), 0, ',', '.')); ?>";
         });
