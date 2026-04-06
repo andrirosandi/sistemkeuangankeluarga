@@ -32,7 +32,7 @@ jobs:
 
             # Matikan dan bangun ulang docker sesuai kode terbaru
             docker compose down
-            docker compose up -d --build
+            docker compose up -d # --build
 
             # Jalankan migrasi database otomatis jika ada tabel baru
             docker exec skk_app php artisan migrate --force
