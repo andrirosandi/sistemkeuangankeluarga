@@ -22,13 +22,13 @@
             <h3 class="mb-0">Hai, {{ auth()->user()->name }}!</h3>
             <div class="text-secondary">Selamat datang di Sistem Keuangan Keluarga.</div>
         </div>
-        @can('in.request.create')
+        @canany(['in.request.create', 'out.request.create'])
         <div class="ms-auto">
-            <a href="{{ route('in.request.create') }}" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-create-request">
                 <i class="ti ti-plus me-1"></i> Buat Pengajuan Baru
-            </a>
+            </button>
         </div>
-        @endcan
+        @endcanany
     </div>
 </div>
 
@@ -210,6 +210,39 @@
 </div>
 
 @endsection
+
+{{-- Modal: Pilih Kas Masuk / Kas Keluar --}}
+@canany(['in.request.create', 'out.request.create'])
+<div class="modal modal-blur fade" id="modal-create-request" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Buat Pengajuan Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">Pilih jenis pengajuan:</div>
+                <div class="row g-2">
+                    @can('in.request.create')
+                    <div class="col-12">
+                        <a href="{{ route('in.request.create') }}" class="btn btn-success w-100">
+                            <i class="ti ti-arrow-down-left me-1"></i> Kas Masuk
+                        </a>
+                    </div>
+                    @endcan
+                    @can('out.request.create')
+                    <div class="col-12">
+                        <a href="{{ route('out.request.create') }}" class="btn btn-danger w-100">
+                            <i class="ti ti-arrow-up-right me-1"></i> Kas Keluar
+                        </a>
+                    </div>
+                    @endcan
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endcanany
 
 @push('scripts')
 {{-- ApexCharts CDN --}}
