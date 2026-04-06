@@ -351,7 +351,7 @@ header.navbar .container-fluid {
 
 /* child menu align with parent title */
 .nav-sm .nav-link {
-    padding-left: 5rem !important;
+    padding-left: 44px !important;
     padding-right: 1rem;
 }
 
