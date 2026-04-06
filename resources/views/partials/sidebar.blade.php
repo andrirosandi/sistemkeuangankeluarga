@@ -1,13 +1,16 @@
 <aside class="navbar navbar-vertical navbar-expand-lg">
     <div class="container-fluid px-0">
+
+        {{-- BRAND --}}
         <div>
-            <a href="{{ route('dashboard') }}" 
+            <a href="{{ route('dashboard') }}"
                class="navbar-brand text-body text-decoration-none d-flex align-items-center px-3 m-0">
-                
+
                 <span class="nav-link-icon me-2 d-flex align-items-center justify-content-center">
                     @php
                         $media = \App\Models\Setting::where('key', 'app_logo')->first()?->getFirstMedia('app_logo');
                     @endphp
+
                     @if($media)
                         <img src="{{ $media->getUrl() }}" alt="Logo" style="max-height: 1.25rem;">
                     @else
@@ -21,8 +24,10 @@
             </a>
         </div>
 
+        {{-- MENU --}}
         <div class="collapse navbar-collapse" id="sidebar-menu">
             <ul class="navbar-nav pt-3">
+
                 @foreach(config('menu.sidebar') as $item)
 
                     {{-- ================= PARENT WITH CHILD ================= --}}
@@ -30,13 +35,16 @@
                         @php
                             $routes = collect($item['children'])->pluck('route')->toArray();
                             $isActive = request()->routeIs($routes);
-                            $hasAccess = collect($item['children'])->some(
+
+                            $hasAccess = collect($item['children'])->contains(
                                 fn($child) => auth()->user()->can($child['permission'])
                             );
                         @endphp
 
                         @if($hasAccess)
                         <li class="nav-item">
+
+                            {{-- PARENT TOGGLE --}}
                             <a class="nav-link d-flex align-items-center justify-content-between {{ $isActive ? 'active' : '' }}"
                                href="#"
                                data-bs-toggle="collapse"
@@ -48,20 +56,24 @@
                                     <span class="nav-link-icon">
                                         <i class="ti ti-{{ $item['icon'] }}"></i>
                                     </span>
-                                    <span class="nav-link-title">{{ $item['label'] }}</span>
+                                    <span class="nav-link-title">
+                                        {{ $item['label'] }}
+                                    </span>
                                 </div>
 
-                                {{-- Arrow --}}
+                                {{-- CUSTOM ARROW (ONLY ONE NOW) --}}
                                 <span class="nav-link-toggle">
                                     <i class="ti ti-chevron-right"></i>
                                 </span>
                             </a>
 
+                            {{-- CHILD MENU --}}
                             <div class="collapse {{ $isActive ? 'show' : '' }}"
                                  id="sidebar-{{ Str::slug($item['label']) }}"
                                  data-bs-parent="#sidebar-menu">
 
                                 <ul class="nav nav-sm flex-column sidebar-submenu">
+
                                     @foreach($item['children'] as $child)
                                         @can($child['permission'])
                                         <li class="nav-item">
@@ -72,9 +84,10 @@
                                         </li>
                                         @endcan
                                     @endforeach
-                                </ul>
 
+                                </ul>
                             </div>
+
                         </li>
                         @endif
 
@@ -84,17 +97,23 @@
                         <li class="nav-item">
                             <a href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}"
                                class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}">
+
                                 <span class="nav-link-icon">
                                     <i class="ti ti-{{ $item['icon'] }}"></i>
                                 </span>
-                                <span class="nav-link-title">{{ $item['label'] }}</span>
+
+                                <span class="nav-link-title">
+                                    {{ $item['label'] }}
+                                </span>
                             </a>
                         </li>
                         @endcan
                     @endif
 
                 @endforeach
+
             </ul>
         </div>
+
     </div>
 </aside>

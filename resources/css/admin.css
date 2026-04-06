@@ -363,3 +363,9 @@ header.navbar .container-fluid {
     background-color: rgba(32, 107, 196, 0.08);
     border-radius: 6px;
 }
+
+/* Disable Tabler default collapse arrow */
+.navbar-vertical .nav-link-toggle::after {
+    display: none !important;
+    content: none !important;
+}
