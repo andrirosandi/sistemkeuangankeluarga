@@ -34,6 +34,9 @@ WORKDIR /app
 # Copy application code
 COPY . /app
 
+# Install composer dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Ensure correct permissions for Laravel storage
 RUN mkdir -p /app/storage /app/bootstrap/cache
 RUN chmod -R 777 /app/storage /app/bootstrap/cache
