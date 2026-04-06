@@ -49,7 +49,7 @@
 
     @stack('styles')
 </head>
-<body class="antialiased h-full">
+<body class="antialiased h-full" hx-boost="true" hx-indicator=".htmx-indicator">
     <div class="htmx-indicator"></div>
     <div class="wrapper">
 
