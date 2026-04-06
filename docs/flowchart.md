@@ -109,3 +109,84 @@ graph TD
     REV_BAL[Engine: Kembalikan Saldo]:::system -.-> NOTIF_REV
     NOTIF_REV["Notif: Beritahu User Realisasi Dibatalkan"]:::notif -.-> S_DRAFT
 ```
+
+---
+
+## 3. Sistem Kalkulasi Saldo (Balance Engine)
+
+Model: `balance` | Service: `BalanceService`
+
+Diagram ini menggambarkan bagaimana saldo bulanan dihitung dan dipropagasi ke bulan-bulan berikutnya. Balance Engine dipanggil secara otomatis setiap kali transaksi direalisasikan (`add`) atau dibatalkan (`remove`).
+
+**Rumus inti:**
+```
+Ending = Begin + Total_In - Total_Out
+Begin[bulan N+1] = Ending[bulan N]
+```
+
+```mermaid
+graph TD
+    %% Styling
+    classDef startEnd fill:#1A1A1A,color:#fff,stroke:#333,stroke-width:2px;
+    classDef process fill:#E3F2FD,color:#0D47A1,stroke:#1E88E5,stroke-width:2px;
+    classDef decision fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:2px;
+    classDef system fill:#E8F5E9,color:#1B5E20,stroke:#4CAF50,stroke-width:1px;
+    classDef lock fill:#FFEBEE,color:#B71C1C,stroke:#E53935,stroke-width:2px;
+    classDef propagate fill:#F3E5F5,color:#6A1B9A,stroke:#AB47BC,stroke-width:1px;
+
+    %% Trigger
+    START(["Trigger: Realisasikan / Batalkan Realisasi"]):::startEnd --> INPUT
+
+    INPUT["Input: tanggal transaksi, trans_code, amount, operation"]:::process --> PARSE
+    PARSE["Parse bulan dari tanggal transaksi (Y-m)"]:::process --> LOCK
+    LOCK["DB Transaction + Row-Level Lock (lockForUpdate)"]:::lock --> CHK_EXIST
+
+    %% Check existing balance
+    CHK_EXIST{Record Balance Bulan Ini Sudah Ada?}:::decision
+
+    CHK_EXIST -- "Sudah Ada" --> UPDATE_BAL
+    CHK_EXIST -- "Belum Ada" --> CREATE_BAL
+
+    %% Create new balance record
+    CREATE_BAL["Ambil Ending dari Bulan Sebelumnya"]:::system --> CHK_PREV
+    CHK_PREV{Ada record bulan sebelumnya?}:::decision
+    CHK_PREV -- "Ada" --> USE_PREV["Begin = Ending bulan lalu"]:::process
+    CHK_PREV -- "Tidak Ada" --> USE_ZERO["Begin = 0"]:::process
+    USE_PREV --> NEW_REC
+    USE_ZERO --> NEW_REC
+    NEW_REC["Buat Record: begin, total_in=0, total_out=0, ending=begin"]:::system --> UPDATE_BAL
+
+    %% Update balance
+    UPDATE_BAL{trans_code?}:::decision
+    UPDATE_BAL -- "1 (Kas Masuk)" --> ADD_IN["total_in += sign * amount"]:::process
+    UPDATE_BAL -- "2 (Kas Keluar)" --> ADD_OUT["total_out += sign * amount"]:::process
+
+    ADD_IN --> CALC
+    ADD_OUT --> CALC
+    CALC["ending = begin + total_in - total_out"]:::system --> SAVE
+    SAVE["Simpan Record Balance"]:::system --> PROPAGATE
+
+    %% Propagation
+    PROPAGATE["Propagasi ke Bulan Berikutnya"]:::propagate --> CHK_NEXT
+    CHK_NEXT{Ada record bulan berikutnya?}:::decision
+
+    CHK_NEXT -- "Tidak Ada" --> DONE([Selesai]):::startEnd
+    CHK_NEXT -- "Ada" --> LOOP
+
+    LOOP["Untuk setiap bulan berikutnya:"]:::propagate --> LOOP_CALC
+    LOOP_CALC["begin = ending bulan sebelumnya\nending = begin + total_in - total_out"]:::system --> LOOP_SAVE
+    LOOP_SAVE["Simpan & lanjut ke bulan berikutnya"]:::propagate --> CHK_NEXT
+
+    %% Sign note
+    NOTE["Catatan: sign = +1 (operation: add) atau -1 (operation: remove)"]
+    style NOTE fill:#FFFDE7,color:#F57F17,stroke:#FBC02D,stroke-width:1px,stroke-dasharray: 5 5
+```
+
+### Kapan Balance Engine Dipanggil?
+
+| Aksi | Operation | Efek |
+|------|-----------|------|
+| Realisasikan transaksi | `add` | `total_in` atau `total_out` bertambah |
+| Batalkan realisasi | `remove` | `total_in` atau `total_out` berkurang (revert) |
+| Recalculate manual | - | Hitung ulang dari bulan tertentu ke depan |
+
