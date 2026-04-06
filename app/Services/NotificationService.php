@@ -5,9 +5,36 @@ namespace App\Services;
 use App\Models\Notification;
 use App\Models\RoleVisibility;
 use App\Models\User;
+use App\Models\Setting;
+use App\Mail\NotificationMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
+    /**
+     * Cek apakah SMTP sudah disetup dan siap mengirim email.
+     */
+    private static function isMailReady(): bool
+    {
+        return !empty(Setting::get('smtp_verified_at')) && !empty(Setting::get('mail_host'));
+    }
+
+    /**
+     * Dispatch email notification helper
+     */
+    private static function sendEmailIfReady(User $user, string $message, ?string $routeName, array $routeParams = []): void
+    {
+        if (self::isMailReady() && !empty($user->email)) {
+            try {
+                $actionUrl = $routeName ? route($routeName, $routeParams) : null;
+                Mail::to($user->email)->send(new NotificationMail($message, $actionUrl));
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim email notifikasi: ' . $e->getMessage());
+            }
+        }
+    }
+
     /**
      * Kirim notifikasi ke satu user.
      */
@@ -20,6 +47,11 @@ class NotificationService
             'route_params' => $routeParams,
             'is_read' => false,
         ]);
+
+        $user = User::find($userId);
+        if ($user) {
+            self::sendEmailIfReady($user, $message, $routeName, $routeParams);
+        }
     }
 
     /**
@@ -45,13 +77,16 @@ class NotificationService
                 ->exists();
 
             if (!$exists) {
+                $messageLabel = $keyword . ' dari ' . (auth()->user()->name ?? 'Sistem');
                 Notification::create([
                     'user_id' => $approver->id,
-                    'message' => $keyword . ' dari ' . auth()->user()->name,
+                    'message' => $messageLabel,
                     'route_name' => $routeName,
                     'route_params' => $routeParams,
                     'is_read' => false,
                 ]);
+
+                self::sendEmailIfReady($approver, $messageLabel, $routeName, $routeParams);
             }
         }
     }

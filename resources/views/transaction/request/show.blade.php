@@ -114,20 +114,28 @@
             </div>
             <div class="card-body">
                 @if($requestData->hasMedia('requests'))
-                    <div class="list-group list-group-flush">
+                    <div class="row g-2">
                         @foreach($requestData->getMedia('requests') as $mediaItem)
-                            <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
-                                <div class="text-truncate me-2" style="max-width: 200px;" title="{{ $mediaItem->file_name }}">
-                                    <i class="ti ti-paperclip me-2 text-muted"></i>
-                                    {{ $mediaItem->file_name }}
+                            @php
+                                $isImage = Str::startsWith($mediaItem->mime_type, 'image/');
+                            @endphp
+                            <div class="col-4">
+                                <div class="position-relative border rounded bg-light" style="padding-bottom: 100%; height: 0; overflow: hidden;">
+                                    <a href="{{ $mediaItem->getUrl() }}" target="_blank" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white" title="Lihat/Download">
+                                        @if($isImage)
+                                            <img src="{{ $mediaItem->getUrl() }}" class="img-fluid" style="object-fit: contain; width: 100%; height: 100%;" alt="{{ $mediaItem->file_name }}">
+                                        @else
+                                            <div class="text-center">
+                                                <i class="ti ti-file-text text-muted h1 mb-1"></i>
+                                            </div>
+                                        @endif
+                                    </a>
+                                    <a href="{{ $mediaItem->getUrl() }}" download="{{ $mediaItem->file_name }}" class="btn btn-sm btn-icon btn-primary position-absolute bottom-0 end-0 m-1 rounded-circle shadow-sm" title="Download">
+                                        <i class="ti ti-download" style="font-size: 12px;"></i>
+                                    </a>
                                 </div>
-                                <div>
-                                    <a href="{{ $mediaItem->getUrl() }}" target="_blank" class="btn btn-sm btn-icon btn-outline-info" title="Lihat">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                    <a href="{{ $mediaItem->getUrl() }}" download="{{ $mediaItem->file_name }}" class="btn btn-sm btn-icon btn-primary ms-1" title="Download">
-                                        <i class="ti ti-download"></i>
-                                    </a>
+                                <div class="text-truncate small mt-1 text-center" style="max-width: 100%; font-size: 11px;" title="{{ $mediaItem->file_name }}">
+                                    {{ $mediaItem->file_name }}
                                 </div>
                             </div>
                         @endforeach
@@ -193,7 +201,15 @@
                 <div class="h2 mb-0 text-primary">@uang($requestData->amount)</div>
             </div>
             <div class="d-flex align-items-center gap-2">
-                @if($requestData->status == 'requested' && $requestData->created_by === auth()->id())
+                @if($requestData->status == 'requested' && $requestData->created_by != auth()->id() && auth()->user()->can("{$type}.request.approve"))
+                    <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
+                        <i class="ti ti-x me-1"></i> Tolak
+                    </button>
+                    <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-approve-show">
+                        <i class="ti ti-check me-1"></i> Setujui
+                    </button>
+                @endif
+                @if($requestData->status == 'requested' && $requestData->created_by == auth()->id())
                     <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modal-cancel-show">
                         <i class="ti ti-ban me-1"></i> Batalkan Pengajuan
                     </button>
@@ -218,7 +234,63 @@
         </div>
     </div>
 </div>
-@if($requestData->status == 'requested' && $requestData->created_by === auth()->id())
+@if($requestData->status == 'requested' && $requestData->created_by != auth()->id() && auth()->user()->can("{$type}.request.approve"))
+{{-- Modal Approve --}}
+<div class="modal modal-blur fade" id="modal-approve-show" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-success"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-check text-success icon-lg mb-2"></i>
+                <h3>Setujui Pengajuan</h3>
+                <div class="text-secondary">Anda akan menyetujui pengajuan ini. Transaksi draf akan otomatis dibuat.</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col">
+                            <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST" hx-boost="false">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100">Setujui</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Reject --}}
+<div class="modal modal-blur fade" id="modal-reject-show" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-danger"></div>
+            <form action="{{ route($type . '.request.reject', $requestData->id) }}" method="POST" hx-boost="false">
+                @csrf
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <i class="ti ti-circle-x text-danger icon-lg mb-2"></i>
+                        <h3>Tolak Pengajuan</h3>
+                        <div class="text-secondary">Anda akan menolak pengajuan ini. Silakan berikan alasan.</div>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label class="form-label required">Alasan Penolakan</label>
+                        <textarea class="form-control" name="rejection_reason" rows="3" placeholder="Jelaskan alasan penolakan..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</a>
+                    <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($requestData->status == 'requested' && $requestData->created_by == auth()->id())
 {{-- Modal Cancel (Show Page) --}}
 <div class="modal modal-blur fade" id="modal-cancel-show" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">

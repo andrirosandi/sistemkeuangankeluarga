@@ -54,10 +54,12 @@ class TransactionController extends Controller
 
         $query = TransactionHeader::with(['creator', 'category', 'requestHeader'])
             ->where('trans_code', $transCode)
-            ->where(function ($q) use ($visibleUserIds) {
-                $q->whereIn('created_by', $visibleUserIds)
-                  ->orWhereHas('requestHeader', function ($rq) use ($visibleUserIds) {
-                      $rq->whereIn('created_by', $visibleUserIds);
+            ->where(function ($q) use ($visibleUserIds, $user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereIn('created_by', $visibleUserIds)
+                  ->orWhereHas('requestHeader', function ($rq) use ($visibleUserIds, $user) {
+                      $rq->where('created_by', $user->id)
+                         ->orWhereIn('created_by', $visibleUserIds);
                   });
             });
 
