@@ -52,12 +52,7 @@ return [
             'route'      => 'outstanding.index',
             'permission' => 'outstanding.view',
         ],
-        [
-            'label'      => 'Laporan',
-            'icon'       => 'report-analytics',
-            'route'      => 'report.index',
-            'permission' => 'report.view.self',
-        ],
+
         [
             'label' => 'Master',
             'icon'  => 'database',

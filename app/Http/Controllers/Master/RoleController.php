@@ -43,7 +43,10 @@ class RoleController extends Controller
         $roleOptions = Role::orderBy('name')->get();
         
         // Ambil semua permissions dikelompokkan untuk modal edit
-        $allPermissions = Permission::orderBy('name')->get()->groupBy(function($item) {
+        $allPermissions = Permission::where('name', 'not like', 'report.%')
+            ->orderBy('name')
+            ->get()
+            ->groupBy(function($item) {
             return explode('.', $item->name)[0]; // Group by module (e.g. 'in', 'out', 'user')
         });
 
