@@ -50,6 +50,9 @@ class RoleVisibility extends Model
      */
     public static function getVisibleUserIds(User $user): Collection
     {
+        // Selalu boleh lihat data sendiri - ini di luar aturan role_visibility
+        $selfId = collect([$user->id]);
+
         // Admin bypass — bisa lihat semua data
         if ($user->hasRole('admin')) {
             return User::pluck('id');
@@ -58,8 +61,8 @@ class RoleVisibility extends Model
         $myRole = $user->roles->first();
 
         // Jika user belum punya role, hanya bisa lihat data sendiri
-        if (!$myRole) {
-            return collect([$user->id]);
+        if (! $myRole) {
+            return $selfId;
         }
 
         // Ambil role_id yang boleh di-watch
@@ -69,11 +72,12 @@ class RoleVisibility extends Model
         // Gabungkan dengan role sendiri
         $allVisibleRoleIds = $watchedRoleIds->push($myRole->id)->unique();
 
-        // Ambil semua user_id dari role-role tersebut + diri sendiri
-        return User::role($allVisibleRoleIds->toArray())
-            ->pluck('id')
-            ->push($user->id)
-            ->unique();
+        // Ambil semua user_id dari role-role yang visible
+        $fromRoles = User::role($allVisibleRoleIds->toArray())
+            ->pluck('id');
+
+        // Gabungkan: data sendiri + data dari role yang visible
+        return $selfId->merge($fromRoles)->unique();
     }
 
     /**
@@ -109,7 +113,7 @@ class RoleVisibility extends Model
             ];
         }
 
-        if (!empty($records)) {
+        if (! empty($records)) {
             static::insert($records);
         }
     }
