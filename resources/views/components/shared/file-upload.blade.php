@@ -56,7 +56,12 @@
                     <template x-if="!multiple && files.length > 0">
                         <div class="text-center">
                             <template x-if="files[0].url">
-                                <img :src="files[0].url" class="img-fluid rounded border shadow-sm mb-1" style="max-height:80px; object-fit:contain;">
+                                <div class="position-relative d-inline-block">
+                                    <img :src="files[0].url" class="img-fluid rounded border shadow-sm mb-1" style="max-height:80px; object-fit:contain;">
+                                    <a :href="files[0].url" :download="files[0].name || 'download'" @click.stop class="btn btn-sm btn-icon btn-primary border border-white position-absolute shadow-sm" style="top: -10px; right: -10px; border-radius: 50%; padding: 2px; min-height: 24px; min-width: 24px;" title="Download">
+                                        <i class="ti ti-download" style="font-size: 14px;"></i>
+                                    </a>
+                                </div>
                             </template>
                             <div class="text-primary small fw-bold">Klik untuk ganti</div>
                         </div>
@@ -96,9 +101,14 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-icon btn-ghost-danger btn-sm border-0" @click="removeFile(index)">
-                        <i class="ti ti-x"></i>
-                    </button>
+                    <div class="d-flex align-items-center">
+                        <a :href="file.url" :download="file.name || 'download'" class="btn btn-icon btn-ghost-primary btn-sm border-0" title="Download" x-show="file.url">
+                            <i class="ti ti-download"></i>
+                        </a>
+                        <button type="button" class="btn btn-icon btn-ghost-danger btn-sm border-0 ms-1" @click="removeFile(index)" title="Hapus">
+                            <i class="ti ti-x"></i>
+                        </button>
+                    </div>
                     
                     {{-- Hidden input for form submission --}}
                     <input type="hidden" :name="multiple ? name + '[]' : name" :value="file.id" x-show="file.id">
