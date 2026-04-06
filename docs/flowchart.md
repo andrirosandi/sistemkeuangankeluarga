@@ -1,12 +1,16 @@
 # Core Flowcharts - Sistem Keuangan Keluarga
 
-Dokumen ini berisi standar Flowchart *Core Business Logic* menggunakan sintaks **Mermaid**, yang disusun secara **100% akurat** berdasarkan arsitektur struktur database dan rule pada controller aplikasi `Sistem Keuangan Keluarga`.
+Dokumen ini berisi standar Flowchart *Core Business Logic* menggunakan sintaks **Mermaid**, yang disusun secara **100% akurat** berdasarkan kode di `app/Services/`, `app/Http/Controllers/Transaction/`, dan skema database (`database/migrations/`).
+
+> Render diagram di [Mermaid Live Editor](https://mermaid.live/) atau ekstensi Markdown VS Code, lalu export ke **PDF** untuk dikumpulkan.
 
 ---
 
-## 1. Siklus Pengajuan & Approval (`RequestHeader`)
+## 1. Siklus Pengajuan & Approval
 
-Diagram ini memvisualisasikan perjalanan siklus hidup *Header Pengajuan* (`request_header`), mulai dari draf awal hingga tahap keputusan akhir (Approved/Rejected/Canceled). Diagram ini secara ketat membedakan aksi yang bisa dilakukan berdasarkan status saat ini.
+Model: `request_header` | Service: `FinanceRequestService`
+
+Diagram ini memvisualisasikan perjalanan siklus hidup Pengajuan (`request_header`), mulai dari pembuatan form hingga keputusan final (Approved / Rejected / Canceled).
 
 ```mermaid
 graph TD
@@ -16,43 +20,42 @@ graph TD
     classDef action fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:1px;
     classDef system fill:#E8F5E9,color:#1B5E20,stroke:#4CAF50,stroke-width:1px;
 
-    %% Nodes
-    Start([Mulai: User Buat Form]):::startEnd --> A
-    A[Buat Pengajuan Baru]:::action --> B{Aksi User}
-    
-    B -- "Simpan Draf" --> S_DRAFT[Status: DRAFT]:::status
+    %% Entry
+    Start([Mulai: User Buat Form Pengajuan]):::startEnd --> B{Aksi Simpan}
+
+    B -- "Simpan sebagai Draf" --> S_DRAFT[Status: DRAFT]:::status
     B -- "Langsung Submit" --> S_REQ[Status: REQUESTED]:::status
-    
-    %% Alur DRAF
-    S_DRAFT --> C{Aksi di Draf}
-    C -- "Edit Form" --> S_DRAFT
-    C -- "Hapus Pengajuan" --> Z_DEL([Dihapus dari Sistem]):::startEnd
-    C -- "Submit" --> S_REQ
-    
-    %% Alur REQUESTED (Menunggu Approval)
-    S_REQ --> D_SYS[Sistem: Taruh di Outstanding]:::system
-    D_SYS --> E[Evaluasi Admin]:::action
-    S_REQ --> |Batalkan Pengajuan| S_CXL[Status: CANCELED]:::status
-    
-    %% Keputusan
-    E --> F{Keputusan Admin}
-    
-    F -- "Tolak + Alasan" --> S_REJ[Status: REJECTED]:::status
-    F -- "Setujui" --> S_APP[Status: APPROVED]:::status
-    
-    %% Output End
-    S_APP --> TRIGGER[Sistem: Auto-Create Transaction DRAFT]:::system
-    TRIGGER --> END_APP([Lanjut ke Siklus Realisasi]):::startEnd
-    
-    S_REJ --> END_FAIL([Siklus Selesai]):::startEnd
-    S_CXL --> END_FAIL
+
+    %% Alur DRAFT
+    S_DRAFT --> C{Aksi User di Draf}
+    C -- "Edit & Simpan" --> S_DRAFT
+    C -- "Hapus" --> Z_DEL([Dihapus dari Sistem]):::startEnd
+    C -- "Submit ke Admin" --> S_REQ
+
+    %% Alur REQUESTED
+    S_REQ --> NOTIF[Sistem: Notifikasi ke Approver & Tampil di Outstanding]:::system
+    NOTIF --> EVAL{Keputusan}
+
+    EVAL -- "User Batalkan Sendiri" --> S_CXL[Status: CANCELED]:::status
+    EVAL -- "Admin Tolak + Alasan" --> S_REJ[Status: REJECTED]:::status
+    EVAL -- "Admin Setujui" --> S_APP[Status: APPROVED]:::status
+
+    %% Approved triggers
+    S_APP --> AUTO[Sistem: Auto-Create Transaction DRAFT + Set Detail PENDING]:::system
+    AUTO --> NEXT([Lanjut ke Siklus Realisasi]):::startEnd
+
+    %% Terminal states
+    S_REJ --> FIN([Siklus Selesai - Tidak Bisa Resubmit]):::startEnd
+    S_CXL --> FIN
 ```
 
 ---
 
-## 2. Siklus Realisasi, Saldo & Outstanding (`TransactionHeader` + `Balance`)
+## 2. Siklus Realisasi, Saldo & Outstanding
 
-Diagram ini menggambarkan alur pencairan dana (`transaction_header`) yang mengikat langsung pada Engine Saldo (`balances`), serta bagaimana siklus Realisasi Parsial (Outstanding) ditangani menggunakan integrasi `request_detail`.
+Model: `transaction_header` + `request_detail` | Service: `TransactionService` + `BalanceService`
+
+Diagram ini menggambarkan alur pencairan dana, update saldo, dan penanganan outstanding (realisasi parsial) termasuk write-off.
 
 ```mermaid
 graph TD
@@ -62,36 +65,42 @@ graph TD
     classDef action fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:1px;
     classDef system fill:#FFF8E1,color:#F57F17,stroke:#FBC02D,stroke-width:2px;
     classDef detail fill:#FCE4EC,color:#880E4F,stroke:#D81B60,stroke-width:1px;
-    
-    %% Nodes
-    S_IN1([Mulai: Via Auto-Create Approval]):::startEnd --> S_DRAFT
-    S_IN2([Mulai: Pencatatan Kas Manual]):::startEnd --> S_DRAFT
-    S_IN3([Mulai: Via Cairkan Sisa (Partial)]):::startEnd --> S_DRAFT
-    
-    S_DRAFT[Status Transaksi: DRAFT]:::status --> A{Aksi Transaksi}
-    
-    %% Dari Draft
-    A -- "Hapus Draf" --> DEL[Sistem: Kembalikan Pengajuan ke Requested]:::system
-    A -- "Cairkan Dana" --> S_COMP[Status Transaksi: COMPLETED]:::status
-    
-    %% Action saat Completed
-    S_COMP --> B_BAL[Engine: Update Saldo Balance Bulan Ini]:::system
-    B_BAL --> B_DET[Update Detail Pengajuan -> REALIZED]:::detail
-    
-    %% Cek Sisa Outstanding
-    B_DET --> C{Ada Sisa Outstanding?}
-    
-    %% Realisasi Parsial Loop
-    C -- "Ya, Nominal Kurang / Item Pending" --> P_ACTION{Aksi Admin thd Sisa}
-    P_ACTION -- "Cairkan Sisa" --> S_IN3
-    P_ACTION -- "Batalkan Sisa (Write-off)" --> W_OFF[Sistem: Set Detail -> CLOSED]:::detail
-    W_OFF --> END([Siklus Selesai]):::startEnd
-    
-    %% Beres
-    C -- "Tidak (Dana Full Tercairkan)" --> END
-    
-    %% Revert / Cancel Pencairan
-    S_COMP -.-> |Batalkan Pencairan| REV[Admin Revert ke Draf]:::action
-    REV -.-> REV_BAL[Engine: Kembalikan Saldo]:::system
-    REV_BAL -.-> S_DRAFT
+
+    %% 3 Entry Points
+    IN1([Via Approve Pengajuan - Auto Create]):::startEnd --> S_DRAFT
+    IN2([Via Input Kas Manual - Tanpa Pengajuan]):::startEnd --> S_DRAFT
+    IN3([Via Cairkan Sisa - Partial Outstanding]):::startEnd --> S_DRAFT
+
+    %% DRAFT
+    S_DRAFT[Status Transaksi: DRAFT]:::status --> ACT{Aksi di Draft}
+
+    ACT -- "Edit Draft" --> S_DRAFT
+    ACT -- "Hapus Draft" --> DEL_CHK{Ada Transaksi Lain untuk Pengajuan Ini?}
+    ACT -- "Cairkan Dana" --> COMP_FLOW
+
+    %% Delete logic (sesuai fix Bug 3)
+    DEL_CHK -- "Tidak Ada" --> DEL_RESET[Sistem: Reset Pengajuan ke REQUESTED]:::system
+    DEL_CHK -- "Ada Transaksi Completed" --> DEL_KEEP[Sistem: Hapus Draft, Pengajuan Tetap APPROVED]:::system
+    DEL_RESET --> DEL_END([Draft Dihapus]):::startEnd
+    DEL_KEEP --> DEL_END
+
+    %% Complete flow
+    COMP_FLOW[Sistem: Set Status COMPLETED]:::system --> COMP_BAL
+    COMP_BAL[Engine: Update Saldo Bulan Ini]:::system --> COMP_DET
+    COMP_DET[Set Detail Pengajuan: PENDING -> REALIZED]:::detail --> S_COMP
+    S_COMP[Status Transaksi: COMPLETED]:::status --> CHK{Cek Sisa Outstanding}
+
+    %% Outstanding check
+    CHK -- "Semua Item Terealisasi" --> FIN([Siklus Selesai]):::startEnd
+    CHK -- "Masih Ada Item Pending" --> PARTIAL{Aksi Admin untuk Sisa}
+
+    PARTIAL -- "Cairkan Sisa" --> IN3
+    PARTIAL -- "Write-off Sisa" --> WOFF[Sistem: Set Detail PENDING -> CLOSED]:::detail
+    WOFF --> FIN
+
+    %% Revert / Batalkan Pencairan
+    S_COMP -.-> |Batalkan Pencairan| REV_FLOW
+    REV_FLOW[Sistem: Revert Status ke DRAFT]:::system -.-> REV_DET
+    REV_DET[Revert Detail: REALIZED -> PENDING]:::detail -.-> REV_BAL
+    REV_BAL[Engine: Kembalikan Saldo]:::system -.-> S_DRAFT
 ```
