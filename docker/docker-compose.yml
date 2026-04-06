@@ -16,7 +16,12 @@ services:
     env_file:
       - .env
     volumes:
-      - app-storage:/app/storage/app
+      # Mount entire project from host (no COPY needed)
+      - .:/app:cached
+      # Mount vendor separately for better performance (cached)
+      - vendor:/app/vendor
+      # Mount node_modules separately
+      - node_modules:/app/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -48,7 +53,8 @@ services:
 
 volumes:
   db-data:
-  app-storage:
+  vendor:
+  node_modules:
 
 networks:
   rsndi_network:
