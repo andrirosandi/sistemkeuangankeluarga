@@ -83,7 +83,7 @@ graph TD
 
     %% Delete logic
     DEL_CHK -- "Tidak Ada" --> DEL_RESET[Sistem: Reset Pengajuan ke REQUESTED]:::system
-    DEL_CHK -- "Ada Transaksi Completed" --> DEL_KEEP[Sistem: Hapus Draft, Pengajuan Tetap APPROVED]:::system
+    DEL_CHK -- "Ada Transaksi Lain" --> DEL_KEEP[Sistem: Hapus Draft Saja, Pengajuan Tetap APPROVED]:::system
     DEL_RESET --> DEL_END([Draft Dihapus]):::startEnd
     DEL_KEEP --> DEL_END
 
