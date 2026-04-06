@@ -190,3 +190,52 @@ graph TD
 | Batalkan realisasi | `remove` | `total_in` atau `total_out` berkurang (revert) |
 | Recalculate manual | - | Hitung ulang dari bulan tertentu ke depan |
 
+
+---
+
+## 4. Modul Outstanding / Tindakan Perlu (To-Do List)
+
+Controller: `OutstandingController`
+
+Diagram ini memvisualisasikan bagaimana sistem mengkategorikan dan menyajikan pengajuan/transaksi yang "membutuhkan tindakan" (outstanding) kepada user berdasarkan status dan peran (Creator/Approver).
+
+```mermaid
+graph TD
+    %% Styling
+    classDef startEnd fill:#1A1A1A,color:#fff,stroke:#333,stroke-width:2px;
+    classDef condition fill:#E3F2FD,color:#0D47A1,stroke:#1E88E5,stroke-width:2px;
+    classDef section fill:#F3E5F5,color:#6A1B9A,stroke:#AB47BC,stroke-width:2px;
+    classDef action fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:1px;
+    classDef bgred fill:#FFEBEE,color:#B71C1C,stroke:#E53935,stroke-width:1px;
+
+    %% Entry
+    START([User Akses Modul Outstanding]):::startEnd --> FETCH_REQ[Ambil data request sesuai hak akses user]
+
+    FETCH_REQ --> CHK_1{Status == 'requested' ?}:::condition
+
+    %% Section 1: Menunggu Approval
+    CHK_1 -- "Ya" --> SEC_1["Kategori: Menunggu Approval"]:::section
+    SEC_1 --> ACT_1{"Aksi User (Hak Approver)"}
+    ACT_1 -- "Evaluasi" --> DO_APP[Approve / Reject Pengajuan]:::action
+
+    %% Section 2: Approved, Belum Direalisasikan
+    CHK_1 -- "Tidak" --> CHK_2{Status == 'approved' AND \nBelum ada transaksi 'completed' ?}:::condition
+    CHK_2 -- "Ya" --> SEC_2["Kategori: Approved, Belum Direalisasikan"]:::section
+    SEC_2 --> ACT_2{"Aksi User"}
+    ACT_2 -- "Input Realisasi" --> DO_REAL[Buka & Edit Draft Realisasi Pertama]:::action
+
+    %% Section 3: Realisasi Parsial
+    CHK_2 -- "Tidak" --> CHK_3{Status == 'approved' AND \nAda transaksi 'completed' AND \nMasih ada Detail 'pending' ?}:::condition
+    CHK_3 -- "Ya" --> SEC_3["Kategori: Realisasi Parsial"]:::section
+
+    SEC_3 --> CHK_DRAFT{Apakah punya draft lanjutan?}
+    CHK_DRAFT -- "Ya" --> ACT_3A[Realisasikan (Via Draft yang ada)]:::action
+    CHK_DRAFT -- "Tidak" --> ACT_3B[Realisasikan Sisa (Auto-buat Draft baru)]:::action
+
+    SEC_3 --> ACT_DROPDOWN{"Aksi Dropdown Lainnya"}
+    ACT_DROPDOWN -- "Batalkan Realisasi Terakhir" --> CANCEL_LAST[Revert Transaksi Terakhir ke Draft]:::action
+    ACT_DROPDOWN -- "Batalkan Sisanya (Write-off)" --> WRITE_OFF[Ubah Detail Sisa Menjadi 'Closed']:::bgred
+
+    %% Selesai
+    CHK_3 -- "Tidak (Sudah beres semua)" --> IGNORE[Diabaikan dari Outstanding]:::startEnd
+```
