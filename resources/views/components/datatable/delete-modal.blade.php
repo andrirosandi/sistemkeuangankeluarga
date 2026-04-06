@@ -15,7 +15,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
                         <div class="col">
-                            <form id="{{ $formId }}" method="POST">
+                            <form id="{{ $formId }}" method="POST" hx-boost="false">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger w-100">Hapus</button>

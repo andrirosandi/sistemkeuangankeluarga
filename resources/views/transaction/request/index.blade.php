@@ -107,61 +107,52 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center justify-content-start justify-content-md-end gap-2" data-label="Aksi">
-                                    <a href="{{ route($type . '.request.show', $req->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                    
                                     @if($req->status === 'draft')
                                         @can($type . '.request.edit')
-                                        <a href="{{ route($type . '.request.edit', $req->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-2" data-bs-toggle="tooltip" title="Edit">
-                                            <i class="ti ti-pencil"></i>
+                                        <a href="{{ route($type . '.request.edit', $req->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat & Edit">
+                                            <i class="ti ti-eye me-1"></i> Lihat
                                         </a>
+                                        @else
+                                        <a href="{{ route($type . '.request.show', $req->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
+                                            <i class="ti ti-eye me-1"></i> Lihat
+                                        </a>
+                                        @endcan
+                                    @else
+                                        <a href="{{ route($type . '.request.show', $req->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
+                                            <i class="ti ti-eye me-1"></i> Lihat
+                                        </a>
+                                    @endif
 
-                                        <button class="btn btn-icon btn-sm btn-ghost-success rounded-2" 
-                                                onclick="submitRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
-                                                data-bs-toggle="tooltip" 
-                                                title="Ajukan">
-                                            <i class="ti ti-send"></i>
+                                    <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                        <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary rounded-2" @click="open = !open" :class="{'show': open}" aria-label="More actions">
+                                            <i class="ti ti-dots-vertical"></i>
                                         </button>
-                                        @endcan
-                                        
-                                        @can($type . '.request.delete')
-                                        <x-datatable.row-action 
-                                            type="delete" 
-                                            onclick="deleteRequest({{ $req->id }}, '{{ addslashes($req->description) }}')" 
-                                            title="Hapus Draft" />
-                                        @endcan
-                                    @endif
+                                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                            @if($req->status === 'draft')
+                                                @can($type . '.request.edit')
+                                                <button class="dropdown-item text-success"
+                                                        onclick="submitRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false;">
+                                                    <i class="ti ti-send me-2"></i> Ajukan Pengajuan
+                                                </button>
+                                                @endcan
 
-                                    @if($req->status === 'requested')
-                                        @if($req->created_by === auth()->id())
-                                            <button class="btn btn-icon btn-sm btn-ghost-dark rounded-2"
-                                                    onclick="cancelRequest({{ $req->id }}, '{{ addslashes($req->description) }}')"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Batalkan">
-                                                <i class="ti ti-ban"></i>
-                                            </button>
-                                        @endif
-                                        @if($req->created_by !== auth()->id() || auth()->user()->can($type . '.request.self-approve'))
-                                            @can($type . '.request.approve')
-                                            <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
-                                                <div class="btn-group">
-                                                    <button class="btn btn-sm btn-success rounded-start-2"
-                                                            onclick="approveRequest({{ $req->id }}, '{{ addslashes($req->description) }}')">
-                                                        <i class="ti ti-circle-check me-1"></i> Approve
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
-                                                        <button class="dropdown-item text-danger" @click="rejectRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false">
-                                                            <i class="ti ti-circle-x me-2"></i> Reject Pengajuan
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @endcan
-                                        @endif
-                                    @endif
+                                                @can($type . '.request.delete')
+                                                <div class="dropdown-divider"></div>
+                                                <button class="dropdown-item text-danger"
+                                                        onclick="deleteRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false;">
+                                                    <i class="ti ti-trash me-2"></i> Hapus Draft
+                                                </button>
+                                                @endcan
+                                            @endif
+
+                                            @if($req->status === 'requested' && $req->created_by === auth()->id())
+                                                <button class="dropdown-item text-dark"
+                                                        onclick="cancelRequest({{ $req->id }}, '{{ addslashes($req->description) }}'); open = false;">
+                                                    <i class="ti ti-ban me-2"></i> Batalkan Pengajuan
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -201,7 +192,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
                         <div class="col">
-                            <form id="form-submit" method="POST">
+                            <form id="form-submit" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-success w-100">Ajukan</button>
                             </form>
@@ -213,39 +204,11 @@
     </div>
 </div>
 
-{{-- Modal Approve --}}
-<div class="modal modal-blur fade" id="modal-approve" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-success"></div>
-            <div class="modal-body text-center py-4">
-                <i class="ti ti-circle-check text-success icon-lg mb-2"></i>
-                <h3>Setujui Pengajuan</h3>
-                <div class="text-secondary">Setujui pengajuan <strong id="approve-name"></strong>? Sistem akan otomatis membuat draf realisasi dana.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
-                        <div class="col">
-                            <form id="form-approve" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-success w-100">Setujui</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal Reject --}}
-<div class="modal modal-blur fade" id="modal-reject" tabindex="-1" role="dialog" aria-hidden="true">
+{{-- Modal Cancel -}}
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-status bg-danger"></div>
-            <form id="form-reject" method="POST">
+            <form id="form-reject" method="POST" hx-boost="false">
                 @csrf
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">
@@ -282,7 +245,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
                         <div class="col">
-                            <form id="form-cancel" method="POST">
+                            <form id="form-cancel" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-dark w-100">Batalkan</button>
                             </form>
@@ -309,18 +272,6 @@
         document.getElementById('form-submit').action = `${baseUrl}/${id}/submit`;
         document.getElementById('submit-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-submit')).show();
-    }
-
-    function approveRequest(id, name) {
-        document.getElementById('form-approve').action = `${baseUrl}/${id}/approve`;
-        document.getElementById('approve-name').innerText = name;
-        new bootstrap.Modal(document.getElementById('modal-approve')).show();
-    }
-
-    function rejectRequest(id, name) {
-        document.getElementById('form-reject').action = `${baseUrl}/${id}/reject`;
-        document.getElementById('reject-name').innerText = name;
-        new bootstrap.Modal(document.getElementById('modal-reject')).show();
     }
 
     function cancelRequest(id, name) {

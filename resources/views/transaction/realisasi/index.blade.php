@@ -106,44 +106,48 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center justify-content-end gap-2">
-                                    <a href="{{ route($type . '.transaction.show', $trx->id) }}" class="btn btn-icon btn-sm btn-ghost-info rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
-                                        <i class="ti ti-eye"></i>
+                                    @can($type . '.transaction.edit')
+                                    <a href="{{ route($type . '.transaction.edit', $trx->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat & Edit">
+                                        <i class="ti ti-eye me-1"></i> Lihat
                                     </a>
+                                    @else
+                                    <a href="{{ route($type . '.transaction.show', $trx->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
+                                        <i class="ti ti-eye me-1"></i> Lihat
+                                    </a>
+                                    @endcan
 
-                                    @if($trx->status === 'draft')
-                                        @can($type . '.transaction.edit')
-                                        <a href="{{ route($type . '.transaction.edit', $trx->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-2" data-bs-toggle="tooltip" title="Edit">
-                                            <i class="ti ti-pencil"></i>
-                                        </a>
-
-                                        <button class="btn btn-icon btn-sm btn-ghost-success rounded-2"
-                                                onclick="completeTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
-                                                data-bs-toggle="tooltip"
-                                                title="Cairkan Dana">
-                                            <i class="ti ti-cash"></i>
+                                    <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
+                                        <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary rounded-2" @click="open = !open" :class="{'show': open}" aria-label="More actions">
+                                            <i class="ti ti-dots-vertical"></i>
                                         </button>
-                                        @endcan
+                                        <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
+                                            @if($trx->status === 'draft')
+                                                @can($type . '.transaction.edit')
+                                                <button class="dropdown-item text-success"
+                                                        onclick="completeTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}'); open = false;">
+                                                    <i class="ti ti-cash me-2"></i> Cairkan Dana
+                                                </button>
+                                                @endcan
 
-                                        @can($type . '.transaction.delete')
-                                        <button class="btn btn-icon btn-sm btn-ghost-danger rounded-2"
-                                                onclick="deleteTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
-                                                data-bs-toggle="tooltip"
-                                                title="Hapus Draft">
-                                            <i class="ti ti-trash"></i>
-                                        </button>
-                                        @endcan
-                                    @endif
+                                                @can($type . '.transaction.delete')
+                                                <div class="dropdown-divider"></div>
+                                                <button class="dropdown-item text-danger"
+                                                        onclick="deleteTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}'); open = false;">
+                                                    <i class="ti ti-trash me-2"></i> Hapus Draft
+                                                </button>
+                                                @endcan
+                                            @endif
 
-                                    @if($trx->status === 'completed')
-                                        @can($type . '.transaction.edit')
-                                        <button class="btn btn-icon btn-sm btn-ghost-warning rounded-2"
-                                                onclick="cancelTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}')"
-                                                data-bs-toggle="tooltip"
-                                                title="Batalkan (Kembali ke Draft)">
-                                            <i class="ti ti-rotate-2"></i>
-                                        </button>
-                                        @endcan
-                                    @endif
+                                            @if($trx->status === 'completed')
+                                                @can($type . '.transaction.edit')
+                                                <button class="dropdown-item text-warning"
+                                                        onclick="cancelTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}'); open = false;">
+                                                    <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan
+                                                </button>
+                                                @endcan
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -180,7 +184,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
                         <div class="col">
-                            <form id="form-complete" method="POST">
+                            <form id="form-complete" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-success w-100">Cairkan</button>
                             </form>
@@ -207,7 +211,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Kembali</a></div>
                         <div class="col">
-                            <form id="form-cancel" method="POST">
+                            <form id="form-cancel" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-warning w-100">Batalkan</button>
                             </form>
@@ -243,6 +247,20 @@
         document.getElementById('delete-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
+
+    // Ensure forms submit as normal HTML forms (not AJAX)
+    document.addEventListener('DOMContentLoaded', function() {
+        ['form-complete', 'form-cancel', 'form-delete'].forEach(function(formId) {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Allow normal form submission
+                    // Don't prevent default - let the browser handle it
+                    console.log('Submitting form:', formId, 'to', form.action);
+                });
+            }
+        });
+    });
 </script>
 <x-datatable.list-init valueNames="[
     { name: 'sort-desc', attr: 'data-desc' },

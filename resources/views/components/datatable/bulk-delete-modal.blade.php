@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = route;
+            form.setAttribute('hx-boost', 'false');
             var csrf = document.createElement('input');
             csrf.type = 'hidden'; csrf.name = '_token'; csrf.value = '{{ csrf_token() }}';
             form.appendChild(csrf);

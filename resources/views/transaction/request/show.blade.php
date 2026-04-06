@@ -195,22 +195,10 @@
                 <div class="h2 mb-0 text-primary">@uang($requestData->amount)</div>
             </div>
             <div class="d-flex align-items-center gap-2">
-                @if($requestData->status == 'requested')
-                    @if($requestData->created_by === auth()->id())
-                        <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modal-cancel-show">
-                            <i class="ti ti-ban me-1"></i> Batalkan Pengajuan
-                        </button>
-                    @endif
-                    @if($requestData->created_by !== auth()->id() || auth()->user()->can($type . '.request.self-approve'))
-                        @can($type . '.request.approve')
-                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-show">
-                                <i class="ti ti-circle-x me-1"></i> Tolak
-                            </button>
-                            <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-approve-show">
-                                <i class="ti ti-circle-check me-1"></i> Setujui
-                            </button>
-                        @endcan
-                    @endif
+                @if($requestData->status == 'requested' && $requestData->created_by === auth()->id())
+                    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modal-cancel-show">
+                        <i class="ti ti-ban me-1"></i> Batalkan Pengajuan
+                    </button>
                 @endif
                 @if($requestData->status == 'draft')
                     <a href="{{ route($type . '.request.edit', $requestData->id) }}" class="btn btn-primary shadow-sm">
@@ -222,7 +210,7 @@
                        $realizedAmount = $requestData->transactions->where('status', 'completed')->sum('amount');
                        $isPartial = $realizedAmount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
                     @endphp
-                    @if($isPartial && (auth()->id() === $requestData->created_by || auth()->user()->can($type . '.request.approve')))
+                    @if($isPartial && auth()->id() === $requestData->created_by)
                         <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-writeoff-show">
                             <i class="ti ti-ban me-1"></i> Batalkan Sisa Realisasi
                         </button>
@@ -232,61 +220,7 @@
         </div>
     </div>
 </div>
-@if($requestData->status == 'requested')
-{{-- Modal Approve (Show Page) --}}
-<div class="modal modal-blur fade" id="modal-approve-show" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-success"></div>
-            <div class="modal-body text-center py-4">
-                <i class="ti ti-circle-check text-success icon-lg mb-2"></i>
-                <h3>Setujui Pengajuan</h3>
-                <div class="text-secondary">Setujui pengajuan <strong>{{ $requestData->description }}</strong>? Draf realisasi akan otomatis dibuat.</div>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100">
-                    <div class="row">
-                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
-                        <div class="col">
-                            <form action="{{ route($type . '.request.approve', $requestData->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-success w-100">Ya, Setujui</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal Reject (Show Page) --}}
-<div class="modal modal-blur fade" id="modal-reject-show" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-status bg-danger"></div>
-            <form action="{{ route($type . '.request.reject', $requestData->id) }}" method="POST">
-                @csrf
-                <div class="modal-body py-4">
-                    <div class="text-center mb-4">
-                        <i class="ti ti-circle-x text-danger icon-lg mb-2"></i>
-                        <h3>Tolak Pengajuan</h3>
-                        <div class="text-secondary">Tolak pengajuan <strong>{{ $requestData->description }}</strong>?</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label required">Alasan Penolakan</label>
-                        <textarea class="form-control" name="rejection_reason" rows="3" placeholder="Jelaskan alasan penolakan..." required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="#" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</a>
-                    <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+@if($requestData->status == 'requested' && $requestData->created_by === auth()->id())
 {{-- Modal Cancel (Show Page) --}}
 <div class="modal modal-blur fade" id="modal-cancel-show" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
@@ -302,7 +236,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
                         <div class="col">
-                            <form action="{{ route($type . '.request.cancel', $requestData->id) }}" method="POST">
+                            <form action="{{ route($type . '.request.cancel', $requestData->id) }}" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-dark w-100">Batalkan</button>
                             </form>
@@ -336,7 +270,7 @@
                         <div class="row">
                             <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Tutup</a></div>
                             <div class="col">
-                                <form action="{{ route($type . '.request.writeoff', $requestData->id) }}" method="POST">
+                                <form action="{{ route($type . '.request.writeoff', $requestData->id) }}" method="POST" hx-boost="false">
                                     @csrf
                                     <button type="submit" class="btn btn-danger w-100">Ya, Batalkan</button>
                                 </form>

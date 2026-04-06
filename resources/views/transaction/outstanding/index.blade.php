@@ -98,7 +98,7 @@
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
                     $days = now()->diffInDays($r->created_at);
                 @endphp
-                <tr>
+                <tr data-request-id="{{ $r->id }}">
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>
                     <td>{{ \Carbon\Carbon::parse($r->request_date)->translatedFormat('d M Y') }}</td>
                     <td>
@@ -179,7 +179,7 @@
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
                     $daysApproved = $r->approved_at ? now()->diffInDays($r->approved_at) : 0;
                 @endphp
-                <tr>
+                <tr data-request-id="{{ $r->id }}">
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>
                     <td>{{ \Carbon\Carbon::parse($r->request_date)->translatedFormat('d M Y') }}</td>
                     <td>{{ Str::limit($r->description, 40) }}</td>
@@ -263,7 +263,7 @@
                     $draft = $r->transactions->where('status', 'draft')->first();
                     $latestCompleted = $r->transactions->where('status', 'completed')->sortByDesc('transaction_date')->first();
                 @endphp
-                <tr>
+                <tr data-request-id="{{ $r->id }}">
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>
                     <td>{{ \Carbon\Carbon::parse($r->request_date)->translatedFormat('d M Y') }}</td>
                     <td>{{ Str::limit($r->description, 40) }}</td>
@@ -366,7 +366,7 @@
                             </a>
                         </div>
                         <div class="col">
-                            <form id="form-approve" method="POST">
+                            <form id="form-approve" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="ti ti-check me-1"></i> Ya, Setujui
@@ -386,7 +386,7 @@
         <div class="modal-content">
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
-            <form id="form-reject" method="POST">
+            <form id="form-reject" method="POST" hx-boost="false">
                 @csrf
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">
@@ -438,7 +438,7 @@
                             </a>
                         </div>
                         <div class="col">
-                            <form id="form-writeoff" method="POST">
+                            <form id="form-writeoff" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-danger w-100">
                                     <i class="ti ti-ban me-1"></i> Ya, Batalkan
@@ -466,7 +466,7 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Kembali</a></div>
                         <div class="col">
-                            <form id="form-cancel-trx" method="POST">
+                            <form id="form-cancel-trx" method="POST" hx-boost="false">
                                 @csrf
                                 <button type="submit" class="btn btn-warning w-100">Batalkan</button>
                             </form>
@@ -483,20 +483,37 @@
 
 @push('scripts')
 <script>
+    // Highlight dan scroll ke request spesifik jika ada request_id di URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const highlightRequestId = '{{ $highlightRequestId ?? '' }}';
+        if (highlightRequestId) {
+            // Cari elemen dengan request_id yang sesuai
+            const requestRow = document.querySelector(`[data-request-id="${highlightRequestId}"]`);
+            if (requestRow) {
+                // Tambah highlight effect
+                requestRow.classList.add('table-primary');
+                requestRow.style.animation = 'highlight-pulse 2s ease-in-out';
+
+                // Scroll ke element
+                requestRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
     function approveRequest(id, name, typeKey) {
         var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
         document.getElementById('form-approve').action = `/${prefix}/pengajuan/${id}/approve`;
         document.getElementById('approve-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-approve')).show();
     }
-    
+
     function rejectRequest(id, name, typeKey) {
         var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
         document.getElementById('form-reject').action = `/${prefix}/pengajuan/${id}/reject`;
         document.getElementById('reject-name').innerText = name;
         new bootstrap.Modal(document.getElementById('modal-reject')).show();
     }
-    
+
     function writeoffRequest(id, name, typeKey) {
         var prefix = typeKey === 'in' ? 'kas-masuk' : 'kas-keluar';
         document.getElementById('form-writeoff').action = `/${prefix}/pengajuan/${id}/writeoff`;
@@ -518,4 +535,12 @@
         new bootstrap.Modal(document.getElementById('modal-delete')).show();
     }
 </script>
+
+<style>
+    @keyframes highlight-pulse {
+        0% { background-color: rgba(13, 110, 253, 0.3); }
+        50% { background-color: rgba(13, 110, 253, 0.6); }
+        100% { background-color: rgba(13, 110, 253, 0.3); }
+    }
+</style>
 @endpush

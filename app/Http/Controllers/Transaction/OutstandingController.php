@@ -13,16 +13,19 @@ class OutstandingController extends Controller
     {
         $user = auth()->user();
         $visibleUserIds = RoleVisibility::getVisibleUserIds($user);
+        $highlightRequestId = $request->query('request_id');
 
         // 1. Menunggu Approval — request.status = 'requested'
-        $requested = RequestHeader::with(['category', 'creator'])
+        $requestedQuery = RequestHeader::with(['category', 'creator'])
             ->whereIn('created_by', $visibleUserIds)
-            ->where('status', 'requested')
+            ->where('status', 'requested');
+
+        $requested = $requestedQuery
             ->orderByRaw("FIELD(priority, 'high', 'normal', 'low'), created_at ASC")
             ->get();
 
         // 2. Approved, Belum Cair — request.status = 'approved' + BELUM ADA transaction yg completed
-        $approvedDraft = RequestHeader::with(['category', 'creator', 'approver', 'transactions'])
+        $approvedDraftQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
             ->whereDoesntHave('transactions', function ($q) {
@@ -30,7 +33,9 @@ class OutstandingController extends Controller
             })
             ->whereHas('details', function ($dq) {
                 $dq->where('status', 'pending');
-            })
+            });
+
+        $approvedDraft = $approvedDraftQuery
             ->orderBy('approved_at', 'asc')
             ->get();
 
@@ -39,7 +44,7 @@ class OutstandingController extends Controller
         //      pending  = belum cair (masih outstanding)
         //      realized = sudah cair (selesai)
         //      closed   = di-write-off (selesai)
-        $partial = RequestHeader::with(['category', 'creator', 'approver', 'transactions', 'details'])
+        $partialQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions', 'details'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
             ->whereHas('transactions', function ($q) {
@@ -47,14 +52,17 @@ class OutstandingController extends Controller
             })
             ->whereHas('details', function ($dq) {
                 $dq->where('status', 'pending');
-            })
+            });
+
+        $partial = $partialQuery
             ->orderBy('approved_at', 'asc')
             ->get();
 
         return view('transaction.outstanding.index', compact(
             'requested',
             'approvedDraft',
-            'partial'
+            'partial',
+            'highlightRequestId'
         ));
     }
 }
