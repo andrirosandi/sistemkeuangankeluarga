@@ -4,14 +4,53 @@
 
 @section('content')
 <script>
-    // Global data - must be defined early
+    // Global data - must be defined early with all methods
     window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
     window.templateFormData = {
         categories: window.templateCategories,
         selectedCategoryId: String('{{ old('category_id', '') }}'),
         items: {{ Js::from(old('details')) }} || [
             { description: '', amount: 0 }
-        ]
+        ],
+
+        get selectedCategoryColor() {
+            if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                return this.categories[this.selectedCategoryId].color;
+            }
+            return null;
+        },
+
+        init() {
+            if (!Array.isArray(this.items)) {
+                this.items = [];
+            }
+
+            if (this.items.length === 0) {
+                this.addItem();
+            }
+        },
+
+        addItem() {
+            this.items.push({ description: '', amount: 0 });
+        },
+
+        removeItem(index) {
+            if (this.items.length > 1) {
+                this.items.splice(index, 1);
+            }
+        },
+
+        get totalAmount() {
+            return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+        },
+
+        formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
     };
 </script>
 
@@ -178,49 +217,3 @@
 </form>
 
 @endsection
-
-@push('scripts')
-<script>
-// Extend global data with methods - works regardless of when this script executes
-Object.assign(window.templateFormData, {
-    get selectedCategoryColor() {
-        if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-            return this.categories[this.selectedCategoryId].color;
-        }
-        return null;
-    },
-
-    init() {
-        if (!Array.isArray(this.items)) {
-            this.items = [];
-        }
-
-        if (this.items.length === 0) {
-            this.addItem();
-        }
-    },
-
-    addItem() {
-        this.items.push({ description: '', amount: 0 });
-    },
-
-    removeItem(index) {
-        if (this.items.length > 1) {
-            this.items.splice(index, 1);
-        }
-    },
-
-    get totalAmount() {
-        return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-    },
-
-    formatRupiah(number) {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(number);
-    }
-});
-</script>
-@endpush

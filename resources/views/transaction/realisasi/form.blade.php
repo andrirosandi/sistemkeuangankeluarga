@@ -49,12 +49,41 @@
 @endphp
 
 <script>
-    // Global data - must be defined early
+    // Global data - must be defined early with all methods
     window.transactionCategories = @json($categories->keyBy('id'));
     window.transactionFormData = {
         categories: window.transactionCategories,
         selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
-        items: @json($defaultItems)
+        items: @json($defaultItems),
+
+        get selectedCategoryColor() {
+            if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                return this.categories[this.selectedCategoryId].color;
+            }
+            return null;
+        },
+
+        get totalAmount() {
+            return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
+        },
+
+        addItem() {
+            this.items.push({ id: null, description: '', amount: 0 });
+        },
+
+        removeItem(index) {
+            if (this.items.length > 1) {
+                this.items.splice(index, 1);
+            }
+        },
+
+        formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
     };
 </script>
 
@@ -220,39 +249,3 @@
     </div>
 </form>
 @endsection
-
-@push('scripts')
-<script>
-// Extend global data with methods - works regardless of when this script executes
-Object.assign(window.transactionFormData, {
-    get selectedCategoryColor() {
-        if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-            return this.categories[this.selectedCategoryId].color;
-        }
-        return null;
-    },
-
-    get totalAmount() {
-        return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
-    },
-
-    addItem() {
-        this.items.push({ id: null, description: '', amount: 0 });
-    },
-
-    removeItem(index) {
-        if (this.items.length > 1) {
-            this.items.splice(index, 1);
-        }
-    },
-
-    formatRupiah(number) {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(number);
-    }
-});
-</script>
-@endpush
