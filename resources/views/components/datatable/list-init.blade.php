@@ -7,7 +7,7 @@
 @endonce
 
 <script>
-(function () {
+window.addEventListener('load', function () {
     var tableSelector = window.initSmartTableSelection({
         batchBarId: 'batch-action-bar',
         countId: 'selected-count'
@@ -41,5 +41,5 @@
     });
 
     window.{{ $listVar }} = list;
-})();
+});
 </script>
