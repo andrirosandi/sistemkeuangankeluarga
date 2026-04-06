@@ -65,6 +65,17 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- Danger Zone: Reset Aplikasi --}}
+                            <div class="mt-5 pt-4 border-top">
+                                <h4 class="text-danger mb-3"><i class="ti ti-trash me-2"></i>Reset Aplikasi (Interview)</h4>
+                                <div class="alert alert-danger">
+                                    <div class="mb-2">Hapus semua data dalam database dan lakukan setup ulang.</div>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-reset">
+                                        <i class="ti ti-refresh me-1"></i>Kosongkan DB & Setup Ulang
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-finance" role="tabpanel">
@@ -183,6 +194,39 @@
                     <div class="row">
                         <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Nanti</a></div>
                         <div class="col"><button type="submit" form="form-otp" class="btn btn-primary w-100">Verifikasi</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Reset Aplikasi --}}
+<div class="modal modal-blur fade" id="modal-reset" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-status bg-danger"></div>
+            <div class="modal-body text-center py-4">
+                <i class="ti ti-alert-triangle text-danger icon-lg mb-2"></i>
+                <h3>Reset Aplikasi?</h3>
+                <div class="text-secondary mb-3">
+                    Semua tabel database akan dikosongkan dan aplikasi akan mulai lagi dari menu setup awal.
+                    <br><br>
+                    <strong class="text-danger">Tindakan ini tidak dapat dibatalkan!</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <div class="row">
+                        <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Batal</a></div>
+                        <div class="col">
+                            <form action="{{ route('settings.reset') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-danger w-100" onclick="this.disabled=true;this.closest('form').submit();">
+                                    <i class="ti ti-trash me-1"></i>Ya, Reset!
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

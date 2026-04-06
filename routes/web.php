@@ -140,6 +140,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index')->middleware('can:setting.view');
     Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update')->middleware('can:setting.edit');
     Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp')->middleware('can:setting.edit');
+    Route::post('/pengaturan/reset', [\App\Http\Controllers\Master\SettingController::class, 'reset'])->name('settings.reset')->middleware('can:setting.edit');
 
     // Dedicated Upload API
     Route::post('/api/upload-media', [\App\Http\Controllers\Api\UploadController::class, 'store'])->name('api.upload');

@@ -173,4 +173,31 @@ class SettingController extends Controller
             $setting->update(['value' => $newMedia->file_name]);
         }
     }
+
+    /**
+     * Reset aplikasi ke kondisi awal (hapus semua data & user).
+     * Dibuatkan khusus untuk interview.
+     * Setelah reset, akan redirect ke /setup untuk setup ulang.
+     */
+    public function reset()
+    {
+        if (! auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        try {
+            auth()->logout();
+            Session::flush();
+
+            \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+            
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+
+            return redirect()->route('setup.index')->with('info', 'Aplikasi telah direset. Silakan lakukan setup ulang.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mereset aplikasi! ' . $e->getMessage());
+        }
+    }
 }
