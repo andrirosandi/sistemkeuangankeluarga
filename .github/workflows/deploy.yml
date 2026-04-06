@@ -28,7 +28,7 @@ jobs:
 
             # Build image baru (COPY code ke dalam image)
             docker compose down
-            docker compose build --no-cache
+            docker compose build
 
             # Jalankan container
             docker compose up -d
