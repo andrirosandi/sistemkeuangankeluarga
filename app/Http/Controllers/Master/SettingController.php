@@ -74,6 +74,15 @@ class SettingController extends Controller
 
                 $oldValue = Setting::get($key);
 
+                // Untuk mail_password, bandingkan dengan nilai yang sudah didekripsi
+                if ($key === 'mail_password' && !empty($oldValue)) {
+                    try {
+                        $oldValue = Crypt::decryptString($oldValue);
+                    } catch (\Exception $e) {
+                        // Jika gagal dekripsi, anggap berubah
+                    }
+                }
+
                 if (in_array($key, $smtpFields) && $value != $oldValue) {
                     $smtpChanged = true;
                 }
@@ -122,6 +131,7 @@ class SettingController extends Controller
         try {
             // Set config sementara untuk kirim email
             config([
+                'mail.default' => 'smtp',
                 'mail.mailers.smtp.host' => $request->mail_host,
                 'mail.mailers.smtp.port' => $request->mail_port,
                 'mail.mailers.smtp.username' => $request->mail_username,
@@ -129,6 +139,9 @@ class SettingController extends Controller
                 'mail.mailers.smtp.encryption' => $request->mail_encryption,
                 'mail.from.address' => $request->mail_from,
             ]);
+
+            // Purge cached SMTP transport agar config baru dipakai
+            Mail::purge('smtp');
 
             // Generate dan simpan OTP
             $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);

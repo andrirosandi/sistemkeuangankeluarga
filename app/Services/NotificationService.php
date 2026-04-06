@@ -108,9 +108,16 @@ class NotificationService
 
         $keyword = 'Pengajuan baru menunggu persetujuan: <strong>' . htmlspecialchars($req->description) . '</strong>';
 
+        $createdBy = $req->created_by;
+
         foreach ($approvers as $approver) {
+            // Jangan kirim notifikasi ke pembuat request itu sendiri
+            if ($approver->id == $createdBy) {
+                continue;
+            }
+
             $visibleUserIds = RoleVisibility::getVisibleUserIds($approver);
-            if (!$visibleUserIds->contains($req->created_by)) {
+            if (!$visibleUserIds->contains($createdBy)) {
                 continue;
             }
 

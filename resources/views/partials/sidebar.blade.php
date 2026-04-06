@@ -69,7 +69,7 @@
 
                                     @foreach($item['children'] as $child)
                                         @can($child['permission'])
-                                        <li class="nav-item">
+                                        <li class="nav-item" style="padding-left: 44px !important">
                                             <a href="{{ Route::has($child['route']) ? route($child['route']) : '#' }}"
                                                class="nav-link {{ request()->routeIs($child['route']) ? 'active' : '' }}">
                                                 {{ $child['label'] }}
@@ -87,7 +87,7 @@
                     {{-- ================= SINGLE MENU ================= --}}
                     @else
                         @can($item['permission'])
-                        <li class="nav-item" style="padding-left: 44px !important;">
+                        <li class="nav-item">
                             <a href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}"
                                class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}">
 

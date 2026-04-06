@@ -372,6 +372,9 @@
                         badge.className = 'badge bg-success-lt';
                         badge.innerHTML = '<i class="ti ti-check me-1" style="font-size: 16px;"></i>Terverifikasi';
                     }
+                    // Reset verify button to success state
+                    btnVerifyOtp.innerHTML = '<i class="ti ti-check me-1"></i>Terverifikasi';
+                    inputOtp.disabled = true;
                 } else {
                     otpStatus.className = 'mt-2 alert alert-danger';
                     otpStatus.innerHTML = '<i class="ti ti-alert-circle me-1"></i>' + result.message;
