@@ -92,6 +92,15 @@ function initScripts(target) {
     // Re-init Dropdowns
     scope.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => bootstrap.Dropdown.getOrCreateInstance(el));
 
+    // Re-init Collapses - ONLY initialize if not already initialized
+    // This prevents multiple instances on the same element which breaks toggle behavior
+    scope.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
+        // Only initialize if there's no existing instance
+        if (!bootstrap.Collapse.getInstance(el)) {
+            bootstrap.Collapse.getOrCreateInstance(el);
+        }
+    });
+
     // Re-init Tooltips
     scope.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => bootstrap.Tooltip.getOrCreateInstance(el));
 

@@ -31,8 +31,8 @@
                         @endphp
 
                         @if($hasAccess)
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }}"
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'active' : '' }}"
                                href="#sidebar-{{ Str::slug($item['label']) }}"
                                data-bs-toggle="collapse"
                                hx-boost="false"
@@ -43,16 +43,20 @@
                                 </span>
                                 <span class="nav-link-title">{{ $item['label'] }}</span>
                             </a>
-                            <div class="collapse dropdown-menu {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }}"
+                            <div class="collapse {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }} ms-3"
                                  id="sidebar-{{ Str::slug($item['label']) }}">
-                                @foreach($item['children'] as $child)
-                                    @can($child['permission'])
-                                    <a href="{{ \Illuminate\Support\Facades\Route::has($child['route']) ? route($child['route']) : '#' }}"
-                                       class="dropdown-item {{ request()->routeIs($child['route']) ? 'active' : '' }}">
-                                        {{ $child['label'] }}
-                                    </a>
-                                    @endcan
-                                @endforeach
+                                <ul class="nav nav-sm flex-column">
+                                    @foreach($item['children'] as $child)
+                                        @can($child['permission'])
+                                        <li class="nav-item">
+                                            <a href="{{ \Illuminate\Support\Facades\Route::has($child['route']) ? route($child['route']) : '#' }}"
+                                               class="nav-link {{ request()->routeIs($child['route']) ? 'active' : '' }}">
+                                                {{ $child['label'] }}
+                                            </a>
+                                        </li>
+                                        @endcan
+                                    @endforeach
+                                </ul>
                             </div>
                         </li>
                         @endif

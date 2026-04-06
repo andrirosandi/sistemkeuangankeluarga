@@ -106,6 +106,11 @@
                                 <i class="ti ti-info-circle me-2"></i>
                                 Gunakan layanan SMTP untuk mengirim notifikasi penagihan atau reset password.
                             </div>
+                            <div class="alert alert-warning">
+                                <i class="ti ti-alert-triangle me-2"></i>
+                                <strong>Penting untuk Gmail:</strong> Jika menggunakan Gmail dengan 2FA aktif, gunakan <strong>App Password</strong> bukan password akun biasa.
+                                <br><a href="https://support.google.com/accounts/answer/185833" target="_blank" class="alert-link">Cara membuat App Password &rarr;</a>
+                            </div>
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="mb-3">
