@@ -156,7 +156,7 @@
                         @empty
                         <tr>
                             <td colspan="6" class="text-center py-5">
-                                <div class="text-muted">Tidak ada transaksi yang diproses (cair) pada bulan ini.</div>
+                                <div class="text-muted">Tidak ada transaksi yang direalisasikan pada bulan ini.</div>
                             </td>
                         </tr>
                         @endforelse

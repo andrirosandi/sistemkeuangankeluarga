@@ -206,7 +206,7 @@
                         <i class="ti ti-device-floppy me-2"></i> Simpan Draft
                     </button>
                     <button type="submit" name="action_type" value="completed" class="btn btn-success shadow-sm">
-                        <i class="ti ti-cash me-2"></i> {{ $isEdit ? 'Update & Cairkan' : 'Simpan & Cairkan' }}
+                        <i class="ti ti-check me-2"></i> {{ $isEdit ? 'Update & Realisasikan' : 'Simpan & Realisasikan' }}
                     </button>
                 </div>
             </div>

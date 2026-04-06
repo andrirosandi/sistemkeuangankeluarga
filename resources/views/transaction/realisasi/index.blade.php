@@ -124,7 +124,7 @@
                                                 @can($type . '.transaction.edit')
                                                 <button class="dropdown-item text-success"
                                                         onclick="completeTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}'); open = false;">
-                                                    <i class="ti ti-cash me-2"></i> Cairkan Dana
+                                                    <i class="ti ti-check me-2"></i> Realisasikan
                                                 </button>
                                                 @endcan
 
@@ -141,7 +141,7 @@
                                                 @can($type . '.transaction.edit')
                                                 <button class="dropdown-item text-warning"
                                                         onclick="cancelTransaction({{ $trx->id }}, '{{ addslashes($trx->description) }}'); open = false;">
-                                                    <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan
+                                                    <i class="ti ti-rotate-2 me-2"></i> Batalkan Realisasi
                                                 </button>
                                                 @endcan
                                             @endif
@@ -175,8 +175,8 @@
             <div class="modal-status bg-success"></div>
             <div class="modal-body text-center py-4">
                 <i class="ti ti-cash text-success icon-lg mb-2"></i>
-                <h3>Cairkan Dana</h3>
-                <div class="text-secondary">Cairkan dana untuk <strong id="complete-name"></strong>? Saldo akan otomatis diperbarui.</div>
+                <h3>Realisasikan</h3>
+                <div class="text-secondary">Realisasikan transaksi <strong id="complete-name"></strong>? Saldo akan otomatis diperbarui.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
@@ -185,7 +185,7 @@
                         <div class="col">
                             <form id="form-complete" method="POST" hx-boost="false">
                                 @csrf
-                                <button type="submit" class="btn btn-success w-100">Cairkan</button>
+                                <button type="submit" class="btn btn-success w-100">Realisasikan</button>
                             </form>
                         </div>
                     </div>
@@ -202,8 +202,8 @@
             <div class="modal-status bg-warning"></div>
             <div class="modal-body text-center py-4">
                 <i class="ti ti-rotate-2 text-warning icon-lg mb-2"></i>
-                <h3>Batalkan Pencairan</h3>
-                <div class="text-secondary">Batalkan pencairan dana <strong id="cancel-name"></strong>? Realisasi akan kembali menjadi Draft dan saldo akan dikembalikan.</div>
+                <h3>Batalkan Realisasi</h3>
+                <div class="text-secondary">Batalkan realisasi <strong id="cancel-name"></strong>? Transaksi akan kembali menjadi Draft dan saldo akan dikembalikan.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">

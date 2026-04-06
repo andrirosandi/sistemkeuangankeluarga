@@ -73,7 +73,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="bg-blue-lt rounded p-2"><i class="ti ti-wallet text-blue"></i></span>
                     <div>
-                        <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Cair</div>
+                        <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Direalisasikan</div>
                         <div class="fw-bold text-blue">{{ $approvedDraft->count() }}</div>
                         <div class="text-secondary" style="font-size:0.7rem">@uang($approvedDraft->sum('amount'))</div>
                     </div>
@@ -130,11 +130,11 @@
 </div>
 @endif
 
-{{-- Approved, Belum Cair --}}
+{{-- Approved, Belum Direalisasikan --}}
 @if($approvedDraft->count() > 0)
 <div class="card mb-4">
     <div class="card-header bg-blue-lt">
-        <h3 class="card-title text-blue"><i class="ti ti-wallet me-1"></i> Approved, Belum Cair ({{ $approvedDraft->count() }})</h3>
+        <h3 class="card-title text-blue"><i class="ti ti-wallet me-1"></i> Approved, Belum Direalisasikan ({{ $approvedDraft->count() }})</h3>
     </div>
     <div class="table-responsive">
         <table class="table table-sm table-vcenter mb-0">

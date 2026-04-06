@@ -139,7 +139,7 @@ class FinanceRequestService
     }
 
     /**
-     * Buat realisasi draft baru untuk pengajuan yang sudah cair sebagian (Parsial)
+     * Buat realisasi draft baru untuk pengajuan yang sudah direalisasikan sebagian (Parsial)
      * tapi masih ada sisa outstanding.
      *
      * @return TransactionHeader
@@ -153,7 +153,7 @@ class FinanceRequestService
 
             $transaction = TransactionHeader::create([
                 'category_id'      => $req->category_id,
-                'description'      => 'Pencairan Lanjutan: ' . $req->description,
+                'description'      => 'Realisasi Lanjutan: ' . $req->description,
                 'notes'            => '',
                 'amount'           => $draftAmount,
                 'request_id'       => $req->id,
@@ -224,7 +224,7 @@ class FinanceRequestService
     }
 
     /**
-     * Hitung sisa outstanding (belum dicairkan) untuk tiap detail pengajuan.
+     * Hitung sisa outstanding (belum direalisasikan) untuk tiap detail pengajuan.
      * Mengembalikan array detail item yang sisa nominalnya > 0 dan belum ditutup.
      *
      * @return array

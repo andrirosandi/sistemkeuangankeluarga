@@ -160,7 +160,7 @@ class TransactionService
     }
 
     /**
-     * Cairkan dana: ubah status draft → completed, update saldo & request details.
+     * Realisasikan: ubah status draft → completed, update saldo & request details.
      */
     public function completeTransaction(TransactionHeader $transaction): void
     {
@@ -193,7 +193,7 @@ class TransactionService
                     $type = $reqHeader->trans_code == 1 ? 'in' : 'out';
                     NotificationService::notifyUser(
                         $reqHeader->created_by,
-                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">dicairkan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.'),
+                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">direalisasikan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.'),
                         "{$type}.request.show",
                         ['id' => $reqHeader->id]
                     );
@@ -203,7 +203,7 @@ class TransactionService
     }
 
     /**
-     * Batalkan pencairan: completed → draft, revert saldo & request details.
+     * Batalkan realisasi: completed → draft, revert saldo & request details.
      */
     public function cancelTransaction(TransactionHeader $transaction): void
     {
@@ -236,7 +236,7 @@ class TransactionService
                     $type = $reqHeader->trans_code == 1 ? 'in' : 'out';
                     NotificationService::notifyUser(
                         $reqHeader->created_by,
-                        'Pencairan dana untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.',
+                        'Realisasi untuk pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-warning">dibatalkan</span>.',
                         "{$type}.request.show",
                         ['id' => $reqHeader->id]
                     );

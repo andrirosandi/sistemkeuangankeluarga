@@ -44,8 +44,8 @@
                     </div>
                     <div>
                         <div class="h4 m-0">
-                            @if($transaction->status == 'draft') Menunggu Pencairan
-                            @elseif($transaction->status == 'completed') Dana Sudah Cair
+                            @if($transaction->status == 'draft') Menunggu Realisasi
+                            @elseif($transaction->status == 'completed') Sudah Direalisasikan
                             @endif
                         </div>
                         <div class="text-muted">
@@ -59,7 +59,7 @@
                 @if($transaction->status === 'draft')
                     @can($type . '.transaction.edit')
                     <div class="mt-3 text-muted small d-none d-print-block">
-                        Menunggu pencairan dana.
+                        Menunggu proses realisasi.
                     </div>
                     @endcan
                 @endif
@@ -174,8 +174,8 @@
                         </a>
                         <form action="{{ route($type . '.transaction.complete', $transaction->id) }}" method="POST" class="m-0">
                             @csrf
-                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Cairkan dana ini? Saldo akan otomatis diperbarui.')">
-                                <i class="ti ti-cash me-1"></i> Cairkan Dana
+                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Realisasikan transaksi ini? Saldo akan otomatis diperbarui.')">
+                                <i class="ti ti-check me-1"></i> Realisasikan
                             </button>
                         </form>
                     @endcan

@@ -113,7 +113,7 @@ class TransactionController extends Controller
             );
 
             $msg = $status === 'completed'
-                ? 'Realisasi berhasil disimpan dan dana dicairkan/dimasukkan.'
+                ? 'Realisasi berhasil disimpan dan direalisasikan.'
                 : 'Realisasi berhasil disimpan sebagai Draft.';
 
             return redirect()->route("{$type}.transaction.index")->with('success', $msg);
@@ -177,7 +177,7 @@ class TransactionController extends Controller
             );
 
             $msg = $status === 'completed'
-                ? 'Realisasi berhasil diupdate dan dana dicairkan/dimasukkan.'
+                ? 'Realisasi berhasil diupdate dan direalisasikan.'
                 : 'Realisasi berhasil diupdate.';
 
             return redirect()->route("{$type}.transaction.index")->with('success', $msg);
@@ -192,7 +192,7 @@ class TransactionController extends Controller
         $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
         if ($transaction->status !== 'draft') {
-            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat dicairkan.');
+            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi berstatus Draft yang dapat direalisasikan.');
         }
 
         $this->authorizeVisibility($transaction);
@@ -200,10 +200,10 @@ class TransactionController extends Controller
         try {
             $this->transactionService->completeTransaction($transaction);
 
-            return redirect()->route("{$type}.transaction.index")->with('success', 'Dana berhasil dicairkan dan saldo telah diperbarui.');
+            return redirect()->route("{$type}.transaction.index")->with('success', 'Realisasi berhasil dan saldo telah diperbarui.');
         } catch (\Exception $e) {
             report($e);
-            return redirect()->back()->with('error', 'Gagal mencairkan dana. Silakan coba lagi.');
+            return redirect()->back()->with('error', 'Gagal merealisasikan. Silakan coba lagi.');
         }
     }
 
@@ -220,7 +220,7 @@ class TransactionController extends Controller
         try {
             $this->transactionService->cancelTransaction($transaction);
 
-            return redirect()->route("{$type}.transaction.index")->with('success', 'Pencairan dibatalkan. Realisasi kembali menjadi Draft.');
+            return redirect()->route("{$type}.transaction.index")->with('success', 'Realisasi dibatalkan. Transaksi kembali menjadi Draft.');
         } catch (\Exception $e) {
             report($e);
             return redirect()->back()->with('error', 'Gagal membatalkan realisasi. Silakan coba lagi.');

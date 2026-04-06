@@ -44,7 +44,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="bg-blue-lt rounded p-2"><i class="ti ti-wallet text-blue"></i></span>
                     <div>
-                        <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Cair</div>
+                        <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Direalisasikan</div>
                         <div class="fw-bold text-blue">{{ $approvedDraft->count() }}</div>
                         <div class="text-secondary" style="font-size:0.7rem">@uang($approvedDraft->sum('amount'))</div>
                     </div>
@@ -150,12 +150,12 @@
 @endif
 
 {{-- ============================================================
-     Section 2: Approved, Belum Cair
+     Section 2: Approved, Belum Direalisasikan
      ============================================================ --}}
 @if($approvedDraft->count() > 0)
 <div class="card mb-4">
     <div class="card-header bg-blue-lt">
-        <h3 class="card-title text-blue"><i class="ti ti-wallet me-1"></i> Approved, Belum Cair ({{ $approvedDraft->count() }})</h3>
+        <h3 class="card-title text-blue"><i class="ti ti-wallet me-1"></i> Approved, Belum Direalisasikan ({{ $approvedDraft->count() }})</h3>
     </div>
     <div class="table-responsive">
         <table class="table table-sm table-vcenter mb-0">
@@ -204,7 +204,7 @@
                                 <div class="dropdown" x-data="{ open: false }" @click.outside="open = false">
                                     <div class="btn-group">
                                         <a href="{{ route($typeKey . '.transaction.edit', $draft->id) }}" class="btn btn-sm btn-primary rounded-start-2">
-                                            <i class="ti ti-pencil me-1"></i> Cairkan
+                                            <i class="ti ti-pencil me-1"></i> Realisasikan
                                         </a>
                                         <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-end-2" @click="open = !open" :class="{'show': open}" aria-expanded="false" aria-label="Toggle Dropdown">
                                         </button>
@@ -293,13 +293,13 @@
                                 <div class="d-flex" x-data="{ open: false }" @click.outside="open = false">
                                     @if($draft)
                                         <a href="{{ route($typeKey . '.transaction.edit', $draft->id) }}" class="btn btn-sm btn-primary rounded-2 me-1">
-                                            <i class="ti ti-pencil me-1"></i> Cairkan (Draft)
+                                            <i class="ti ti-pencil me-1"></i> Realisasikan (Draft)
                                         </a>
                                     @else
                                         <form action="{{ route($typeKey . '.request.continue-realization', $r->id) }}" method="POST" class="me-1">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-primary text-nowrap rounded-2">
-                                                <i class="ti ti-arrow-right me-1"></i> Cairkan Sisa
+                                                <i class="ti ti-arrow-right me-1"></i> Realisasikan Sisa
                                             </button>
                                         </form>
                                     @endif
@@ -314,7 +314,7 @@
                                         <div class="dropdown-menu dropdown-menu-end shadow" :class="{'show': open}" x-show="open" style="display: none;" x-transition>
                                             @if($latestCompleted)
                                             <button class="dropdown-item text-warning" @click="cancelTransaction({{ $latestCompleted->id }}, '{{ addslashes($r->description) }}', '{{ $typeKey }}'); open = false">
-                                                <i class="ti ti-rotate-2 me-2"></i> Batalkan Pencairan Terakhir
+                                                <i class="ti ti-rotate-2 me-2"></i> Batalkan Realisasi Terakhir
                                             </button>
                                             @endif
                                         </div>
@@ -458,8 +458,8 @@
             <div class="modal-status bg-warning"></div>
             <div class="modal-body text-center py-4">
                 <i class="ti ti-rotate-2 text-warning icon-lg mb-2"></i>
-                <h3>Batalkan Pencairan</h3>
-                <div class="text-secondary px-2">Batalkan pencairan dana untuk <strong id="cancel-trx-name"></strong>? Realisasi akan kembali menjadi Draft.</div>
+                <h3>Batalkan Realisasi</h3>
+                <div class="text-secondary px-2">Batalkan realisasi untuk <strong id="cancel-trx-name"></strong>? Transaksi akan kembali menjadi Draft.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">

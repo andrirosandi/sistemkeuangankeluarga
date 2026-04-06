@@ -28,7 +28,7 @@
         <div class="col-4">
             <div class="border rounded p-2 text-center">
                 <div class="text-blue fw-bold">{{ $data['approvedDraftCount'] }}</div>
-                <div class="text-secondary" style="font-size:0.7rem">Belum Cair</div>
+                <div class="text-secondary" style="font-size:0.7rem">Belum Direalisasikan</div>
                 <div style="font-size:0.7rem">@uang($data['approvedDraftAmount'])</div>
             </div>
         </div>

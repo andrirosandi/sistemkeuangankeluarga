@@ -57,7 +57,7 @@ graph TD
 
 Model: `transaction_header` + `request_detail` | Service: `TransactionService` + `BalanceService`
 
-Diagram ini menggambarkan alur pencairan dana, update saldo, dan penanganan outstanding (realisasi parsial) termasuk write-off.
+Diagram ini menggambarkan alur realisasi transaksi, update saldo, dan penanganan outstanding (realisasi parsial) termasuk write-off.
 
 ```mermaid
 graph TD
@@ -72,14 +72,14 @@ graph TD
     %% 3 Entry Points
     IN1([Via Approve Pengajuan - Auto Create]):::startEnd --> S_DRAFT
     IN2([Via Input Kas Manual - Tanpa Pengajuan]):::startEnd --> S_DRAFT
-    IN3([Via Cairkan Sisa - Partial Outstanding]):::startEnd --> S_DRAFT
+    IN3([Via Realisasi Sisa - Partial Outstanding]):::startEnd --> S_DRAFT
 
     %% DRAFT
     S_DRAFT[Status Transaksi: DRAFT]:::status --> ACT{Aksi di Draft}
 
     ACT -- "Edit Draft" --> S_DRAFT
     ACT -- "Hapus Draft" --> DEL_CHK{Ada Transaksi Lain untuk Pengajuan Ini?}
-    ACT -- "Cairkan Dana" --> COMP_FLOW
+    ACT -- "Realisasikan" --> COMP_FLOW
 
     %% Delete logic
     DEL_CHK -- "Tidak Ada" --> DEL_RESET[Sistem: Reset Pengajuan ke REQUESTED]:::system
@@ -91,21 +91,21 @@ graph TD
     COMP_FLOW[Sistem: Set Status COMPLETED]:::system --> COMP_DET
     COMP_DET[Set Detail Pengajuan: PENDING -> REALIZED]:::detail --> COMP_BAL
     COMP_BAL[Engine: Update Saldo Bulan Ini]:::system --> NOTIF_COMP
-    NOTIF_COMP["Notif: Beritahu User Dana Dicairkan"]:::notif --> S_COMP
+    NOTIF_COMP["Notif: Beritahu User Telah Direalisasikan"]:::notif --> S_COMP
     S_COMP[Status Transaksi: COMPLETED]:::status --> CHK{Cek Sisa Outstanding}
 
     %% Outstanding check
     CHK -- "Semua Item Terealisasi" --> FIN([Siklus Selesai]):::startEnd
     CHK -- "Masih Ada Item Pending" --> PARTIAL{Aksi Admin untuk Sisa}
 
-    PARTIAL -- "Cairkan Sisa" --> IN3
+    PARTIAL -- "Realisasikan Sisa" --> IN3
     PARTIAL -- "Write-off Sisa" --> WOFF[Sistem: Set Detail PENDING -> CLOSED]:::detail
     WOFF --> FIN
 
-    %% Revert / Batalkan Pencairan
-    S_COMP -.-> |Batalkan Pencairan| REV_FLOW
+    %% Revert / Batalkan Realisasi
+    S_COMP -.-> |Batalkan Realisasi| REV_FLOW
     REV_FLOW[Sistem: Revert Status ke DRAFT]:::system -.-> REV_DET
     REV_DET[Revert Detail: REALIZED -> PENDING]:::detail -.-> REV_BAL
     REV_BAL[Engine: Kembalikan Saldo]:::system -.-> NOTIF_REV
-    NOTIF_REV["Notif: Beritahu User Pencairan Dibatalkan"]:::notif -.-> S_DRAFT
+    NOTIF_REV["Notif: Beritahu User Realisasi Dibatalkan"]:::notif -.-> S_DRAFT
 ```

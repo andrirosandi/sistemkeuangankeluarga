@@ -124,7 +124,7 @@ class DashboardController extends Controller
      *
      * Shows three types of "pending" items:
      * 1. Requested — awaiting approval (visible to users with approve permission)
-     * 2. Belum Cair — approved but transaction still draft
+     * 2. Belum Direalisasikan — approved but transaction still draft
      * 3. Parsial — approved with some details still pending realization
      */
     public function widgetAlerts(Request $request)
@@ -160,7 +160,7 @@ class DashboardController extends Controller
             }
         }
 
-        // 2. Approved but transaction still draft (belum cair)
+        // 2. Approved but transaction still draft (belum direalisasikan)
         $approvedDraft = RequestHeader::with(['category', 'creator'])
             ->whereIn('created_by', $userIds)
             ->where('status', 'approved')
@@ -181,7 +181,7 @@ class DashboardController extends Controller
                 'category'    => $req->category->name ?? 'Tanpa Kategori',
                 'created_at'  => $req->created_at->format('d M Y'),
                 'alert_type'  => 'approved_draft',
-                'badge_label' => 'Belum Cair',
+                'badge_label' => 'Belum Direalisasikan',
                 'badge_class' => 'bg-blue-lt text-blue',
             ]);
         }
@@ -288,7 +288,7 @@ class DashboardController extends Controller
             ];
         }
 
-        // Outstanding = requested (belum dijawab) + approved tapi transaksi belum cair/sebagian
+        // Outstanding = requested (belum dijawab) + approved tapi transaksi belum direalisasikan/sebagian
         $outstandingRequested = (clone $query)->where('status', 'requested')->sum('amount');
         $outstandingApproved = (clone $query)->where('status', 'approved')
             ->whereHas('transactions', function ($q) {
@@ -474,7 +474,7 @@ class DashboardController extends Controller
             ->where('status', 'requested')
             ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
 
-        // 2. Status approved tapi transaksi masih draft (approved belum cair)
+        // 2. Status approved tapi transaksi masih draft (approved belum direalisasikan)
         $approvedNotCashed = RequestHeader::whereIn('created_by', $userIds)
             ->where('status', 'approved')
             ->whereHas('transactions', function ($q) {

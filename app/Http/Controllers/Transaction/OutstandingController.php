@@ -24,7 +24,7 @@ class OutstandingController extends Controller
             ->orderByRaw("FIELD(priority, 'high', 'normal', 'low'), created_at ASC")
             ->get();
 
-        // 2. Approved, Belum Cair — request.status = 'approved' + BELUM ADA transaction yg completed
+        // 2. Approved, Belum Direalisasikan — request.status = 'approved' + BELUM ADA transaction yg completed
         $approvedDraftQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions'])
             ->whereIn('created_by', $visibleUserIds)
             ->where('status', 'approved')
@@ -41,8 +41,8 @@ class OutstandingController extends Controller
 
         // 3. Realisasi Parsial — approved + transaction completed + masih ada detail pending
         //    Detail status adalah sumber kebenaran:
-        //      pending  = belum cair (masih outstanding)
-        //      realized = sudah cair (selesai)
+        //      pending  = belum direalisasikan (masih outstanding)
+        //      realized = sudah direalisasikan (selesai)
         //      closed   = di-write-off (selesai)
         $partialQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions', 'details'])
             ->whereIn('created_by', $visibleUserIds)
