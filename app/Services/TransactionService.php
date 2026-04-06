@@ -59,6 +59,9 @@ class TransactionService
     public function updateTransaction(TransactionHeader $transaction, array $headerData, array $items, string $status = 'draft'): TransactionHeader
     {
         return DB::transaction(function () use ($transaction, $headerData, $items, $status) {
+            $previousStatus = $transaction->status;
+            $previousAmount = $transaction->amount;
+            $previousDate = $transaction->transaction_date;
             $totalAmount = collect($items)->sum('amount');
 
             $transaction->update(array_merge($headerData, [
@@ -92,13 +95,64 @@ class TransactionService
                 ->whereNotIn('id', $existingItemIds)
                 ->delete();
 
-            if ($status === 'completed') {
+            // Cek apakah transaction_date berubah antar bulan untuk transaksi completed
+            $previousMonth = substr($previousDate, 0, 7);
+            $newMonth = substr($transaction->transaction_date, 0, 7);
+            $monthChanged = ($previousMonth !== $newMonth);
+
+            // Update balance hanya jika status ber menjadi completed
+            // Jika sudah completed sebelumnya dan tetap completed, jangan update balance (double count)
+            if ($status === 'completed' && $previousStatus !== 'completed') {
+                // Draft → Completed: update balance
                 $this->balanceService->updateBalance(
                     $transaction->transaction_date,
                     $transaction->trans_code,
                     $transaction->amount,
                     'add'
                 );
+            } elseif ($previousStatus === 'completed' && $status !== 'completed') {
+                // Completed → Non-completed: revert balance
+                $this->balanceService->updateBalance(
+                    $previousDate,
+                    $transaction->trans_code,
+                    $previousAmount,
+                    'remove'
+                );
+            } elseif ($previousStatus === 'completed' && $status === 'completed') {
+                // Tetap completed, cek perubahan
+                if ($monthChanged) {
+                    // Bulan berubah: revert dari bulan lama, tambah ke bulan baru
+                    $this->balanceService->updateBalance(
+                        $previousDate,
+                        $transaction->trans_code,
+                        $previousAmount,
+                        'remove'
+                    );
+                    $this->balanceService->updateBalance(
+                        $transaction->transaction_date,
+                        $transaction->trans_code,
+                        $transaction->amount,
+                        'add'
+                    );
+                } elseif ($previousAmount != $totalAmount) {
+                    // Bulan sama tapi amount berubah: adjust dengan selisih
+                    $diff = $totalAmount - $previousAmount;
+                    if ($diff > 0) {
+                        $this->balanceService->updateBalance(
+                            $transaction->transaction_date,
+                            $transaction->trans_code,
+                            $diff,
+                            'add'
+                        );
+                    } else {
+                        $this->balanceService->updateBalance(
+                            $transaction->transaction_date,
+                            $transaction->trans_code,
+                            abs($diff),
+                            'remove'
+                        );
+                    }
+                }
             }
 
             return $transaction->fresh();

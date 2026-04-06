@@ -27,6 +27,31 @@ class StoreTransactionRequest extends FormRequest
         ];
     }
 
+    /**
+     * Custom validator: tanggal realisasi tidak boleh sebelum tanggal request.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Hanya cek untuk update (ada ID di route)
+            $transactionId = $this->route('id');
+
+            if ($transactionId) {
+                $transaction = \App\Models\TransactionHeader::with('requestHeader')->find($transactionId);
+
+                // Validasi jika transaksi terhubung dengan request
+                if ($transaction && $transaction->request_id && $transaction->requestHeader) {
+                    $requestDate = $transaction->requestHeader->request_date;
+                    $transactionDate = $this->input('transaction_date');
+
+                    if (strtotime($transactionDate) < strtotime($requestDate)) {
+                        $validator->errors()->add('transaction_date', 'Tanggal realisasi tidak boleh sebelum tanggal pengajuan (' . date('d/m/Y', strtotime($requestDate)) . ').');
+                    }
+                }
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
