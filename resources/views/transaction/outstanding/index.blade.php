@@ -96,7 +96,7 @@
                     $typeKey = $r->trans_code == 1 ? 'in' : 'out';
                     $typeLabel = $r->trans_code == 1 ? 'Masuk' : 'Keluar';
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
-                    $days = now()->diffInDays($r->created_at);
+                    $days = (int) now()->diffInDays($r->created_at);
                 @endphp
                 <tr data-request-id="{{ $r->id }}">
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>
@@ -177,7 +177,7 @@
                     $typeKey = $r->trans_code == 1 ? 'in' : 'out';
                     $typeLabel = $r->trans_code == 1 ? 'Masuk' : 'Keluar';
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
-                    $daysApproved = $r->approved_at ? now()->diffInDays($r->approved_at) : 0;
+                    $daysApproved = $r->approved_at ? (int) now()->diffInDays($r->approved_at) : 0;
                 @endphp
                 <tr data-request-id="{{ $r->id }}">
                     <td><span class="badge {{ $typeBg }}">{{ $typeLabel }}</span></td>

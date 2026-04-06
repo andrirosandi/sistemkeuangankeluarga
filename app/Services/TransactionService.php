@@ -78,6 +78,7 @@ class TransactionService
                         ->update([
                             'description' => $item['description'],
                             'amount'      => $item['amount'],
+                            'request_detail_id' => $item['request_detail_id'] ?? null,
                         ]);
                     $existingItemIds[] = $item['id'];
                 } else {
@@ -85,6 +86,7 @@ class TransactionService
                         'header_id'   => $transaction->id,
                         'description' => $item['description'],
                         'amount'      => $item['amount'],
+                        'request_detail_id' => $item['request_detail_id'] ?? null,
                     ]);
                     $existingItemIds[] = $newDetail->id;
                 }
@@ -100,7 +102,18 @@ class TransactionService
             $newMonth = substr($transaction->transaction_date, 0, 7);
             $monthChanged = ($previousMonth !== $newMonth);
 
-            // Update balance hanya jika status ber menjadi completed
+            // Update request_detail status ke 'realized' saat draft → completed
+            if ($status === 'completed' && $previousStatus !== 'completed') {
+                TransactionDetail::where('header_id', $transaction->id)
+                    ->whereNotNull('request_detail_id')
+                    ->get()
+                    ->each(function ($td) {
+                        RequestDetail::where('id', $td->request_detail_id)
+                            ->update(['status' => 'realized']);
+                    });
+            }
+
+            // Update balance hanya jika status berubah menjadi completed
             // Jika sudah completed sebelumnya dan tetap completed, jangan update balance (double count)
             if ($status === 'completed' && $previousStatus !== 'completed') {
                 // Draft → Completed: update balance
@@ -152,6 +165,20 @@ class TransactionService
                             'remove'
                         );
                     }
+                }
+            }
+
+            // Notifikasi ke pembuat pengajuan saat draft → completed
+            if ($status === 'completed' && $previousStatus !== 'completed' && $transaction->request_id) {
+                $reqHeader = RequestHeader::find($transaction->request_id);
+                if ($reqHeader) {
+                    $type = $reqHeader->trans_code == 1 ? 'in' : 'out';
+                    NotificationService::notifyUser(
+                        $reqHeader->created_by,
+                        'Dana dari pengajuan <strong>' . htmlspecialchars($reqHeader->description) . '</strong> telah <span class="text-success">direalisasikan</span>. Nominal: Rp ' . number_format($transaction->amount, 0, ',', '.'),
+                        "{$type}.request.show",
+                        ['id' => $reqHeader->id]
+                    );
                 }
             }
 
