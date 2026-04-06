@@ -124,5 +124,25 @@
     {{-- Tabler JS is bundled by Vite via admin.js --}}
 
     @stack('scripts')
+
+    {{-- Manual collapse override to fix HTMX + Tabler conflict --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const target = document.querySelector(this.getAttribute('href'));
+                if (!target) return;
+
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(target);
+                bsCollapse.toggle();
+
+                // Update aria-expanded
+                this.setAttribute('aria-expanded', target.classList.contains('show'));
+            });
+        });
+    });
+    </script>
 </body>
 </html>
