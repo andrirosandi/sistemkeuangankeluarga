@@ -6,13 +6,14 @@
 <script>
     window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
 
+    // Register Alpine component
     Alpine.data('templateForm', (config = {}) => ({
             categories: config.categories || {},
             selectedCategoryId: String('{{ old('category_id', '') }}'),
             items: {{ Js::from(old('details')) }} || [
                 { description: '', amount: 0 }
             ],
-            
+
             get selectedCategoryColor() {
                 if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
                     return this.categories[this.selectedCategoryId].color;
@@ -24,7 +25,7 @@
                 if (!Array.isArray(this.items)) {
                     this.items = [];
                 }
-                
+
                 if (this.items.length === 0) {
                     this.addItem();
                 }
@@ -52,11 +53,21 @@
                 }).format(number);
             }
         }));
+
+    // Re-initialize the form if Alpine is already running
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const form = document.getElementById('mainTemplateForm');
+            if (form && window.Alpine) {
+                window.Alpine.initTree(form);
+            }
+        }, 100);
+    });
 </script>
 
 <form action="{{ route('master.templates.store') }}" method="POST" x-data="templateForm({
         categories: window.templateCategories
-    })">
+    })" id="mainTemplateForm" x-cloak>
     @csrf
     <div class="row row-cards">
         <div class="col-md-4">
