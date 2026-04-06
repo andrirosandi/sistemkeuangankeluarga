@@ -117,7 +117,7 @@
                     <td>{{ $r->creator->name ?? '-' }}</td>
                     <td class="text-end fw-bold">@uang($r->amount)</td>
                     <td>
-                        @php $days = now()->diffInDays($r->created_at) @endphp
+                        @php $days = (int) now()->diffInDays($r->created_at) @endphp
                         <span class="badge {{ $days > 7 ? 'bg-red-lt text-red' : ($days > 3 ? 'bg-yellow-lt text-yellow' : 'bg-green-lt text-green') }}">
                             {{ $days }} hari
                         </span>
