@@ -15,15 +15,31 @@ class MutationController extends Controller
     {
         $title = 'Buku Mutasi Kas';
         
-        // Month filter (Default to current month)
         $month = $request->input('month', date('Y-m'));
         $monthDate = Carbon::createFromFormat('Y-m', $month);
         
-        // Cek filter visibility (Hanya direktur/admin yg mungkin melihat semua, tapi logikanya user hanya bisa lihat mutasinya sendiri / yg visible)
-        // Wait, mutasi kas idealnya apakah total seluruh sistem yang bisa dia lihat, atau total global?
-        // Sesuai sistem di sistem keuangan keluarga, Mutasi mencerminkan saldo keseluruhan yang visible bagi user tersebut.
         $user = auth()->user();
         $visibleUserIds = RoleVisibility::getVisibleUserIds($user);
+
+        // Siapkan opsi dropdown bulan dari transaksi yang ada + current month
+        $availableMonths = TransactionHeader::whereIn('created_by', $visibleUserIds)
+            ->where('status', 'completed')
+            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as date_val")
+            ->groupBy('date_val')
+            ->orderBy('date_val', 'desc')
+            ->pluck('date_val')
+            ->toArray();
+            
+        $currentMonthRaw = date('Y-m');
+        if (!in_array($currentMonthRaw, $availableMonths)) {
+            array_unshift($availableMonths, $currentMonthRaw);
+            rsort($availableMonths);
+        }
+
+        $monthOptions = [];
+        foreach($availableMonths as $m) {
+            $monthOptions[$m] = Carbon::createFromFormat('Y-m', $m)->translatedFormat('F Y');
+        }
 
         // Cari record Balance untuk bulan ini (jika ada). 
         // Jika ada visibility yang berbeda, summary balance bulanan mungkin tidak merefleksikan jumlah yang 'visible',  
@@ -103,6 +119,6 @@ class MutationController extends Controller
             return view('transaction.mutation.print', compact('mutations', 'beginBalance', 'totalIn', 'totalOut', 'endBalance', 'monthDate'));
         }
 
-        return view('transaction.mutation.index', compact('title', 'mutations', 'beginBalance', 'totalIn', 'totalOut', 'endBalance', 'month', 'monthDate'));
+        return view('transaction.mutation.index', compact('title', 'mutations', 'beginBalance', 'totalIn', 'totalOut', 'endBalance', 'month', 'monthDate', 'monthOptions'));
     }
 }

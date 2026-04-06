@@ -20,7 +20,11 @@
                 <form action="{{ route('mutation.index') }}" method="GET" class="d-flex align-items-end gap-3 flex-wrap">
                     <div>
                         <label class="form-label text-muted small mb-1">Periode Bulan</label>
-                        <input type="month" name="month" class="form-control form-control-sm" value="{{ $month }}" max="{{ date('Y-m') }}">
+                        <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+                            @foreach($monthOptions as $val => $label)
+                                <option value="{{ $val }}" {{ $month == $val ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <button type="submit" class="btn btn-primary btn-sm">
