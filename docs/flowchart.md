@@ -19,6 +19,7 @@ graph TD
     classDef status fill:#E3F2FD,color:#0D47A1,stroke:#1E88E5,stroke-width:2px;
     classDef action fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:1px;
     classDef system fill:#E8F5E9,color:#1B5E20,stroke:#4CAF50,stroke-width:1px;
+    classDef notif fill:#F3E5F5,color:#6A1B9A,stroke:#AB47BC,stroke-width:1px;
 
     %% Entry
     Start([Mulai: User Buat Form Pengajuan]):::startEnd --> B{Aksi Simpan}
@@ -33,19 +34,21 @@ graph TD
     C -- "Submit ke Admin" --> S_REQ
 
     %% Alur REQUESTED
-    S_REQ --> NOTIF[Sistem: Notifikasi ke Approver & Tampil di Outstanding]:::system
-    NOTIF --> EVAL{Keputusan}
+    S_REQ --> NOTIF_SUBMIT["Notif: Kirim ke Approver/Admin"]:::notif
+    NOTIF_SUBMIT --> EVAL{Keputusan}
 
     EVAL -- "User Tarik Kembali" --> S_DRAFT
     EVAL -- "Admin Tolak + Alasan" --> S_REJ[Status: REJECTED]:::status
     EVAL -- "Admin Setujui" --> S_APP[Status: APPROVED]:::status
 
-    %% Approved triggers
-    S_APP --> AUTO[Sistem: Auto-Create Transaction DRAFT + Set Detail PENDING]:::system
-    AUTO --> NEXT([Lanjut ke Siklus Realisasi]):::startEnd
+    %% Reject notification
+    S_REJ --> NOTIF_REJ["Notif: Beritahu User Ditolak + Alasan"]:::notif
+    NOTIF_REJ --> FIN([Siklus Selesai]):::startEnd
 
-    %% Terminal states
-    S_REJ --> FIN([Siklus Selesai - Tidak Bisa Resubmit]):::startEnd
+    %% Approved triggers
+    S_APP --> NOTIF_APP["Notif: Beritahu User Disetujui"]:::notif
+    NOTIF_APP --> AUTO[Sistem: Auto-Create Transaction DRAFT + Set Detail PENDING]:::system
+    AUTO --> NEXT([Lanjut ke Siklus Realisasi]):::startEnd
 ```
 
 ---
@@ -64,6 +67,7 @@ graph TD
     classDef action fill:#FFF3E0,color:#E65100,stroke:#FF9800,stroke-width:1px;
     classDef system fill:#FFF8E1,color:#F57F17,stroke:#FBC02D,stroke-width:2px;
     classDef detail fill:#FCE4EC,color:#880E4F,stroke:#D81B60,stroke-width:1px;
+    classDef notif fill:#F3E5F5,color:#6A1B9A,stroke:#AB47BC,stroke-width:1px;
 
     %% 3 Entry Points
     IN1([Via Approve Pengajuan - Auto Create]):::startEnd --> S_DRAFT
@@ -77,16 +81,17 @@ graph TD
     ACT -- "Hapus Draft" --> DEL_CHK{Ada Transaksi Lain untuk Pengajuan Ini?}
     ACT -- "Cairkan Dana" --> COMP_FLOW
 
-    %% Delete logic (sesuai fix Bug 3)
+    %% Delete logic
     DEL_CHK -- "Tidak Ada" --> DEL_RESET[Sistem: Reset Pengajuan ke REQUESTED]:::system
     DEL_CHK -- "Ada Transaksi Completed" --> DEL_KEEP[Sistem: Hapus Draft, Pengajuan Tetap APPROVED]:::system
     DEL_RESET --> DEL_END([Draft Dihapus]):::startEnd
     DEL_KEEP --> DEL_END
 
     %% Complete flow
-    COMP_FLOW[Sistem: Set Status COMPLETED]:::system --> COMP_BAL
-    COMP_BAL[Engine: Update Saldo Bulan Ini]:::system --> COMP_DET
-    COMP_DET[Set Detail Pengajuan: PENDING -> REALIZED]:::detail --> S_COMP
+    COMP_FLOW[Sistem: Set Status COMPLETED]:::system --> COMP_DET
+    COMP_DET[Set Detail Pengajuan: PENDING -> REALIZED]:::detail --> COMP_BAL
+    COMP_BAL[Engine: Update Saldo Bulan Ini]:::system --> NOTIF_COMP
+    NOTIF_COMP["Notif: Beritahu User Dana Dicairkan"]:::notif --> S_COMP
     S_COMP[Status Transaksi: COMPLETED]:::status --> CHK{Cek Sisa Outstanding}
 
     %% Outstanding check
@@ -101,5 +106,6 @@ graph TD
     S_COMP -.-> |Batalkan Pencairan| REV_FLOW
     REV_FLOW[Sistem: Revert Status ke DRAFT]:::system -.-> REV_DET
     REV_DET[Revert Detail: REALIZED -> PENDING]:::detail -.-> REV_BAL
-    REV_BAL[Engine: Kembalikan Saldo]:::system -.-> S_DRAFT
+    REV_BAL[Engine: Kembalikan Saldo]:::system -.-> NOTIF_REV
+    NOTIF_REV["Notif: Beritahu User Pencairan Dibatalkan"]:::notif -.-> S_DRAFT
 ```
