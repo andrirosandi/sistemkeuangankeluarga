@@ -45,25 +45,18 @@
                         <li class="nav-item">
 
                             {{-- PARENT TOGGLE --}}
-                            <a class="nav-link d-flex align-items-center justify-content-between {{ $isActive ? 'active' : '' }}"
+                            <a class="nav-link {{ $isActive ? 'active' : '' }}"
                                href="#"
                                data-bs-toggle="collapse"
                                data-bs-target="#sidebar-{{ Str::slug($item['label']) }}"
                                role="button"
                                aria-expanded="{{ $isActive ? 'true' : 'false' }}">
 
-                                <div class="d-flex align-items-center">
-                                    <span class="nav-link-icon">
-                                        <i class="ti ti-{{ $item['icon'] }}"></i>
-                                    </span>
-                                    <span class="nav-link-title">
-                                        {{ $item['label'] }}
-                                    </span>
-                                </div>
-
-                                {{-- CUSTOM ARROW (ONLY ONE NOW) --}}
-                                <span class="nav-link-toggle">
-                                    <i class="ti ti-chevron-right"></i>
+                                <span class="nav-link-icon">
+                                    <i class="ti ti-{{ $item['icon'] }}"></i>
+                                </span>
+                                <span class="nav-link-title">
+                                    {{ $item['label'] }}
                                 </span>
                             </a>
 
@@ -72,7 +65,7 @@
                                  id="sidebar-{{ Str::slug($item['label']) }}"
                                  data-bs-parent="#sidebar-menu">
 
-                                <ul class="nav nav-sm flex-column sidebar-submenu">
+                                <ul class="nav nav-sm flex-column">
 
                                     @foreach($item['children'] as $child)
                                         @can($child['permission'])
