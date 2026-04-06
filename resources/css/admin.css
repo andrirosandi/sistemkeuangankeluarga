@@ -392,20 +392,8 @@ header.navbar .container-fluid {
     transform: rotate(90deg);
 }
 
-/* Menambahkan icon panah (chevron) menggunakan pseudo-element */
+/* Hide duplicate arrow from Tabler default */
 .nav-link-toggle::after {
-    content: "";
-    display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
-    margin-left: auto; /* Memaksa panah ke pojok kanan */
-    border-bottom: 2px solid currentColor;
-    border-right: 2px solid currentColor;
-    transform: rotate(-45deg); /* Arah panah ke samping (default collapse) */
-    transition: transform 0.2s ease-in-out;
-}
-
-/* Berubah arah saat menu di-expand */
-.nav-link-toggle[aria-expanded="true"]::after {
-    transform: rotate(45deg); /* Arah panah ke bawah (expand) */
+    content: none !important;
+    display: none !important;
 }
