@@ -26,23 +26,15 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Copy docker config dari folder docker/ ke root project
-            cp docker/docker-compose.yml docker-compose.yml
-            cp docker/Dockerfile Dockerfile
-
-            # Restart docker (tanpa build, code di-mount dari host)
+            # Build image baru (COPY code ke dalam image)
             docker compose down
+            docker compose build --no-cache
+
+            # Jalankan container
             docker compose up -d
 
             # Tunggu container ready
             sleep 10
-
-            # Install composer dependencies di dalam container
-            docker exec skk_app composer install --no-dev --optimize-autoloader --no-interaction
-
-            # Build frontend assets - SUDAH DI-TRACK DI REPO (/public/build)
-            # docker exec skk_app npm install
-            # docker exec skk_app npm run build
 
             # Jalankan migrasi database otomatis jika ada tabel baru
             docker exec skk_app php artisan migrate --force

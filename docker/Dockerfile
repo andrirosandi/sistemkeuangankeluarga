@@ -28,8 +28,11 @@ RUN install-php-extensions \
 # Copy composer binary
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory (source code will be mounted from host)
+# Set working directory
 WORKDIR /app
+
+# Copy application code
+COPY . /app
 
 # Ensure correct permissions for Laravel storage
 RUN mkdir -p /app/storage /app/bootstrap/cache
