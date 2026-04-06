@@ -93,9 +93,10 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label required">Tanggal Pengajuan</label>
-                        <input type="date" name="request_date" class="form-control @error('request_date') is-invalid @enderror" 
-                               value="{{ old('request_date', isset($requestData) ? \Carbon\Carbon::parse($requestData->request_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
+                        <label class="form-label required">Bulan Pengajuan</label>
+                        <input type="month" name="request_date" class="form-control @error('request_date') is-invalid @enderror" 
+                               value="{{ old('request_date', isset($requestData) ? \Carbon\Carbon::parse($requestData->request_date)->format('Y-m') : date('Y-m')) }}" required>
+                        <small class="form-hint">Pilih tahun dan bulan untuk pengajuan ini.</small>
                         @error('request_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 

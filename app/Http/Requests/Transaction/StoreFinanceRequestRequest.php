@@ -11,6 +11,16 @@ class StoreFinanceRequestRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        // Jika request_date dikirim dengan format YYYY-MM (dari input type="month"), tambahkan tanggal 01
+        if ($this->has('request_date') && preg_match('/^\d{4}-\d{2}$/', $this->request_date)) {
+            $this->merge([
+                'request_date' => $this->request_date . '-01',
+            ]);
+        }
+    }
+
     /**
      * Rules untuk store dan update pengajuan keuangan (identik).
      */
