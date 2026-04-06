@@ -24,7 +24,8 @@
             $defaultItems[] = [
                 'id' => $det->id,
                 'description' => $det->description,
-                'amount' => (float) $det->amount
+                'amount' => (float) $det->amount,
+                'request_detail_id' => $det->request_detail_id,
             ];
         }
     } elseif ($isTemplate && $templateData->details) {
@@ -70,7 +71,7 @@
         },
 
         addItem() {
-            this.items.push({ id: null, description: '', amount: 0 });
+            this.items.push({ id: null, description: '', amount: 0, request_detail_id: null });
         },
 
         removeItem(index) {
@@ -201,6 +202,7 @@
                                 <tr>
                                     <td>
                                         <input type="hidden" :name="`items[${index}][id]`" :value="item.id">
+                                        <input type="hidden" :name="`items[${index}][request_detail_id]`" :value="item.request_detail_id">
                                         <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required {{ $readOnly ? 'disabled' : '' }}>
                                     </td>
                                     <td>
