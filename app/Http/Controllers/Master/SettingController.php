@@ -7,6 +7,7 @@ use App\Http\Requests\Master\UpdateSettingRequest;
 use App\Http\Requests\Master\VerifyOtpRequest;
 use App\Mail\SmtpTestMail;
 use App\Models\Setting;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
@@ -100,8 +101,9 @@ class SettingController extends Controller
                 Session::put('smtp_verification_otp', $otp);
                 Session::put('smtp_verification_expires', now()->addMinutes(10));
 
-                // Coba kirim email
+                // Coba kirim email — terapkan SMTP config dari database
                 try {
+                    NotificationService::refreshSmtpConfig();
                     Mail::to($request->mail_from)->send(new SmtpTestMail($otp));
 
                     return redirect()->back()->with([

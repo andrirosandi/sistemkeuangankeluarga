@@ -20,7 +20,11 @@ class NotificationService
         return !empty(Setting::get('smtp_verified_at')) && !empty(Setting::get('mail_host'));
     }
 
-    private static function applySmtpConfig(): void
+    /**
+     * Apply SMTP config dari database ke Laravel runtime config,
+     * lalu purge cached mailer agar transport baru dibuat.
+     */
+    public static function applySmtpConfig(): void
     {
         $mailHost = Setting::get('mail_host');
         if ($mailHost) {
@@ -44,7 +48,18 @@ class NotificationService
                 'mail.from.address' => Setting::get('mail_from'),
                 'mail.from.name' => Setting::get('app_name', config('app.name')),
             ]);
+
+            // Purge cached SMTP transport agar config baru dipakai
+            Mail::purge('smtp');
         }
+    }
+
+    /**
+     * Public helper: apply SMTP config dari DB (dipanggil dari SettingController dsb.)
+     */
+    public static function refreshSmtpConfig(): void
+    {
+        self::applySmtpConfig();
     }
 
     /**
