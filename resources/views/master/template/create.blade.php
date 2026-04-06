@@ -5,64 +5,6 @@
 @section('content')
 <script>
     window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
-
-    // Register Alpine component
-    Alpine.data('templateForm', (config = {}) => ({
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', '') }}'),
-            items: {{ Js::from(old('details')) }} || [
-                { description: '', amount: 0 }
-            ],
-
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-
-            init() {
-                if (!Array.isArray(this.items)) {
-                    this.items = [];
-                }
-
-                if (this.items.length === 0) {
-                    this.addItem();
-                }
-            },
-
-            addItem() {
-                this.items.push({ description: '', amount: 0 });
-            },
-
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-
-            get totalAmount() {
-                return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
-            },
-
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
-        }));
-
-    // Re-initialize the form if Alpine is already running
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            const form = document.getElementById('mainTemplateForm');
-            if (form && window.Alpine) {
-                window.Alpine.initTree(form);
-            }
-        }, 100);
-    });
 </script>
 
 <form action="{{ route('master.templates.store') }}" method="POST" x-data="templateForm({
@@ -230,3 +172,55 @@
 </form>
 
 @endsection
+
+@push('scripts')
+<script>
+// Register Alpine component - executes after admin.js is loaded
+Alpine.data('templateForm', (config = {}) => ({
+    categories: config.categories || {},
+    selectedCategoryId: String('{{ old('category_id', '') }}'),
+    items: {{ Js::from(old('details')) }} || [
+        { description: '', amount: 0 }
+    ],
+
+    get selectedCategoryColor() {
+        if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+            return this.categories[this.selectedCategoryId].color;
+        }
+        return null;
+    },
+
+    init() {
+        if (!Array.isArray(this.items)) {
+            this.items = [];
+        }
+
+        if (this.items.length === 0) {
+            this.addItem();
+        }
+    },
+
+    addItem() {
+        this.items.push({ description: '', amount: 0 });
+    },
+
+    removeItem(index) {
+        if (this.items.length > 1) {
+            this.items.splice(index, 1);
+        }
+    },
+
+    get totalAmount() {
+        return this.items.reduce((total, item) => total + (parseFloat(item.amount) || 0), 0);
+    },
+
+    formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(number);
+    }
+}));
+</script>
+@endpush

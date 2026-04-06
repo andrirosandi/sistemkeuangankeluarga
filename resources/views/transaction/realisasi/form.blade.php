@@ -14,7 +14,7 @@
 @php
     $isEdit = isset($transactionData);
     $actionUrl = $isEdit ? route($type . '.transaction.update', $transactionData->id) : route($type . '.transaction.store');
-    
+
     // Default items
     $defaultItems = [];
     $isTemplate = isset($templateData);
@@ -35,7 +35,7 @@
                 'amount' => (float) $det->amount
             ];
         }
-        
+
         // Mock transactionData to prefill form fields easily
         $transactionData = (object) [
            'category_id' => $templateData->category_id,
@@ -50,52 +50,6 @@
 
 <script>
     window.transactionCategories = @json($categories->keyBy('id'));
-
-    // Register Alpine component
-    Alpine.data('transactionForm', (config = {}) => ({
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
-            items: @json($defaultItems),
-
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-
-            get totalAmount() {
-                return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
-            },
-
-            addItem() {
-                this.items.push({ id: null, description: '', amount: 0 });
-            },
-
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
-        }));
-
-    // Re-initialize the form if Alpine is already running
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            const form = document.getElementById('mainTransactionForm');
-            if (form && window.Alpine) {
-                window.Alpine.initTree(form);
-            }
-        }, 100);
-    });
 </script>
 
 <form action="{{ $actionUrl }}" method="POST" x-data="transactionForm({ categories: window.transactionCategories })" id="mainTransactionForm" x-cloak>
@@ -260,3 +214,43 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script>
+// Register Alpine component - executes after admin.js is loaded
+Alpine.data('transactionForm', (config = {}) => ({
+    categories: config.categories || {},
+    selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
+    items: @json($defaultItems),
+
+    get selectedCategoryColor() {
+        if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+            return this.categories[this.selectedCategoryId].color;
+        }
+        return null;
+    },
+
+    get totalAmount() {
+        return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
+    },
+
+    addItem() {
+        this.items.push({ id: null, description: '', amount: 0 });
+    },
+
+    removeItem(index) {
+        if (this.items.length > 1) {
+            this.items.splice(index, 1);
+        }
+    },
+
+    formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(number);
+    }
+}));
+</script>
+@endpush
