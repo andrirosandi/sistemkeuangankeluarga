@@ -71,7 +71,7 @@ class TransactionController extends Controller
             $query->whereBetween('transaction_date', [$request->date_from, $request->date_to]);
         }
 
-        $query->orderByRaw("FIELD(status, 'draft', 'completed', 'canceled'), created_at DESC");
+        $query->orderByRaw("FIELD(status, 'draft', 'completed'), created_at DESC");
 
         $transactions = $query->get();
         $templates = \App\Models\TemplateHeader::where('trans_code', $transCode)->orderBy('description')->get();

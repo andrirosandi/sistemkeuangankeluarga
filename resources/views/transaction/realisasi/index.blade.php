@@ -92,7 +92,6 @@
                             <td class="sort-status" data-status="{{ $trx->status }}">
                                 @if($trx->status == 'draft') <span class="badge bg-warning">Draft</span>
                                 @elseif($trx->status == 'completed') <span class="badge bg-success">Completed</span>
-                                @elseif($trx->status == 'canceled') <span class="badge bg-dark">Canceled</span>
                                 @endif
                             </td>
                             <td>

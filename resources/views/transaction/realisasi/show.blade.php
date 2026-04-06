@@ -30,7 +30,6 @@
             <div class="card-status-top 
                 @if($transaction->status == 'draft') bg-warning
                 @elseif($transaction->status == 'completed') bg-success
-                @elseif($transaction->status == 'canceled') bg-dark
                 @endif
             "></div>
             <div class="card-header">
@@ -41,18 +40,16 @@
                     <div class="h1 mb-0 me-3">
                         @if($transaction->status == 'draft') <i class="ti ti-clock text-warning"></i>
                         @elseif($transaction->status == 'completed') <i class="ti ti-circle-check text-success"></i>
-                        @elseif($transaction->status == 'canceled') <i class="ti ti-ban text-dark"></i>
                         @endif
                     </div>
                     <div>
                         <div class="h4 m-0">
                             @if($transaction->status == 'draft') Menunggu Pencairan
                             @elseif($transaction->status == 'completed') Dana Sudah Cair
-                            @elseif($transaction->status == 'canceled') Dibatalkan
                             @endif
                         </div>
                         <div class="text-muted">
-                            <span class="badge bg-{{ $transaction->status == 'draft' ? 'warning' : ($transaction->status == 'completed' ? 'success' : 'dark') }}">
+                            <span class="badge bg-{{ $transaction->status == 'draft' ? 'warning' : 'success' }}">
                                 {{ strtoupper($transaction->status) }}
                             </span>
                         </div>
