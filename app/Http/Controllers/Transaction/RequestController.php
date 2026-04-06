@@ -320,8 +320,9 @@ class RequestController extends Controller
             abort(403, 'Akses ditolak. Anda bukan pemilik pengajuan ini atau tidak memiliki hak akses.');
         }
 
-        // Hanya bisa write-off request yang sudah approved dengan transaksi completed
-        if ($req->status !== 'approved' || !$req->transaction || $req->transaction->status !== 'completed') {
+        // Hanya bisa write-off request yang sudah approved dengan minimal satu transaksi completed
+        $completedTrx = $req->transactions()->where('status', 'completed')->first();
+        if ($req->status !== 'approved' || !$completedTrx) {
             return redirect()->back()->with('error', 'Write-off hanya bisa dilakukan pada pengajuan dengan realisasi parsial.');
         }
 
@@ -332,6 +333,25 @@ class RequestController extends Controller
         } catch (\Exception $e) {
             report($e);
             return redirect()->back()->with('error', 'Gagal melakukan write-off. Silakan coba lagi.');
+        }
+    }
+
+    public function continueRealization(Request $request, $id, $type)
+    {
+        $req = RequestHeader::with('details')->findOrFail($id);
+
+        if ($req->status !== 'approved') {
+            return redirect()->back()->with('error', 'Hanya pengajuan approved yang bisa dilanjutkan.');
+        }
+
+        try {
+            $transaction = $this->requestService->createDraftFromOutstanding($req, auth()->id());
+
+            return redirect()->route("{$type}.transaction.edit", $transaction->id)
+                ->with('success', 'Draf realisasi lanjutan berhasil dibuat.');
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal membuat realisasi lanjutan.');
         }
     }
 }

@@ -251,14 +251,20 @@ class TransactionService
     public function deleteTransaction(TransactionHeader $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            // Kembalikan request ke 'requested' agar bisa di-approve ulang
+            // Hanya reset request ke 'requested' jika TIDAK ADA transaction lain untuk request ini
             if ($transaction->request_id) {
-                RequestHeader::where('id', $transaction->request_id)
-                    ->update([
-                        'status'      => 'requested',
-                        'approved_by' => null,
-                        'approved_at' => null,
-                    ]);
+                $otherTransactions = TransactionHeader::where('request_id', $transaction->request_id)
+                    ->where('id', '!=', $transaction->id)
+                    ->exists();
+
+                if (!$otherTransactions) {
+                    RequestHeader::where('id', $transaction->request_id)
+                        ->update([
+                            'status'      => 'requested',
+                            'approved_by' => null,
+                            'approved_at' => null,
+                        ]);
+                }
 
                 // Reset request detail status
                 TransactionDetail::where('header_id', $transaction->id)
