@@ -30,10 +30,14 @@ class RequestController extends Controller
 
         $query = RequestHeader::with(['creator', 'category'])
             ->where('trans_code', $transCode)
-            ->whereIn('created_by', $visibleUserIds)
-            ->where(function ($q) use ($user) {
+            ->where(function ($q) use ($visibleUserIds, $user) {
+                // Selalu boleh lihat data sendiri (apapun statusnya)
                 $q->where('created_by', $user->id)
-                  ->orWhere('status', '!=', 'draft');
+                  // ATAU boleh lihat data orang lain di grup (jika bukan draft)
+                  ->orWhere(function ($q2) use ($visibleUserIds) {
+                      $q2->whereIn('created_by', $visibleUserIds)
+                         ->where('status', '!=', 'draft');
+                  });
             });
 
         if ($request->filled('search')) {
