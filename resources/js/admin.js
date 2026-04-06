@@ -92,9 +92,6 @@ function initScripts(target) {
     // Re-init Dropdowns
     scope.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => bootstrap.Dropdown.getOrCreateInstance(el));
 
-    // Re-init Collapse (critical for sidebar menus after HTMX body swap)
-    scope.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => bootstrap.Collapse.getOrCreateInstance(el, {toggle: false}));
-
     // Re-init Tooltips
     scope.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => bootstrap.Tooltip.getOrCreateInstance(el));
 

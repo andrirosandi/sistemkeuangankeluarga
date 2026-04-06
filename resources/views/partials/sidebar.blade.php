@@ -43,7 +43,7 @@
                                 </span>
                                 <span class="nav-link-title">{{ $item['label'] }}</span>
                             </a>
-                            <div class="dropdown-menu {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }}"
+                            <div class="collapse dropdown-menu {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }}"
                                  id="sidebar-{{ Str::slug($item['label']) }}">
                                 @foreach($item['children'] as $child)
                                     @can($child['permission'])
