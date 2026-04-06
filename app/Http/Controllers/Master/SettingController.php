@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Master\UpdateSettingRequest;
-use App\Http\Requests\Master\VerifyOtpRequest;
 use App\Mail\SmtpTestMail;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Crypt;
@@ -94,26 +93,9 @@ class SettingController extends Controller
                 $this->attachSettingsMedia($request->favicon_media_id, 'app_favicon');
             }
 
-            // Jika SMTP berubah, kirim OTP
+            // Jika SMTP berubah, reset verifikasi
             if ($smtpChanged) {
-                $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-                Session::put('smtp_verification_otp', $otp);
-                Session::put('smtp_verification_expires', now()->addMinutes(10));
-
-                // Coba kirim email
-                try {
-                    Mail::to($request->mail_from)->send(new SmtpTestMail($otp));
-
-                    return redirect()->back()->with([
-                        'success' => 'Pengaturan disimpan! Silakan cek email '.$request->mail_from.' untuk kode verifikasi.',
-                        'show_otp_modal' => true,
-                    ]);
-                } catch (\Exception $e) {
-                    // Jika gagal kirim, beri peringatan tapi data tetap tersimpan
-                    return redirect()->back()->with([
-                        'warning' => 'Pengaturan disimpan, tapi GAGAL mengirim email percobaan: '.$e->getMessage(),
-                    ]);
-                }
+                Setting::set('smtp_verified_at', null);
             }
 
             return redirect()->back()->with('success', 'Pengaturan sistem berhasil diperbarui.');
@@ -123,32 +105,80 @@ class SettingController extends Controller
     }
 
     /**
-     * Verifikasi kode OTP SMTP.
+     * Kirim kode OTP untuk verifikasi SMTP (AJAX).
      */
-    public function verifyOtp(VerifyOtpRequest $request)
+    public function sendOtp(\Illuminate\Http\Request $request)
     {
+        $request->validate([
+            'mail_host' => 'required',
+            'mail_port' => 'required',
+            'mail_username' => 'required',
+            'mail_password' => 'required',
+            'mail_encryption' => 'required',
+            'mail_from' => 'required|email',
+        ]);
+
+        try {
+            // Set config sementara untuk kirim email
+            config([
+                'mail.mailers.smtp.host' => $request->mail_host,
+                'mail.mailers.smtp.port' => $request->mail_port,
+                'mail.mailers.smtp.username' => $request->mail_username,
+                'mail.mailers.smtp.password' => $request->mail_password,
+                'mail.mailers.smtp.encryption' => $request->mail_encryption,
+                'mail.from.address' => $request->mail_from,
+            ]);
+
+            // Generate dan simpan OTP
+            $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            Session::put('smtp_verification_otp', $otp);
+            Session::put('smtp_verification_expires', now()->addMinutes(10));
+
+            Mail::to($request->mail_from)->send(new SmtpTestMail($otp));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kode OTP berhasil dikirim ke ' . $request->mail_from,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim OTP: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Verifikasi kode OTP SMTP (AJAX).
+     */
+    public function verifyOtp(\Illuminate\Http\Request $request)
+    {
+        $request->validate(['otp' => 'required|string|size:6']);
 
         $storedOtp = Session::get('smtp_verification_otp');
         $expiresAt = Session::get('smtp_verification_expires');
 
         if (! $storedOtp || now()->isAfter($expiresAt)) {
-            return redirect()->back()->with([
-                'error' => 'Kode verifikasi kedaluwarsa atau tidak ditemukan. Silakan simpan ulang pengaturan.',
-                'show_otp_modal' => true,
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode verifikasi kedaluwarsa atau tidak ditemukan. Silakan kirim ulang kode OTP.',
+            ], 422);
         }
 
         if ($request->otp === $storedOtp) {
             Session::forget(['smtp_verification_otp', 'smtp_verification_expires']);
             Setting::set('smtp_verified_at', now());
 
-            return redirect()->route('settings.index')->with('success', 'Email berhasil diverifikasi! Sistem kini siap mengirim notifikasi.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Email berhasil diverifikasi! Sistem kini siap mengirim notifikasi.',
+            ]);
         }
 
-        return redirect()->back()->with([
-            'error' => 'Kode verifikasi salah! Silakan periksa kembali email Anda.',
-            'show_otp_modal' => true,
-        ]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Kode verifikasi salah! Silakan periksa kembali email Anda.',
+        ], 422);
     }
 
     /**
