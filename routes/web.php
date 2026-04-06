@@ -139,6 +139,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pengaturan
     Route::get('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'index'])->name('settings.index')->middleware('can:setting.view');
     Route::post('/pengaturan', [\App\Http\Controllers\Master\SettingController::class, 'update'])->name('settings.update')->middleware('can:setting.edit');
+    Route::post('/pengaturan/send-otp', [\App\Http\Controllers\Master\SettingController::class, 'sendOtp'])->name('settings.send-otp')->middleware('can:setting.edit');
     Route::post('/pengaturan/verify-otp', [\App\Http\Controllers\Master\SettingController::class, 'verifyOtp'])->name('settings.verify-otp')->middleware('can:setting.edit');
     Route::post('/pengaturan/reset', [\App\Http\Controllers\Master\SettingController::class, 'reset'])->name('settings.reset')->middleware('can:setting.edit');
 
