@@ -149,17 +149,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard Widget API
     Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {
         Route::get('/balance', [DashboardController::class, 'widgetBalance'])->name('balance')->middleware('can:dashboard.system.balance');
-        Route::get('/summary', [DashboardController::class, 'widgetSummary'])->name('summary')->middleware('can:dashboard.widget.summary');
-        Route::get('/activity', [DashboardController::class, 'widgetActivity'])->name('activity')->middleware('can:dashboard.widget.activity');
-        Route::get('/alerts', [DashboardController::class, 'widgetAlerts'])->name('alerts')->middleware('can:dashboard.widget.alerts');
         Route::get('/recent', [DashboardController::class, 'widgetRecent'])->name('recent')->middleware('can:dashboard.widget.recent');
         Route::get('/request-summary', [DashboardController::class, 'widgetRequestSummary'])->name('request-summary')->middleware('can:dashboard.widget.request-summary');
-        Route::get('/category-breakdown', [DashboardController::class, 'widgetCategoryBreakdown'])->name('category-breakdown')->middleware('can:dashboard.widget.category');
-        Route::get('/group-ranking', [DashboardController::class, 'widgetGroupRanking'])->name('group-ranking')->middleware('can:dashboard.widget.group-ranking');
-        Route::get('/user-ranking', [DashboardController::class, 'widgetUserRanking'])->name('user-ranking')->middleware('can:dashboard.widget.user-ranking');
         Route::get('/outstanding', [DashboardController::class, 'widgetOutstanding'])->name('outstanding')->middleware('can:dashboard.widget.outstanding');
-        Route::get('/month-compare', [DashboardController::class, 'widgetMonthCompare'])->name('month-compare')->middleware('can:dashboard.widget.month-compare');
-        Route::get('/approval-stats', [DashboardController::class, 'widgetApprovalStats'])->name('approval-stats')->middleware('can:dashboard.widget.approval-stats');
     });
 });
 
