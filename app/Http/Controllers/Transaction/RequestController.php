@@ -49,7 +49,7 @@ class RequestController extends Controller
             $query->whereBetween('request_date', [$request->date_from, $request->date_to]);
         }
 
-        $query->orderByRaw("FIELD(status, 'requested', 'draft', 'approved', 'rejected', 'canceled'),
+        $query->orderByRaw("FIELD(status, 'requested', 'draft', 'approved', 'rejected'),
                            FIELD(priority, 'high', 'normal', 'low'),
                            created_at DESC");
 

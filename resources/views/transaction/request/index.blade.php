@@ -102,7 +102,6 @@
                                 @elseif($req->status == 'requested') <span class="badge bg-warning">Requested</span>
                                 @elseif($req->status == 'approved') <span class="badge bg-success">Approved</span>
                                 @elseif($req->status == 'rejected') <span class="badge bg-danger">Rejected</span>
-                                @elseif($req->status == 'canceled') <span class="badge bg-dark">Canceled</span>
                                 @endif
                             </td>
                             <td>
@@ -238,7 +237,7 @@
             <div class="modal-body text-center py-4">
                 <i class="ti ti-ban text-dark icon-lg mb-2"></i>
                 <h3>Batalkan Pengajuan</h3>
-                <div class="text-secondary">Batalkan pengajuan <strong id="cancel-name"></strong>? Data akan tetap tersimpan sebagai riwayat pembatalan.</div>
+                <div class="text-secondary">Tarik kembali pengajuan <strong id="cancel-name"></strong>? Pengajuan akan kembali ke status Draft dan bisa diedit.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">

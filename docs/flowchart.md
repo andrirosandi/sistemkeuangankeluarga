@@ -10,7 +10,7 @@ Dokumen ini berisi standar Flowchart *Core Business Logic* menggunakan sintaks *
 
 Model: `request_header` | Service: `FinanceRequestService`
 
-Diagram ini memvisualisasikan perjalanan siklus hidup Pengajuan (`request_header`), mulai dari pembuatan form hingga keputusan final (Approved / Rejected / Canceled).
+Diagram ini memvisualisasikan perjalanan siklus hidup Pengajuan (`request_header`), mulai dari pembuatan form hingga keputusan final (Approved / Rejected). User bisa menarik kembali pengajuan ke Draft kapan saja sebelum diproses Admin.
 
 ```mermaid
 graph TD
@@ -36,7 +36,7 @@ graph TD
     S_REQ --> NOTIF[Sistem: Notifikasi ke Approver & Tampil di Outstanding]:::system
     NOTIF --> EVAL{Keputusan}
 
-    EVAL -- "User Batalkan Sendiri" --> S_CXL[Status: CANCELED]:::status
+    EVAL -- "User Tarik Kembali" --> S_DRAFT
     EVAL -- "Admin Tolak + Alasan" --> S_REJ[Status: REJECTED]:::status
     EVAL -- "Admin Setujui" --> S_APP[Status: APPROVED]:::status
 
@@ -46,7 +46,6 @@ graph TD
 
     %% Terminal states
     S_REJ --> FIN([Siklus Selesai - Tidak Bisa Resubmit]):::startEnd
-    S_CXL --> FIN
 ```
 
 ---

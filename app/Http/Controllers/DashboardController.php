@@ -278,7 +278,7 @@ class DashboardController extends Controller
         $query = RequestHeader::whereIn('created_by', $userIds)
             ->where('request_date', 'like', $month . '%');
 
-        $statuses = ['draft', 'requested', 'approved', 'rejected', 'canceled'];
+        $statuses = ['draft', 'requested', 'approved', 'rejected'];
         $byStatus = [];
         foreach ($statuses as $status) {
             $sq = (clone $query)->where('status', $status);

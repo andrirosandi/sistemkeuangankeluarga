@@ -32,7 +32,6 @@
                 @elseif($requestData->status == 'requested') bg-warning
                 @elseif($requestData->status == 'approved') bg-success
                 @elseif($requestData->status == 'rejected') bg-danger
-                @elseif($requestData->status == 'canceled') bg-dark
                 @endif
             "></div>
             <div class="card-header">
@@ -45,7 +44,6 @@
                         @elseif($requestData->status == 'requested') <i class="ti ti-clock text-warning"></i>
                         @elseif($requestData->status == 'approved') <i class="ti ti-circle-check text-success"></i>
                         @elseif($requestData->status == 'rejected') <i class="ti ti-circle-x text-danger"></i>
-                        @elseif($requestData->status == 'canceled') <i class="ti ti-ban text-dark"></i>
                         @endif
                     </div>
                     <div>
@@ -229,7 +227,7 @@
             <div class="modal-body text-center py-4">
                 <i class="ti ti-ban text-dark icon-lg mb-2"></i>
                 <h3>Batalkan Pengajuan</h3>
-                <div class="text-secondary">Batalkan pengajuan <strong>{{ $requestData->description }}</strong>? Data akan tetap tersimpan sebagai riwayat pembatalan.</div>
+                <div class="text-secondary">Tarik kembali pengajuan <strong>{{ $requestData->description }}</strong>? Pengajuan akan kembali ke status Draft dan bisa diedit.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">

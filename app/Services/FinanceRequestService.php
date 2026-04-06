@@ -214,12 +214,12 @@ class FinanceRequestService
     }
 
     /**
-     * Cancel pengajuan draft -> canceled.
+     * Tarik kembali pengajuan — kembalikan ke draft agar bisa diedit.
      */
     public function cancelRequest(RequestHeader $req): void
     {
         DB::transaction(function () use ($req) {
-            $req->update(['status' => 'canceled']);
+            $req->update(['status' => 'draft']);
         });
     }
 
