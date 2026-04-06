@@ -33,8 +33,9 @@
                         @if($hasAccess)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'active' : '' }}"
-                               href="#sidebar-{{ Str::slug($item['label']) }}"
+                               href="#"
                                data-bs-toggle="collapse"
+                               data-bs-target="#sidebar-{{ Str::slug($item['label']) }}"
                                hx-boost="false"
                                role="button"
                                aria-expanded="{{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'true' : 'false' }}">
@@ -44,7 +45,8 @@
                                 <span class="nav-link-title">{{ $item['label'] }}</span>
                             </a>
                             <div class="collapse {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }} ms-3"
-                                 id="sidebar-{{ Str::slug($item['label']) }}">
+                                 id="sidebar-{{ Str::slug($item['label']) }}"
+                                 data-bs-parent="#sidebar-menu">
                                 <ul class="nav nav-sm flex-column">
                                     @foreach($item['children'] as $child)
                                         @can($child['permission'])
