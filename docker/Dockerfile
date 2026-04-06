@@ -37,6 +37,9 @@ COPY . /app
 # Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Clear stale bootstrap cache (may reference dev packages from host)
+RUN rm -f /app/bootstrap/cache/*.php
+
 # Ensure correct permissions for Laravel storage
 RUN mkdir -p /app/storage /app/bootstrap/cache
 RUN chmod -R 777 /app/storage /app/bootstrap/cache
