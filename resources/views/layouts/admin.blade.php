@@ -125,21 +125,26 @@
 
     @stack('scripts')
 
-    {{-- Manual collapse override to fix HTMX + Tabler conflict --}}
+    {{-- Fix sidebar collapse timing issue - use Bootstrap events to update aria-expanded --}}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
+            const target = document.querySelector(el.getAttribute('href'));
+            if (!target) return;
+
+            const instance = bootstrap.Collapse.getOrCreateInstance(target, { toggle: false });
+
             el.addEventListener('click', function (e) {
                 e.preventDefault();
+                instance.toggle();
+            });
 
-                const target = document.querySelector(this.getAttribute('href'));
-                if (!target) return;
+            target.addEventListener('shown.bs.collapse', () => {
+                el.setAttribute('aria-expanded', 'true');
+            });
 
-                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(target);
-                bsCollapse.toggle();
-
-                // Update aria-expanded
-                this.setAttribute('aria-expanded', target.classList.contains('show'));
+            target.addEventListener('hidden.bs.collapse', () => {
+                el.setAttribute('aria-expanded', 'false');
             });
         });
     });
