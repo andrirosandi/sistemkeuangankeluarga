@@ -22,7 +22,7 @@ jobs:
           script: |
             cd $APP_DIR
 
-            # Tarik kode terbaru dari GitHub (Paksa overwrite jika ada koflik di server)
+            # Tarik kode terbaru dari GitHub
             git fetch origin main
             git reset --hard origin/main
 
@@ -30,9 +30,19 @@ jobs:
             cp docker/docker-compose.yml docker-compose.yml
             cp docker/Dockerfile Dockerfile
 
-            # Matikan dan bangun ulang docker sesuai kode terbaru
+            # Restart docker (tanpa build, code di-mount dari host)
             docker compose down
-            docker compose up -d --build
+            docker compose up -d
+
+            # Tunggu container ready
+            sleep 10
+
+            # Install composer dependencies di dalam container
+            docker exec skk_app composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Build frontend assets - SUDAH DI-TRACK DI REPO (/public/build)
+            # docker exec skk_app npm install
+            # docker exec skk_app npm run build
 
             # Jalankan migrasi database otomatis jika ada tabel baru
             docker exec skk_app php artisan migrate --force
@@ -42,7 +52,10 @@ jobs:
             docker exec skk_app php artisan view:cache
             docker exec skk_app php artisan config:cache
 
-            # Pastikan storage link dibuat agar gambar/file upload bisa diakses
+            # Pastikan storage link dibuat
             docker exec skk_app php artisan storage:link
+
+            # Bersihkan cache untuk hemat disk
+            docker exec skk_app php artisan cache:clear
 
             echo "Deployment Selesai!"
