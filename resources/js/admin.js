@@ -92,15 +92,13 @@ function initScripts(target) {
     // Re-init Dropdowns
     scope.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => bootstrap.Dropdown.getOrCreateInstance(el));
 
-    // Re-init Collapses - ONLY if element is in the swapped content (not in existing document)
+    // Re-init Collapses - ONLY initialize if not already initialized
     // This prevents multiple instances on the same element which breaks toggle behavior
     scope.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
-        // Skip if element already has a Bootstrap Collapse instance in the main document
-        if (document.contains(el) && bootstrap.Collapse.getInstance(el)) {
-            return;
+        // Only initialize if there's no existing instance
+        if (!bootstrap.Collapse.getInstance(el)) {
+            bootstrap.Collapse.getOrCreateInstance(el);
         }
-        // Only init new collapses that were just swapped in
-        bootstrap.Collapse.getOrCreateInstance(el);
     });
 
     // Re-init Tooltips
