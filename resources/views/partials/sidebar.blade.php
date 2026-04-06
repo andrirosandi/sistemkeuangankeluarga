@@ -87,7 +87,7 @@
                     {{-- ================= SINGLE MENU ================= --}}
                     @else
                         @can($item['permission'])
-                        <li class="nav-item">
+                        <li class="nav-item" style="padding-left: 44px !important;">
                             <a href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}"
                                class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}">
 
