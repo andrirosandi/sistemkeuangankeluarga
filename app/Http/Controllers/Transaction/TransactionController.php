@@ -140,17 +140,14 @@ class TransactionController extends Controller
     {
         $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
 
-        if ($transaction->status !== 'draft') {
-            return redirect()->route("{$type}.transaction.index")->with('error', 'Hanya realisasi Draft yang dapat diedit.');
-        }
-
         $this->authorizeVisibility($transaction);
 
-        $title = "Edit Realisasi " . $this->getTypeLabel($type);
+        $title = ($transaction->status !== 'draft' ? "Detail " : "Edit ") . "Realisasi " . $this->getTypeLabel($type);
         $categories = Category::orderBy('name')->get();
         $transactionData = $transaction;
+        $readOnly = $transaction->status !== 'draft';
 
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData'));
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly'));
     }
 
     public function update(StoreTransactionRequest $request, $id, $type)

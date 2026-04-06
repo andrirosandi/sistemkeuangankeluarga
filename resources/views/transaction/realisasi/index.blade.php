@@ -110,7 +110,7 @@
                                         <i class="ti ti-eye me-1"></i> Lihat
                                     </a>
                                     @else
-                                    <a href="{{ route($type . '.transaction.show', $trx->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
+                                    <a href="{{ route($type . '.transaction.edit', $trx->id) }}" class="btn btn-sm btn-primary rounded-2" data-bs-toggle="tooltip" title="Lihat Detail">
                                         <i class="ti ti-eye me-1"></i> Lihat
                                     </a>
                                     @endcan

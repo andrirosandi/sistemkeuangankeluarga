@@ -222,7 +222,8 @@
                 @if($requestData->status == 'approved' && $requestData->transactions->where('status', 'completed')->isNotEmpty())
                     @php
                        $realizedAmount = $requestData->transactions->where('status', 'completed')->sum('amount');
-                       $isPartial = $realizedAmount < $requestData->amount || $requestData->details->where('status', 'pending')->count() > 0;
+                       $pendingDetails = $requestData->details->where('status', 'pending');
+                       $isPartial = $pendingDetails->count() > 0;
                     @endphp
                     @if($isPartial && auth()->id() === $requestData->created_by)
                         <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-writeoff-show">

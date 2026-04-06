@@ -33,8 +33,7 @@
                         @if($hasAccess)
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'show' : '' }}"
-                               href="#sidebar-{{ Str::slug($item['label']) }}"
-                               data-bs-toggle="collapse"
+                               href="#"
                                hx-boost="false"
                                role="button"
                                aria-expanded="{{ request()->routeIs(collect($item['children'])->pluck('route')->toArray()) ? 'true' : 'false' }}">

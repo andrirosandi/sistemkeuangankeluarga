@@ -20,12 +20,40 @@ class NotificationService
         return !empty(Setting::get('smtp_verified_at')) && !empty(Setting::get('mail_host'));
     }
 
+    private static function applySmtpConfig(): void
+    {
+        $mailHost = Setting::get('mail_host');
+        if ($mailHost) {
+            $password = Setting::get('mail_password');
+            $decryptedPassword = '';
+            if ($password) {
+                try {
+                    $decryptedPassword = \Illuminate\Support\Facades\Crypt::decryptString($password);
+                } catch (\Exception $e) {
+                    // ignore decrypt error
+                }
+            }
+
+            config([
+                'mail.default' => 'smtp',
+                'mail.mailers.smtp.host' => $mailHost,
+                'mail.mailers.smtp.port' => Setting::get('mail_port', 587),
+                'mail.mailers.smtp.username' => Setting::get('mail_username'),
+                'mail.mailers.smtp.password' => $decryptedPassword,
+                'mail.mailers.smtp.encryption' => Setting::get('mail_encryption', 'tls'),
+                'mail.from.address' => Setting::get('mail_from'),
+                'mail.from.name' => Setting::get('app_name', config('app.name')),
+            ]);
+        }
+    }
+
     /**
      * Dispatch email notification helper
      */
     private static function sendEmailIfReady(User $user, string $message, ?string $routeName, array $routeParams = []): void
     {
         if (self::isMailReady() && !empty($user->email)) {
+            self::applySmtpConfig();
             try {
                 $actionUrl = $routeName ? route($routeName, $routeParams) : null;
                 Mail::to($user->email)->send(new NotificationMail($message, $actionUrl));

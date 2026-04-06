@@ -127,7 +127,7 @@ class RequestController extends Controller
 
     public function show($id, $type)
     {
-        $req = RequestHeader::with(['details', 'category', 'creator', 'approver', 'media'])
+        $req = RequestHeader::with(['details', 'category', 'creator', 'approver', 'media', 'transactions'])
             ->findOrFail($id);
 
         $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());

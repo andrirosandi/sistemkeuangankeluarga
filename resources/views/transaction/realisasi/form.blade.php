@@ -46,6 +46,8 @@
     } else {
         $defaultItems[] = ['id' => null, 'description' => '', 'amount' => 0];
     }
+    
+    $readOnly = $readOnly ?? false;
 @endphp
 
 <script>
@@ -108,6 +110,7 @@
                             <button type="button" class="form-select text-start d-flex align-items-center justify-content-between @error('category_id') is-invalid @enderror" 
                                     @click="open = !open" @click.outside="open = false" 
                                     :class="{'text-muted': !selectedCategoryId}"
+                                    {{ $readOnly ? 'disabled' : '' }}
                                     style="min-height: 2.375rem;">
                                 <template x-if="selectedCategoryId && categories[selectedCategoryId]">
                                     <div class="d-flex align-items-center gap-2">
@@ -149,6 +152,7 @@
                     <div class="mb-3">
                         <label class="form-label required">Tanggal Realisasi</label>
                         <input type="date" name="transaction_date" class="form-control @error('transaction_date') is-invalid @enderror" 
+                               {{ $readOnly ? 'disabled' : '' }}
                                value="{{ old('transaction_date', isset($transactionData) ? \Carbon\Carbon::parse($transactionData->transaction_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
                         @error('transaction_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
@@ -156,13 +160,14 @@
                     <div class="mb-3">
                         <label class="form-label required">Deskripsi Singkat</label>
                         <input type="text" name="description" class="form-control @error('description') is-invalid @enderror" 
+                               {{ $readOnly ? 'disabled' : '' }}
                                placeholder="Contoh: Belanja Bulanan" value="{{ old('description', $transactionData->description ?? '') }}" required>
                         @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3">{{ old('notes', $transactionData->notes ?? '') }}</textarea>
+                        <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3" {{ $readOnly ? 'disabled' : '' }}>{{ old('notes', $transactionData->notes ?? '') }}</textarea>
                         @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -173,11 +178,13 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Rincian Item</h3>
+                    @if(!$readOnly)
                     <div class="card-actions">
                         <button type="button" class="btn btn-outline-primary btn-sm" @click="addItem()">
                             <i class="ti ti-plus me-1"></i> Tambah Item
                         </button>
                     </div>
+                    @endif
                 </div>
                 
                 <div class="table-responsive">
@@ -194,15 +201,17 @@
                                 <tr>
                                     <td>
                                         <input type="hidden" :name="`items[${index}][id]`" :value="item.id">
-                                        <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required>
+                                        <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required {{ $readOnly ? 'disabled' : '' }}>
                                     </td>
                                     <td>
-                                        <input type="number" :name="`items[${index}][amount]`" class="form-control text-end" x-model.number="item.amount" min="0" required>
+                                        <input type="number" :name="`items[${index}][amount]`" class="form-control text-end" x-model.number="item.amount" min="0" required {{ $readOnly ? 'disabled' : '' }}>
                                     </td>
                                     <td>
+                                        @if(!$readOnly)
                                         <button type="button" class="btn btn-icon btn-outline-danger" @click="removeItem(index)" :disabled="items.length === 1">
                                             <i class="ti ti-trash"></i>
                                         </button>
+                                        @endif
                                     </td>
                                 </tr>
                             </template>
@@ -237,12 +246,14 @@
                     <a href="{{ route($type . '.transaction.index') }}" class="btn btn-link link-secondary px-3">
                         Kembali
                     </a>
+                    @if(!$readOnly)
                     <button type="submit" name="action_type" value="draft" class="btn btn-outline-primary">
                         <i class="ti ti-device-floppy me-2"></i> Simpan Draft
                     </button>
                     <button type="submit" name="action_type" value="completed" class="btn btn-success shadow-sm">
                         <i class="ti ti-check me-2"></i> {{ $isEdit ? 'Update & Realisasikan' : 'Simpan & Realisasikan' }}
                     </button>
+                    @endif
                 </div>
             </div>
         </div>

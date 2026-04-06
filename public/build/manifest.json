@@ -16,7 +16,7 @@
     "src": "node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff2"
   },
   "resources/css/admin.css": {
-    "file": "assets/admin-DgJF6T4j.css",
+    "file": "assets/admin-Ci3rXpn2.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
@@ -26,7 +26,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-CkqE_41j.js",
+    "file": "assets/admin-BhrtO0zp.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
