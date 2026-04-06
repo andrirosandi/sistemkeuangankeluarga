@@ -4,12 +4,18 @@
 
 @section('content')
 <script>
+    // Global data - must be defined early
     window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
+    window.templateFormData = {
+        categories: window.templateCategories,
+        selectedCategoryId: String('{{ old('category_id', '') }}'),
+        items: {{ Js::from(old('details')) }} || [
+            { description: '', amount: 0 }
+        ]
+    };
 </script>
 
-<form action="{{ route('master.templates.store') }}" method="POST" x-data="templateForm({
-        categories: window.templateCategories
-    })" id="mainTemplateForm" x-cloak>
+<form action="{{ route('master.templates.store') }}" method="POST" x-data="templateFormData" id="mainTemplateForm" x-cloak>
     @csrf
     <div class="row row-cards">
         <div class="col-md-4">
@@ -175,14 +181,8 @@
 
 @push('scripts')
 <script>
-// Register Alpine component - executes after admin.js is loaded
-Alpine.data('templateForm', (config = {}) => ({
-    categories: config.categories || {},
-    selectedCategoryId: String('{{ old('category_id', '') }}'),
-    items: {{ Js::from(old('details')) }} || [
-        { description: '', amount: 0 }
-    ],
-
+// Extend global data with methods - works regardless of when this script executes
+Object.assign(window.templateFormData, {
     get selectedCategoryColor() {
         if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
             return this.categories[this.selectedCategoryId].color;
@@ -221,6 +221,6 @@ Alpine.data('templateForm', (config = {}) => ({
             minimumFractionDigits: 0
         }).format(number);
     }
-}));
+});
 </script>
 @endpush

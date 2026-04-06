@@ -30,10 +30,18 @@
 @endphp
 
 <script>
+    // Global data - must be defined early
     window.requestCategories = @json($categories->keyBy('id'));
+    window.requestFormData = {
+        categories: window.requestCategories,
+        selectedCategoryId: String('{{ old('category_id', $requestData->category_id ?? '') }}'),
+        items: @json($defaultItems),
+        uploadedMedia: [],
+        isUploading: false
+    };
 </script>
 
-<form action="{{ $actionUrl }}" method="POST" x-data="requestForm({ categories: window.requestCategories })" @submit="submitMainForm($event)" id="mainRequestForm" x-cloak>
+<form action="{{ $actionUrl }}" method="POST" x-data="requestFormData" @submit="submitMainForm($event)" id="mainRequestForm" x-cloak>
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -264,14 +272,8 @@
 
 @push('scripts')
 <script>
-// Register Alpine component - executes after admin.js is loaded
-Alpine.data('requestForm', (config = {}) => ({
-    categories: config.categories || {},
-    selectedCategoryId: String('{{ old('category_id', $requestData->category_id ?? '') }}'),
-    items: @json($defaultItems),
-    uploadedMedia: [],
-    isUploading: false,
-
+// Extend global data with methods - works regardless of when this script executes
+Object.assign(window.requestFormData, {
     get selectedCategoryColor() {
         if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
             return this.categories[this.selectedCategoryId].color;
@@ -355,6 +357,6 @@ Alpine.data('requestForm', (config = {}) => ({
         }
         return true;
     }
-}));
+});
 </script>
 @endpush

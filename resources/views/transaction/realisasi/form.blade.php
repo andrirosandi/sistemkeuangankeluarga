@@ -49,10 +49,16 @@
 @endphp
 
 <script>
+    // Global data - must be defined early
     window.transactionCategories = @json($categories->keyBy('id'));
+    window.transactionFormData = {
+        categories: window.transactionCategories,
+        selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
+        items: @json($defaultItems)
+    };
 </script>
 
-<form action="{{ $actionUrl }}" method="POST" x-data="transactionForm({ categories: window.transactionCategories })" id="mainTransactionForm" x-cloak>
+<form action="{{ $actionUrl }}" method="POST" x-data="transactionFormData" id="mainTransactionForm" x-cloak>
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -217,12 +223,8 @@
 
 @push('scripts')
 <script>
-// Register Alpine component - executes after admin.js is loaded
-Alpine.data('transactionForm', (config = {}) => ({
-    categories: config.categories || {},
-    selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
-    items: @json($defaultItems),
-
+// Extend global data with methods - works regardless of when this script executes
+Object.assign(window.transactionFormData, {
     get selectedCategoryColor() {
         if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
             return this.categories[this.selectedCategoryId].color;
@@ -251,6 +253,6 @@ Alpine.data('transactionForm', (config = {}) => ({
             minimumFractionDigits: 0
         }).format(number);
     }
-}));
+});
 </script>
 @endpush

@@ -11,7 +11,7 @@ import '@tabler/core/dist/js/tabler.esm.min.js';
 import './datatable-handler.js';
 import fileUploadComponent from './components/file-upload.js';
 
-// Register components
+// Register components BEFORE Alpine starts
 Alpine.data('fileUploadComponent', fileUploadComponent);
 
 // Theme management
