@@ -16,17 +16,17 @@
     "src": "node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff2"
   },
   "resources/css/admin.css": {
-    "file": "assets/admin-Ci3rXpn2.css",
+    "file": "assets/admin-CWGVdHNA.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-B6sfnO8m.css",
+    "file": "assets/app-BTk_uEgD.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-BhrtO0zp.js",
+    "file": "assets/admin-DGjmbgue.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,

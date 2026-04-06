@@ -79,8 +79,18 @@ body {
     padding-bottom: 0.75rem;
 }
 
-.navbar-vertical .dropdown-menu .dropdown-item.active {
+/* Submenu items - compensate for ms-3 margin by shifting shadow left */
+.navbar-vertical .dropdown-menu .dropdown-item.active,
+.navbar-vertical .collapse.ms-3 .nav-sm .nav-link.active {
+    margin-left: -1rem;
+    padding-left: 2.75rem;
     box-shadow: inset 3px 0 0 0 #0d9488 !important;
+}
+
+/* Non-active submenu items need same alignment */
+.navbar-vertical .collapse.ms-3 .nav-sm .nav-link:not(.active) {
+    margin-left: -1rem;
+    padding-left: 2.75rem;
 }
 
 /* Dark mode color palette */
