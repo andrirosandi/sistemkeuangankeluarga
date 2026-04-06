@@ -62,6 +62,35 @@ docker compose down      # Stop
 ### Deployment
 CI/CD via GitHub Actions (`.github/workflows/deploy.yml`): SSH deploy → git pull → docker compose rebuild → artisan migrate.
 
+## Deployment Workflow Rules
+
+**IMPORTANT:** Follow this sequence when deploying changes:
+
+1. **Work on `dev` branch** — All development happens here
+2. **Commit changes** — Create descriptive commit messages
+3. **Push to `dev`** — Push changes to dev branch
+4. **Switch to `main`** — `git checkout main`
+5. **Pull latest main** — `git pull origin main`
+6. **Merge dev to main** — `git merge dev` (or use merge commit)
+7. **Push to main** — `git push` (triggers CI/CD deployment)
+8. **Switch back to dev** — `git checkout dev`
+9. **Check for missed changes** — Verify all changes are merged correctly
+
+### Checklist Before Push
+
+- [ ] Run `git status` — ensure no unwanted files are staged
+- [ ] Check `.claude/settings.local.json` — should NOT be committed
+- [ ] Review commit message — ensure it's descriptive and follows convention
+- [ ] Verify all changes are in correct branch
+- [ ] Run tests (if applicable) — `php artisan test`
+
+### After Deployment
+
+- [ ] Verify website is online — check at production URL
+- [ ] Test critical paths — login, dashboard, request, transaction
+- [ ] Check GitHub Actions — ensure deployment completed successfully
+- [ ] Verify database migrations ran without errors
+
 ## Architecture
 
 ### Tech Stack
