@@ -191,3 +191,72 @@ See `docs/` for detailed specifications:
 - **Use Tabler Icons webfont** for icons: `<i class="ti ti-iconname"></i>` — do not use inline SVG or other icon libraries
 - **Use Form Request classes** in `app/Http/Requests/` for validation — do not use inline `$request->validate()` in controllers
 - **Ownership check** — users can only access their own requests (`created_by === auth()->id()`). Admin bypasses this.
+
+### Alpine.js Form Component Pattern
+
+**NEVER use Alpine.data() for form components in Blade templates.** Use global data objects instead.
+
+**Why?** Vite loads admin.js as an ES module (deferred), so inline scripts in @stack('scripts') execute before Alpine is defined, causing "Alpine is not defined" errors.
+
+**CORRECT Pattern:**
+```php
+@section('content')
+<script>
+    // 1. Define global data EARLY (before form renders)
+    window.requestCategories = @json($categories->keyBy('id'));
+    window.requestFormData = {
+        categories: window.requestCategories,
+        selectedCategoryId: String('{{ old('category_id', ...) }}'),
+        items: @json($defaultItems),
+        uploadedMedia: [],
+        isUploading: false,
+
+        // 2. Define ALL methods inline
+        get selectedCategoryColor() { ... },
+        get totalAmount() { ... },
+        addItem() { ... },
+        removeItem(index) { ... },
+        formatRupiah(number) { ... },
+        async uploadFiles(event) { ... },
+        removeMedia(index) { ... },
+        submitMainForm(event) { ... }
+    };
+</script>
+
+<!-- 3. Form uses global object directly -->
+<form action="{{ $actionUrl }}" method="POST" x-data="requestFormData" @submit="submitMainForm($event)" id="mainRequestForm" x-cloak>
+    <!-- ... form content ... -->
+</form>
+@endsection
+```
+
+**INCORRECT Pattern (DO NOT USE):**
+```php
+// ❌ DON'T: Use Alpine.data() in @stack('scripts')
+@push('scripts')
+<script>
+    Alpine.data('requestForm', (config = {}) => ({ ... }));
+</script>
+@endpush
+
+// ❌ DON'T: Use Object.assign() to add methods later
+@push('scripts')
+<script>
+    Object.assign(window.requestFormData, { ... });
+</script>
+@endpush
+```
+
+**Key Points:**
+- Global object with ALL methods defined in initial `<script>` tag
+- Form uses `x-data="window.requestFormData"` directly
+- No `Alpine.data()` registration needed
+- No `@push('scripts')` for component definition
+- Works for both direct page load and HTMX navigation
+- Cache-resistant (HTMX cache won't affect it)
+
+**Files following this pattern:**
+- `transaction/request/form.blade.php` → `window.requestFormData`
+- `transaction/realisasi/form.blade.php` → `window.transactionFormData`
+- `master/template/create.blade.php` → `window.templateFormData`
+- `master/template/edit.blade.php` → `window.templateFormData`
