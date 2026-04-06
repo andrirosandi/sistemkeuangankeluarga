@@ -71,7 +71,7 @@ class NotificationService
             self::applySmtpConfig();
             try {
                 $actionUrl = $routeName ? route($routeName, $routeParams) : null;
-                Mail::to($user->email)->send(new NotificationMail($message, $actionUrl));
+                Mail::mailer('smtp')->to($user->email)->send(new NotificationMail($message, $actionUrl));
             } catch (\Exception $e) {
                 Log::error('Gagal mengirim email notifikasi: ' . $e->getMessage());
             }

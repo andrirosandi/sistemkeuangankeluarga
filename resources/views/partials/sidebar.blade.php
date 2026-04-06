@@ -45,7 +45,7 @@
                         <li class="nav-item">
 
                             {{-- PARENT TOGGLE --}}
-                            <a class="nav-link {{ $isActive ? 'active' : '' }}"
+                            <a class="nav-link {{ $isActive ? 'active' : '' }} nav-link-toggle"
                                href="#"
                                data-bs-toggle="collapse"
                                data-bs-target="#sidebar-{{ Str::slug($item['label']) }}"
