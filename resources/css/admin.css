@@ -381,6 +381,17 @@ header.navbar .container-fluid {
     opacity: 1 !important;
 }
 
+/* nav-link-arrow via inline icon */
+.nav-link-arrow {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.nav-link[aria-expanded="true"] .nav-link-arrow {
+    transform: rotate(90deg);
+}
+
 /* Menambahkan icon panah (chevron) menggunakan pseudo-element */
 .nav-link-toggle::after {
     content: "";
