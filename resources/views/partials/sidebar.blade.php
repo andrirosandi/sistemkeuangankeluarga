@@ -69,9 +69,9 @@
 
                                     @foreach($item['children'] as $child)
                                         @can($child['permission'])
-                                        <li class="nav-item" style="padding-left: 44px !important">
+                                        <li class="nav-item" >
                                             <a href="{{ Route::has($child['route']) ? route($child['route']) : '#' }}"
-                                               class="nav-link {{ request()->routeIs($child['route']) ? 'active' : '' }}">
+                                               class="nav-link {{ request()->routeIs($child['route']) ? 'active' : '' }}" style="padding-left: 44px !important">
                                                 {{ $child['label'] }}
                                             </a>
                                         </li>
