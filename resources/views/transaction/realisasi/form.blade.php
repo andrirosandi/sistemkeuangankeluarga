@@ -171,6 +171,19 @@
                         <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3" {{ $readOnly ? 'disabled' : '' }}>{{ old('notes', $transactionData->notes ?? '') }}</textarea>
                         @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+
+                    @if($isEdit && isset($transactionData->requestHeader) && $transactionData->requestHeader)
+                    <div class="mb-0">
+                        <div class="alert alert-info mb-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="ti ti-user me-1"></i>
+                                <span class="text-secondary">Pengaju:</span>
+                                <strong>{{ $transactionData->requestHeader->creator->name ?? '-' }}</strong>
+                                <span class="text-secondary ms-2" style="font-size: 0.85em;">{{ $transactionData->requestHeader->description ?? '' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

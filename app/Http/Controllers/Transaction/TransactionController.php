@@ -138,7 +138,7 @@ class TransactionController extends Controller
 
     public function edit($id, $type)
     {
-        $transaction = TransactionHeader::with(['details', 'requestHeader'])->findOrFail($id);
+        $transaction = TransactionHeader::with(['details', 'requestHeader.creator'])->findOrFail($id);
 
         $this->authorizeVisibility($transaction);
 
