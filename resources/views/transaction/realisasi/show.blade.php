@@ -126,6 +126,48 @@
             </div>
         </div>
         @endif
+
+        <!-- Lampiran Bukti Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Lampiran Bukti</h3>
+            </div>
+            <div class="card-body">
+                @if($transaction->hasMedia('transactions'))
+                    <div class="row g-2">
+                        @foreach($transaction->getMedia('transactions') as $mediaItem)
+                            @php
+                                $isImage = \Illuminate\Support\Str::startsWith($mediaItem->mime_type, 'image/');
+                            @endphp
+                            <div class="col-4">
+                                <div class="position-relative border rounded bg-light" style="padding-bottom: 100%; height: 0; overflow: hidden;">
+                                    <a href="{{ $mediaItem->getUrl() }}" target="_blank" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white" title="Lihat/Download">
+                                        @if($isImage)
+                                            <img src="{{ $mediaItem->getUrl() }}" class="img-fluid" style="object-fit: contain; width: 100%; height: 100%;" alt="{{ $mediaItem->file_name }}">
+                                        @else
+                                            <div class="text-center">
+                                                <i class="ti ti-file-text text-muted h1 mb-1"></i>
+                                            </div>
+                                        @endif
+                                    </a>
+                                    <a href="{{ $mediaItem->getUrl() }}" download="{{ $mediaItem->file_name }}" class="btn btn-sm btn-icon btn-primary position-absolute bottom-0 end-0 m-1 rounded-circle shadow-sm" title="Download">
+                                        <i class="ti ti-download" style="font-size: 12px;"></i>
+                                    </a>
+                                </div>
+                                <div class="text-truncate small mt-1 text-center" style="max-width: 100%; font-size: 11px;" title="{{ $mediaItem->file_name }}">
+                                    {{ $mediaItem->file_name }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-muted text-center py-3">
+                        <i class="ti ti-file-off h1 mb-2"></i><br>
+                        Tidak ada berkas yang dilampirkan.
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Kolom Kanan: Rincian Item -->

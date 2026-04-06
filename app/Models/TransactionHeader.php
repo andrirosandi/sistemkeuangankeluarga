@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Models\Traits\HasHeaderRelations;
 
-class TransactionHeader extends Model
+class TransactionHeader extends Model implements HasMedia
 {
-    use HasHeaderRelations;
+    use InteractsWithMedia, HasHeaderRelations;
     protected $table = 'transaction_header';
     protected $fillable = [
         'category_id',

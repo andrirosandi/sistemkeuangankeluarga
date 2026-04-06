@@ -58,6 +58,8 @@
         categories: window.transactionCategories,
         selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
         items: @json($defaultItems),
+        uploadedMedia: [],
+        isUploading: false,
 
         get selectedCategoryColor() {
             if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
@@ -86,11 +88,66 @@
                 currency: 'IDR',
                 minimumFractionDigits: 0
             }).format(number);
+        },
+
+        async uploadFiles(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            this.isUploading = true;
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('folder', 'transactions');
+
+                    const response = await fetch("{{ route('api.upload') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        this.uploadedMedia.push({
+                            id: result.media_id,
+                            name: result.name || file.name,
+                            url: result.url
+                        });
+                    } else {
+                        alert('Gagal mengunggah ' + file.name + ': ' + (result.error || 'Server error'));
+                    }
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan koneksi saat mengunggah file.');
+                console.error(error);
+            } finally {
+                this.isUploading = false;
+                event.target.value = '';
+            }
+        },
+
+        removeMedia(index) {
+            this.uploadedMedia.splice(index, 1);
+        },
+
+        submitMainForm(event) {
+            if (this.isUploading) {
+                event.preventDefault();
+                alert('Harap tunggu hingga proses upload selesai!');
+                return false;
+            }
+            return true;
         }
     };
 </script>
 
-<form action="{{ $actionUrl }}" method="POST" x-data="transactionFormData" id="mainTransactionForm" x-cloak>
+<form action="{{ $actionUrl }}" method="POST" x-data="transactionFormData" @submit="submitMainForm($event)" id="mainTransactionForm" x-cloak>
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -171,6 +228,64 @@
                         <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3" {{ $readOnly ? 'disabled' : '' }}>{{ old('notes', $transactionData->notes ?? '') }}</textarea>
                         @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+
+                    @if(!$readOnly)
+                    <div class="mb-3">
+                        <label class="form-label">Lampiran Bukti</label>
+                        <input type="file" id="fileUploader" class="form-control" multiple @change="uploadFiles($event)" :disabled="isUploading">
+
+                        <div x-show="isUploading" class="mt-2">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            <span class="text-muted">Mengunggah...</span>
+                        </div>
+
+                        <!-- Hidden inputs for uploaded files -->
+                        <template x-for="media in uploadedMedia" :key="media.id">
+                            <input type="hidden" name="media_ids[]" :value="media.id">
+                        </template>
+
+                        <!-- File List UI (Thumbnails) -->
+                        <div class="row g-2 mt-2" x-show="uploadedMedia.length > 0">
+                            <template x-for="(media, index) in uploadedMedia" :key="media.id">
+                                <div class="col-4">
+                                    <div class="position-relative border rounded bg-light" style="padding-bottom: 100%; height: 0; overflow: hidden;">
+                                        <a :href="media.url" target="_blank" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white">
+                                            <img :src="media.url" class="img-fluid" style="object-fit: contain; width: 100%; height: 100%;" :alt="media.name" x-on:error="$el.outerHTML = '<i class=\'ti ti-file-text text-muted h1\'></i>'">
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                                @click="removeMedia(index)" title="Hapus Bukti" :disabled="isUploading"
+                                                style="width: 24px; height: 24px; min-height: 24px;">
+                                            <i class="ti ti-x" style="font-size: 12px;"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-truncate small mt-1 text-center" style="max-width: 100%; fontSize: 11px;" x-text="media.name" :title="media.name"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($isEdit && $transactionData->hasMedia('transactions'))
+                    <div class="mb-0">
+                        <strong>Bukti Tersimpan Sebelumnya:</strong>
+                        <div class="row g-2 mt-2">
+                            @foreach($transactionData->getMedia('transactions') as $mediaItem)
+                                @php $isImage = \Illuminate\Support\Str::startsWith($mediaItem->mime_type, 'image/'); @endphp
+                                <div class="col-4">
+                                    <a href="{{ $mediaItem->getUrl() }}" target="_blank" title="Lihat/Download">
+                                        @if($isImage)
+                                            <img src="{{ $mediaItem->getUrl() }}" class="img-fluid rounded border">
+                                        @else
+                                            <div class="border rounded bg-light p-3 text-center">
+                                                <i class="ti ti-file-text text-muted h1 mb-0"></i>
+                                            </div>
+                                        @endif
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
 
                     @if($isEdit && isset($transactionData->requestHeader) && $transactionData->requestHeader)
                     <div class="mb-0">

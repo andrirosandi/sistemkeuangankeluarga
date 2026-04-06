@@ -6,6 +6,7 @@ use App\Models\TransactionHeader;
 use App\Models\TransactionDetail;
 use App\Models\RequestHeader;
 use App\Models\RequestDetail;
+use App\Models\TemporaryMedia;
 use Illuminate\Support\Facades\DB;
 
 class TransactionService
@@ -20,9 +21,9 @@ class TransactionService
      *
      * @return TransactionHeader
      */
-    public function createTransaction(array $headerData, array $items, string $status = 'draft'): TransactionHeader
+    public function createTransaction(array $headerData, array $items, string $status = 'draft', ?array $mediaIds = null, int $userId = 0): TransactionHeader
     {
-        return DB::transaction(function () use ($headerData, $items, $status) {
+        return DB::transaction(function () use ($headerData, $items, $status, $mediaIds, $userId) {
             $totalAmount = collect($items)->sum('amount');
 
             $header = TransactionHeader::create(array_merge($headerData, [
@@ -47,6 +48,8 @@ class TransactionService
                 );
             }
 
+            $this->attachMedia($header, $mediaIds, $userId);
+
             return $header;
         });
     }
@@ -56,9 +59,9 @@ class TransactionService
      *
      * @return TransactionHeader
      */
-    public function updateTransaction(TransactionHeader $transaction, array $headerData, array $items, string $status = 'draft'): TransactionHeader
+    public function updateTransaction(TransactionHeader $transaction, array $headerData, array $items, string $status = 'draft', ?array $mediaIds = null, int $userId = 0): TransactionHeader
     {
-        return DB::transaction(function () use ($transaction, $headerData, $items, $status) {
+        return DB::transaction(function () use ($transaction, $headerData, $items, $status, $mediaIds, $userId) {
             $previousStatus = $transaction->status;
             $previousAmount = $transaction->amount;
             $previousDate = $transaction->transaction_date;
@@ -181,6 +184,8 @@ class TransactionService
                     );
                 }
             }
+
+            $this->attachMedia($transaction, $mediaIds, $userId);
 
             return $transaction->fresh();
         });
@@ -306,5 +311,25 @@ class TransactionService
             $transaction->details()->delete();
             $transaction->delete();
         });
+    }
+
+    /**
+     * Attach temporary media ke realisasi.
+     */
+    private function attachMedia(TransactionHeader $header, ?array $mediaIds, int $userId): void
+    {
+        if (!$mediaIds) return;
+
+        $tempMedia = TemporaryMedia::whereIn('id', $mediaIds)
+            ->where('user_id', $userId)
+            ->get();
+
+        foreach ($tempMedia as $temp) {
+            $mediaItems = $temp->getMedia('temp');
+            foreach ($mediaItems as $media) {
+                $media->move($header, 'transactions');
+            }
+            $temp->delete();
+        }
     }
 }

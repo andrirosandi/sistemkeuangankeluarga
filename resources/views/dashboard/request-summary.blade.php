@@ -5,8 +5,8 @@
         <div class="d-flex align-items-center gap-2" style="min-height: 60px">
             <span class="bg-primary-lt rounded p-2 flex-shrink-0 align-self-center"><i class="ti ti-file-text text-primary"></i></span>
             <div class="text-truncate">
-                <div class="text-secondary" style="font-size:0.75rem">Total Pengajuan</div>
-                <div class="fw-bold">{{ $data['totalCount'] }} request</div>
+                <div class="text-secondary" style="font-size:0.75rem">Pengajuan</div>
+                <div class="fw-bold">{{ $data['totalCount'] }}</div>
                 <div class="text-secondary text-truncate" style="font-size:0.7rem">@uang($data['totalAmount'])</div>
             </div>
         </div>

@@ -24,6 +24,8 @@ class StoreTransactionRequest extends FormRequest
             'items'               => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
             'items.*.amount'      => 'required|numeric|min:0',
+            'media_ids'           => 'nullable|array',
+            'media_ids.*'         => 'integer',
         ];
     }
 

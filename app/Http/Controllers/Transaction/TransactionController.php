@@ -112,6 +112,8 @@ class TransactionController extends Controller
                 ],
                 items: $request->items,
                 status: $status,
+                mediaIds: $request->media_ids,
+                userId: auth()->id(),
             );
 
             $msg = $status === 'completed'
@@ -173,6 +175,8 @@ class TransactionController extends Controller
                 ],
                 items: $request->items,
                 status: $status,
+                mediaIds: $request->media_ids,
+                userId: auth()->id(),
             );
 
             $msg = $status === 'completed'
