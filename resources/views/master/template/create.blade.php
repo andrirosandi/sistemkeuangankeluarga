@@ -6,8 +6,7 @@
 <script>
     window.templateCategories = {{ Js::from($categories->keyBy('id')) }};
 
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('templateForm', (config = {}) => ({
+    Alpine.data('templateForm', (config = {}) => ({
             categories: config.categories || {},
             selectedCategoryId: String('{{ old('category_id', '') }}'),
             items: {{ Js::from(old('details')) }} || [
@@ -53,7 +52,6 @@
                 }).format(number);
             }
         }));
-    });
 </script>
 
 <form action="{{ route('master.templates.store') }}" method="POST" x-data="templateForm({

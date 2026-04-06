@@ -216,11 +216,9 @@
 @endsection
 
 @push('scripts')
-{{-- Alpine JS logic --}}
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{{-- Alpine JS logic - Alpine.js already loaded from admin.js --}}
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('transactionForm', (config = {}) => ({
+    Alpine.data('transactionForm', (config = {}) => ({
             categories: config.categories || {},
             selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
             items: @json($defaultItems),
@@ -253,7 +251,6 @@
                     minimumFractionDigits: 0
                 }).format(number);
             }
-        }))
-    });
+        }));
 </script>
 @endpush

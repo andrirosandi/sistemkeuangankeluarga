@@ -109,11 +109,14 @@ document.addEventListener('DOMContentLoaded', () => initScripts(document));
 
 // Re-init after HTMX swaps content (SPA navigation)
 document.addEventListener('htmx:afterSwap', (event) => {
-    // Re-initialize Alpine on the new content
-    Alpine.initTree(event.detail.target);
+    // Delay Alpine init slightly to allow scripts in swapped content to execute first
+    setTimeout(() => {
+        // Re-initialize Alpine on the new content
+        Alpine.initTree(event.detail.target);
 
-    // Re-init Bootstrap components inside the swapped target only
-    initScripts(event.detail.target);
+        // Re-init Bootstrap components inside the swapped target only
+        initScripts(event.detail.target);
+    }, 10);
 
     // Auto-dismiss flash messages on navigation
     document.querySelectorAll('.alert-dismissible.fade.show').forEach(alert => {
