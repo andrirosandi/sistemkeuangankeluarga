@@ -323,8 +323,13 @@ header.navbar .container-fluid {
 }
 
 /* Disable any default Tabler hover shifts */
-.btn-ghost-primary:hover, 
-.btn-ghost-danger:hover, 
+.btn-ghost-primary:hover,
+.btn-ghost-danger:hover,
 .btn-ghost-warning:hover {
     transform: none !important;
+}
+
+/* Alpine.js x-cloak - hide elements before Alpine initializes */
+[x-cloak] {
+    display: none !important;
 }

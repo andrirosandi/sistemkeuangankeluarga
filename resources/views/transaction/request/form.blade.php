@@ -31,9 +31,113 @@
 
 <script>
     window.requestCategories = @json($categories->keyBy('id'));
+
+    // Register Alpine component
+    Alpine.data('requestForm', (config = {}) => ({
+            categories: config.categories || {},
+            selectedCategoryId: String('{{ old('category_id', $requestData->category_id ?? '') }}'),
+            items: @json($defaultItems),
+            uploadedMedia: [],
+            isUploading: false,
+
+            get selectedCategoryColor() {
+                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                    return this.categories[this.selectedCategoryId].color;
+                }
+                return null;
+            },
+
+            get totalAmount() {
+                return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
+            },
+
+            addItem() {
+                this.items.push({ description: '', amount: 0 });
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                }
+            },
+
+            formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(number);
+            },
+
+            async uploadFiles(event) {
+                const files = event.target.files;
+                if (!files || files.length === 0) return;
+
+                this.isUploading = true;
+
+                try {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('folder', 'requests');
+
+                        const response = await fetch("{{ route('api.upload') }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            this.uploadedMedia.push({
+                                id: result.media_id,
+                                name: result.name || file.name,
+                                url: result.url
+                            });
+                        } else {
+                            alert('Gagal mengunggah ' + file.name + ': ' + (result.error || 'Server error'));
+                        }
+                    }
+                } catch (error) {
+                    alert('Terjadi kesalahan koneksi saat mengunggah file.');
+                    console.error(error);
+                } finally {
+                    this.isUploading = false;
+                    event.target.value = '';
+                }
+            },
+
+            removeMedia(index) {
+                this.uploadedMedia.splice(index, 1);
+            },
+
+            submitMainForm(event) {
+                if (this.isUploading) {
+                    event.preventDefault();
+                    alert('Harap tunggu hingga proses upload selesai!');
+                    return false;
+                }
+                return true;
+            }
+        }));
+
+    // Re-initialize the form if Alpine is already running
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const form = document.getElementById('mainRequestForm');
+            if (form && window.Alpine) {
+                form.removeAttribute('x-ignore');
+                window.Alpine.initTree(form);
+            }
+        }, 100);
+    });
 </script>
 
-<form action="{{ $actionUrl }}" method="POST" x-data="requestForm({ categories: window.requestCategories })" @submit="submitMainForm($event)" id="mainRequestForm">
+<form action="{{ $actionUrl }}" method="POST" x-data="requestForm({ categories: window.requestCategories })" @submit="submitMainForm($event)" id="mainRequestForm" x-cloak>
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -261,104 +365,3 @@
     </div>
 </form>
 @endsection
-
-@push('scripts')
-{{-- Alpine JS logic - Alpine.js already loaded from admin.js --}}
-<script>
-    Alpine.data('requestForm', (config = {}) => ({
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', $requestData->category_id ?? '') }}'),
-            items: @json($defaultItems),
-            uploadedMedia: [],
-            isUploading: false,
-            
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-            
-            get totalAmount() {
-                return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
-            },
-            
-            addItem() {
-                this.items.push({ description: '', amount: 0 });
-            },
-            
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-            
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            },
-            
-            async uploadFiles(event) {
-                const files = event.target.files;
-                if (!files || files.length === 0) return;
-                
-                this.isUploading = true;
-                
-                try {
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('folder', 'requests');
-                        
-                        const response = await fetch("{{ route('api.upload') }}", {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: formData
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (response.ok && result.success) {
-                            this.uploadedMedia.push({
-                                id: result.media_id,
-                                name: result.name || file.name,
-                                url: result.url
-                            });
-                        } else {
-                            alert('Gagal mengunggah ' + file.name + ': ' + (result.error || 'Server error'));
-                        }
-                    }
-                } catch (error) {
-                    alert('Terjadi kesalahan koneksi saat mengunggah file.');
-                    console.error(error);
-                } finally {
-                    this.isUploading = false;
-                    // Reset input file agar bisa upload file yang sama lagi jika dihapus
-                    event.target.value = '';
-                }
-            },
-            
-            removeMedia(index) {
-                this.uploadedMedia.splice(index, 1);
-            },
-            
-            submitMainForm(event) {
-                // Prevent submission if still uploading
-                if (this.isUploading) {
-                    event.preventDefault();
-                    alert('Harap tunggu hingga proses upload selesai!');
-                    return false;
-                }
-                
-                // Form passes Alpine validation? Then it will submit naturally.
-                return true;
-            }
-        }));
-</script>
-@endpush

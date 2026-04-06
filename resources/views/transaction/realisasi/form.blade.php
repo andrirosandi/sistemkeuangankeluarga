@@ -50,9 +50,55 @@
 
 <script>
     window.transactionCategories = @json($categories->keyBy('id'));
+
+    // Register Alpine component
+    Alpine.data('transactionForm', (config = {}) => ({
+            categories: config.categories || {},
+            selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
+            items: @json($defaultItems),
+
+            get selectedCategoryColor() {
+                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
+                    return this.categories[this.selectedCategoryId].color;
+                }
+                return null;
+            },
+
+            get totalAmount() {
+                return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
+            },
+
+            addItem() {
+                this.items.push({ id: null, description: '', amount: 0 });
+            },
+
+            removeItem(index) {
+                if (this.items.length > 1) {
+                    this.items.splice(index, 1);
+                }
+            },
+
+            formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(number);
+            }
+        }));
+
+    // Re-initialize the form if Alpine is already running
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const form = document.getElementById('mainTransactionForm');
+            if (form && window.Alpine) {
+                window.Alpine.initTree(form);
+            }
+        }, 100);
+    });
 </script>
 
-<form action="{{ $actionUrl }}" method="POST" x-data="transactionForm({ categories: window.transactionCategories })">
+<form action="{{ $actionUrl }}" method="POST" x-data="transactionForm({ categories: window.transactionCategories })" id="mainTransactionForm" x-cloak>
     @csrf
     @if($isEdit)
         @method('PUT')
@@ -214,43 +260,3 @@
     </div>
 </form>
 @endsection
-
-@push('scripts')
-{{-- Alpine JS logic - Alpine.js already loaded from admin.js --}}
-<script>
-    Alpine.data('transactionForm', (config = {}) => ({
-            categories: config.categories || {},
-            selectedCategoryId: String('{{ old('category_id', $transactionData->category_id ?? '') }}'),
-            items: @json($defaultItems),
-            
-            get selectedCategoryColor() {
-                if (this.selectedCategoryId && this.categories[this.selectedCategoryId]) {
-                    return this.categories[this.selectedCategoryId].color;
-                }
-                return null;
-            },
-            
-            get totalAmount() {
-                return this.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
-            },
-            
-            addItem() {
-                this.items.push({ id: null, description: '', amount: 0 });
-            },
-            
-            removeItem(index) {
-                if (this.items.length > 1) {
-                    this.items.splice(index, 1);
-                }
-            },
-            
-            formatRupiah(number) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(number);
-            }
-        }));
-</script>
-@endpush
