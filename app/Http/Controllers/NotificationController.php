@@ -37,6 +37,35 @@ class NotificationController extends Controller
     }
 
     /**
+     * API endpoint untuk polling notifikasi dari navbar
+     */
+    public function poll()
+    {
+        $user = auth()->user();
+
+        $unreadCount = $user->notifications()->where('is_read', false)->count();
+
+        $recent = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'message' => $n->message,
+                    'is_read' => $n->is_read,
+                    'created_at' => $n->created_at->diffForHumans(),
+                    'redirect_url' => $n->getRedirectUrl(),
+                ];
+            });
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'notifications' => $recent,
+        ]);
+    }
+
+    /**
      * Tandai semua notifikasi milik user ini telah dibaca
      */
     public function markAllAsRead(Request $request)

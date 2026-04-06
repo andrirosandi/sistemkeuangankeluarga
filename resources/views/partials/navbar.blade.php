@@ -45,60 +45,82 @@
         <div class="navbar-nav flex-row order-lg-last">
 
             {{-- Notification Bell Dropdown --}}
-            <div class="nav-item me-2 dropdown" x-data="{ open: false }" @click.outside="open = false">
-                @php 
-                    $unreadCount = auth()->user()->notifications()->where('is_read', false)->count(); 
-                    $recentNotifications = auth()->user()->notifications()->orderBy('created_at', 'desc')->take(5)->get();
-                @endphp
+            <div class="nav-item me-2 dropdown"
+                 x-data="{
+                     open: false,
+                     unreadCount: 0,
+                     notifications: [],
+                     loading: true,
+
+                     async fetchNotifications() {
+                         try {
+                             const res = await fetch('{{ route('notification.poll') }}');
+                             const data = await res.json();
+                             this.unreadCount = data.unread_count;
+                             this.notifications = data.notifications;
+                         } catch (e) {}
+                         this.loading = false;
+                     },
+
+                     async readAll() {
+                         try {
+                             await fetch('{{ route('notification.readAll') }}', {
+                                 method: 'POST',
+                                 headers: {
+                                     'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                     'Accept': 'application/json',
+                                 }
+                             });
+                             this.unreadCount = 0;
+                             this.notifications.forEach(n => n.is_read = true);
+                         } catch (e) {}
+                     },
+
+                     init() {
+                         this.fetchNotifications();
+                         setInterval(() => this.fetchNotifications(), 30000);
+                     }
+                 }"
+                 @click.outside="open = false">
                 <a href="#" class="nav-link px-0 position-relative" title="Notifikasi" @click.prevent="open = !open">
                     <i class="ti ti-bell fs-3"></i>
-                    @if($unreadCount > 0)
-                        <span class="badge bg-red badge-notification badge-blink">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
-                    @endif
+                    <span x-show="unreadCount > 0" x-cloak class="badge bg-red badge-notification badge-blink" x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
                 </a>
-                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card shadow-lg" 
-                     :class="{ 'show': open }" 
-                     x-show="open" 
-                     x-transition 
+                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card shadow-lg"
+                     :class="{ 'show': open }"
+                     x-show="open"
+                     x-transition
                      style="display: none; position: absolute; right: 0; top: 100%; width: 320px; z-index: 1050;">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center py-2">
                             <h3 class="card-title mb-0 fs-5">Notifikasi</h3>
-                            @if($unreadCount > 0)
-                                <form action="{{ route('notification.readAll') }}" method="POST" class="m-0">
-                                    @csrf
-                                    <button type="submit" class="btn btn-link link-primary p-0 fs-5 text-decoration-none" title="Tandai semua dibaca">BACA SEMUA</button>
-                                </form>
-                            @endif
+                            <button x-show="unreadCount > 0" x-cloak type="button" class="btn btn-link link-primary p-0 fs-5 text-decoration-none" @click="readAll()" title="Tandai semua dibaca">BACA SEMUA</button>
                         </div>
                         <div class="list-group list-group-flush list-group-hoverable" style="max-height: 350px; overflow-y: auto;">
-                            @forelse($recentNotifications as $notif)
-                                <a href="{{ $notif->getRedirectUrl() }}" class="list-group-item list-group-item-action text-decoration-none">
+                            <template x-if="loading">
+                                <div class="list-group-item text-center py-4 text-muted">Memuat...</div>
+                            </template>
+                            <template x-if="!loading && notifications.length === 0">
+                                <div class="list-group-item text-center py-4 text-muted">Belum ada notifikasi baru</div>
+                            </template>
+                            <template x-for="notif in notifications" :key="notif.id">
+                                <a :href="notif.redirect_url" class="list-group-item list-group-item-action text-decoration-none">
                                     <div class="row align-items-center">
                                         <div class="col-auto">
-                                            @if(!$notif->is_read)
-                                                <span class="status-indicator status-blue status-indicator-animated">
-                                                    <span class="status-indicator-circle"></span>
-                                                    <span class="status-indicator-circle"></span>
-                                                    <span class="status-indicator-circle"></span>
-                                                </span>
-                                            @else
-                                                <span class="status-indicator status-green"></span>
-                                            @endif
+                                            <span x-show="!notif.is_read" class="status-indicator status-blue status-indicator-animated">
+                                                <span class="status-indicator-circle"></span>
+                                                <span class="status-indicator-circle"></span>
+                                                <span class="status-indicator-circle"></span>
+                                            </span>
+                                            <span x-show="notif.is_read" class="status-indicator status-green"></span>
                                         </div>
                                         <div class="col text-truncate">
-                                            <div class="text-wrap {{ !$notif->is_read ? 'fw-bold text-body' : 'text-muted' }}" style="font-size: 13px;">
-                                                {!! $notif->message !!}
-                                            </div>
-                                            <div class="text-secondary mt-1" style="font-size: 11px;">{{ $notif->created_at->diffForHumans() }}</div>
+                                            <div class="text-wrap" :class="notif.is_read ? 'text-muted' : 'fw-bold text-body'" style="font-size: 13px;" x-html="notif.message"></div>
+                                            <div class="text-secondary mt-1" style="font-size: 11px;" x-text="notif.created_at"></div>
                                         </div>
                                     </div>
                                 </a>
-                            @empty
-                                <div class="list-group-item text-center py-4 text-muted">
-                                    Belum ada notifikasi baru
-                                </div>
-                            @endforelse
+                            </template>
                         </div>
                         <div class="card-footer py-2 text-center">
                             <a href="{{ route('notification.index') }}" class="btn btn-link link-secondary fs-5 text-decoration-none">Lihat Semua Notifikasi</a>

@@ -112,6 +112,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Notifikasi
     Route::prefix('notifikasi')->name('notification.')->group(function () {
         Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::get('/poll', [\App\Http\Controllers\NotificationController::class, 'poll'])->name('poll');
         Route::get('/{id}/redirect', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('readAll');
         Route::delete('/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
