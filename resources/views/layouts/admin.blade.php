@@ -124,30 +124,5 @@
     {{-- Tabler JS is bundled by Vite via admin.js --}}
 
     @stack('scripts')
-
-    {{-- Fix sidebar collapse timing issue - use Bootstrap events to update aria-expanded --}}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
-            const target = document.querySelector(el.getAttribute('href'));
-            if (!target) return;
-
-            const instance = bootstrap.Collapse.getOrCreateInstance(target, { toggle: false });
-
-            el.addEventListener('click', function (e) {
-                e.preventDefault();
-                instance.toggle();
-            });
-
-            target.addEventListener('shown.bs.collapse', () => {
-                el.setAttribute('aria-expanded', 'true');
-            });
-
-            target.addEventListener('hidden.bs.collapse', () => {
-                el.setAttribute('aria-expanded', 'false');
-            });
-        });
-    });
-    </script>
 </body>
 </html>
