@@ -343,3 +343,23 @@ header.navbar .container-fluid {
 [x-cloak] {
     display: none !important;
 }
+
+/* indent child tanpa geser container */
+.sidebar-submenu .nav-link {
+    padding-left: 2.25rem;
+}
+
+/* arrow animation */
+.nav-link-toggle {
+    transition: transform 0.2s ease;
+}
+
+.nav-link[aria-expanded="true"] .nav-link-toggle {
+    transform: rotate(90deg);
+}
+
+/* optional: active child lebih kelihatan */
+.navbar-vertical .nav .collapse .nav-link.active {
+    background-color: rgba(32, 107, 196, 0.08);
+    border-radius: 6px;
+}
