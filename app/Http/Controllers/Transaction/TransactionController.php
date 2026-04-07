@@ -151,6 +151,9 @@ class TransactionController extends Controller
         $transactionData = $transaction;
         $readOnly = $transaction->status !== 'draft';
 
+        // Cek apakah user memiliki izin edit
+        $canEdit = auth()->user()->can("{$type}.transaction.edit");
+
         // Outstanding data dari request terkait
         $outstandingDetails = [];
         $outstandingSummary = null;
@@ -167,11 +170,16 @@ class TransactionController extends Controller
                 ->firstWhere('r_id', $transaction->request_id);
         }
 
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly', 'outstandingDetails', 'outstandingSummary'));
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly', 'canEdit', 'outstandingDetails', 'outstandingSummary'));
     }
 
     public function update(StoreTransactionRequest $request, $id, $type)
     {
+        // Cek izin edit secara eksplisit
+        if (!auth()->user()->can("{$type}.transaction.edit")) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah data ini.');
+        }
+
         $transaction = TransactionHeader::with('requestHeader')->findOrFail($id);
 
         if ($transaction->status !== 'draft') {

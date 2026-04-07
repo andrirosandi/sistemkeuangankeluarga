@@ -62,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/realisasi/create', [$trxCtrl, 'create'])->name('transaction.create')->defaults('type', $type)->middleware("can:{$type}.transaction.create");
             Route::post('/realisasi', [$trxCtrl, 'store'])->name('transaction.store')->defaults('type', $type)->middleware("can:{$type}.transaction.create");
             Route::get('/realisasi/{id}', [$trxCtrl, 'show'])->name('transaction.show')->defaults('type', $type)->middleware("can:{$type}.transaction.view");
-            Route::get('/realisasi/{id}/edit', [$trxCtrl, 'edit'])->name('transaction.edit')->defaults('type', $type)->middleware("can:{$type}.transaction.edit");
+            Route::get('/realisasi/{id}/edit', [$trxCtrl, 'edit'])->name('transaction.edit')->defaults('type', $type)->middleware("can:{$type}.transaction.view");
             Route::put('/realisasi/{id}', [$trxCtrl, 'update'])->name('transaction.update')->defaults('type', $type)->middleware("can:{$type}.transaction.edit");
             Route::post('/realisasi/{id}/complete', [$trxCtrl, 'complete'])->name('transaction.complete')->defaults('type', $type)->middleware("can:{$type}.transaction.edit");
             Route::post('/realisasi/{id}/cancel', [$trxCtrl, 'cancel'])->name('transaction.cancel')->defaults('type', $type)->middleware("can:{$type}.transaction.edit");

@@ -73,8 +73,9 @@
     } else {
         $defaultItems[] = ['id' => null, 'description' => '', 'amount' => 0];
     }
-    
+
     $readOnly = $readOnly ?? false;
+    $canEdit = $canEdit ?? true;
 @endphp
 
 <script>
@@ -191,10 +192,10 @@
                         
                         <div class="dropdown position-relative">
                             <!-- Custom Styled Select Button -->
-                            <button type="button" class="form-select text-start d-flex align-items-center justify-content-between @error('category_id') is-invalid @enderror" 
-                                    @click="open = !open" @click.outside="open = false" 
+                            <button type="button" class="form-select text-start d-flex align-items-center justify-content-between @error('category_id') is-invalid @enderror"
+                                    @click="open = !open" @click.outside="open = false"
                                     :class="{'text-muted': !selectedCategoryId}"
-                                    {{ $readOnly ? 'disabled' : '' }}
+                                    {{ $readOnly || !$canEdit ? 'disabled' : '' }}
                                     style="min-height: 2.375rem;">
                                 <template x-if="selectedCategoryId && categories[selectedCategoryId]">
                                     <div class="d-flex align-items-center gap-2">
@@ -235,27 +236,27 @@
                     
                     <div class="mb-3">
                         <label class="form-label required">Tanggal Realisasi</label>
-                        <input type="date" name="transaction_date" class="form-control @error('transaction_date') is-invalid @enderror" 
-                               {{ $readOnly ? 'disabled' : '' }}
+                        <input type="date" name="transaction_date" class="form-control @error('transaction_date') is-invalid @enderror"
+                               {{ $readOnly || !$canEdit ? 'disabled' : '' }}
                                value="{{ old('transaction_date', isset($transactionData) ? \Carbon\Carbon::parse($transactionData->transaction_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
                         @error('transaction_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label required">Deskripsi Singkat</label>
-                        <input type="text" name="description" class="form-control @error('description') is-invalid @enderror" 
-                               {{ $readOnly ? 'disabled' : '' }}
+                        <input type="text" name="description" class="form-control @error('description') is-invalid @enderror"
+                               {{ $readOnly || !$canEdit ? 'disabled' : '' }}
                                placeholder="Contoh: Belanja Bulanan" value="{{ old('description', $transactionData->description ?? '') }}" required>
                         @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3" {{ $readOnly ? 'disabled' : '' }}>{{ old('notes', $transactionData->notes ?? '') }}</textarea>
+                        <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3" {{ $readOnly || !$canEdit ? 'disabled' : '' }}>{{ old('notes', $transactionData->notes ?? '') }}</textarea>
                         @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-                    @if(!$readOnly)
+                    @if(!$readOnly && $canEdit)
                     <div class="mb-3">
                         <label class="form-label">Lampiran Bukti</label>
                         <input type="file" id="fileUploader" class="form-control" multiple @change="uploadFiles($event)" :disabled="isUploading">
@@ -354,7 +355,7 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Rincian Item</h3>
-                    @if(!$readOnly)
+                    @if(!$readOnly && $canEdit)
                     <div class="card-actions">
                         <button type="button" class="btn btn-outline-primary btn-sm" @click="addItem()">
                             <i class="ti ti-plus me-1"></i> Tambah Item
@@ -379,7 +380,7 @@
                                     <td>
                                         <input type="hidden" :name="`items[${index}][id]`" :value="item.id">
                                         <input type="hidden" :name="`items[${index}][request_detail_id]`" :value="item.request_detail_id">
-                                        <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required {{ $readOnly ? 'disabled' : '' }}>
+                                        <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required {{ $readOnly || !$canEdit ? 'disabled' : '' }}>
                                     </td>
                                     <td class="text-end">
                                         <template x-if="item.outstanding">
@@ -394,10 +395,10 @@
                                         </template>
                                     </td>
                                     <td>
-                                        <input type="number" :name="`items[${index}][amount]`" class="form-control text-end" x-model.number="item.amount" min="0" required {{ $readOnly ? 'disabled' : '' }}>
+                                        <input type="number" :name="`items[${index}][amount]`" class="form-control text-end" x-model.number="item.amount" min="0" required {{ $readOnly || !$canEdit ? 'disabled' : '' }}>
                                     </td>
                                     <td>
-                                        @if(!$readOnly)
+                                        @if(!$readOnly && $canEdit)
                                         <button type="button" class="btn btn-icon btn-outline-danger" @click="removeItem(index)" :disabled="items.length === 1 || item.request_detail_id">
                                             <i class="ti ti-trash"></i>
                                         </button>
@@ -436,7 +437,7 @@
                     <a href="{{ route($type . '.transaction.index') }}" class="btn btn-link link-secondary px-3">
                         Kembali
                     </a>
-                    @if(!$readOnly)
+                    @if(!$readOnly && $canEdit)
                     <button type="submit" name="action_type" value="draft" class="btn btn-outline-primary">
                         <i class="ti ti-device-floppy me-2"></i> Simpan Draft
                     </button>
