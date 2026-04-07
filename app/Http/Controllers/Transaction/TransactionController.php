@@ -153,13 +153,18 @@ class TransactionController extends Controller
 
         // Outstanding data dari request terkait
         $outstandingDetails = [];
+        $outstandingSummary = null;
         if ($transaction->request_id) {
             $outstandingDetails = $this->outstandingService->getRequestOutstanding($transaction->request_id)
                 ->keyBy('rd_id')
                 ->toArray();
+
+            $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+            $outstandingSummary = $this->outstandingService->getOutstandingSummary($visibleUserIds)
+                ->firstWhere('r_id', $transaction->request_id);
         }
 
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly', 'outstandingDetails'));
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly', 'outstandingDetails', 'outstandingSummary'));
     }
 
     public function update(StoreTransactionRequest $request, $id, $type)

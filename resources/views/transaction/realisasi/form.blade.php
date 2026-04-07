@@ -19,6 +19,7 @@
     $defaultItems = [];
     $isTemplate = isset($templateData);
     $outstandingDetails = $outstandingDetails ?? [];
+    $outstandingSummary = $outstandingSummary ?? null;
 
     // Existing details keyed by request_detail_id untuk matching
     $existingByRdId = [];
@@ -320,6 +321,27 @@
                                 <span class="text-secondary">Pengaju:</span>
                                 <strong>{{ $transactionData->requestHeader->creator->name ?? '-' }}</strong>
                                 <span class="text-secondary ms-2" style="font-size: 0.85em;">{{ $transactionData->requestHeader->description ?? '' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($outstandingSummary)
+                    <div class="mb-0 mt-3">
+                        <div class="alert alert-warning mb-0">
+                            <div class="row text-center">
+                                <div class="col">
+                                    <div class="text-secondary small">Total Pengajuan</div>
+                                    <div class="fw-bold">@uang($outstandingSummary->total_request_amount)</div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-secondary small">Terealisasi</div>
+                                    <div class="fw-bold text-purple">@uang($outstandingSummary->total_transaction_amount)</div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-secondary small">Sisa Outstanding</div>
+                                    <div class="fw-bold text-orange">@uang($outstandingSummary->total_remaining_amount)</div>
+                                </div>
                             </div>
                         </div>
                     </div>

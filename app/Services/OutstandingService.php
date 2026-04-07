@@ -166,7 +166,7 @@ class OutstandingService
                 DB::raw('COUNT(y.td_id) as txn_count'),
                 DB::raw('GREATEST(b.amount - COALESCE(SUM(y.td_amount), 0), 0) as remaining_amount')
             )
-            ->having('remaining_amount', '>', 0)
+            ->havingRaw('remaining_amount > 0')
             ->get();
     }
 
