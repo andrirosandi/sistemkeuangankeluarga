@@ -398,7 +398,7 @@
                                     </td>
                                     <td>
                                         @if(!$readOnly)
-                                        <button type="button" class="btn btn-icon btn-outline-danger" @click="removeItem(index)" :disabled="items.length === 1">
+                                        <button type="button" class="btn btn-icon btn-outline-danger" @click="removeItem(index)" :disabled="items.length === 1 || item.request_detail_id">
                                             <i class="ti ti-trash"></i>
                                         </button>
                                         @endif
