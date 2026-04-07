@@ -37,38 +37,7 @@
     @include('dashboard.balance-cards')
 @endcan
 
-{{-- ═══ Row 1: Request Summary + Outstanding ═══ --}}
-<div class="row row-deck row-cards mb-4">
-    @can('dashboard.widget.request-summary')
-    @include('dashboard.widget-filterable', [
-        'widgetId'           => 'request-summary',
-        'title'              => 'Ringkasan Pengajuan',
-        'icon'               => 'file-text',
-        'apiUrl'             => route('api.dashboard.request-summary'),
-        'scopes'             => $availableScopes,
-        'defaultScope'       => $defaultScope,
-        'showCategoryFilter' => false,
-        'categories'         => $categories,
-        'fullWidth'          => false,
-    ])
-    @endcan
-
-    @can('dashboard.widget.outstanding')
-    @include('dashboard.widget-filterable', [
-        'widgetId'           => 'outstanding',
-        'title'              => 'Outstanding Board',
-        'icon'               => 'hourglass',
-        'apiUrl'             => route('api.dashboard.outstanding'),
-        'scopes'             => $availableScopes,
-        'defaultScope'       => $defaultScope,
-        'showCategoryFilter' => false,
-        'categories'         => $categories,
-        'fullWidth'          => false,
-    ])
-    @endcan
-</div>
-
-{{-- ═══ Row 2: Transaksi Terkini ═══ --}}
+{{-- ═══ Row: Transaksi Terkini ═══ --}}
 <div class="row row-deck row-cards mb-4">
     @can('dashboard.widget.recent')
     @include('dashboard.widget-filterable', [
