@@ -8,6 +8,7 @@ use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\TransactionHeader;
 use App\Models\Category;
 use App\Models\RoleVisibility;
+use App\Services\OutstandingService;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,7 @@ class TransactionController extends Controller
 
     public function __construct(
         private TransactionService $transactionService,
+        private OutstandingService $outstandingService,
     ) {}
 
     /**
@@ -149,7 +151,15 @@ class TransactionController extends Controller
         $transactionData = $transaction;
         $readOnly = $transaction->status !== 'draft';
 
-        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly'));
+        // Outstanding data dari request terkait
+        $outstandingDetails = [];
+        if ($transaction->request_id) {
+            $outstandingDetails = $this->outstandingService->getRequestOutstanding($transaction->request_id)
+                ->keyBy('rd_id')
+                ->toArray();
+        }
+
+        return view('transaction.realisasi.form', compact('title', 'type', 'categories', 'transactionData', 'readOnly', 'outstandingDetails'));
     }
 
     public function update(StoreTransactionRequest $request, $id, $type)

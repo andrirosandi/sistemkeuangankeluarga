@@ -18,14 +18,20 @@
     // Default items
     $defaultItems = [];
     $isTemplate = isset($templateData);
+    $outstandingDetails = $outstandingDetails ?? [];
 
     if ($isEdit && $transactionData->details) {
         foreach($transactionData->details as $det) {
+            $outstandingInfo = null;
+            if ($det->request_detail_id && isset($outstandingDetails[$det->request_detail_id])) {
+                $outstandingInfo = $outstandingDetails[$det->request_detail_id];
+            }
             $defaultItems[] = [
                 'id' => $det->id,
                 'description' => $det->description,
                 'amount' => (float) $det->amount,
                 'request_detail_id' => $det->request_detail_id,
+                'outstanding' => $outstandingInfo,
             ];
         }
     } elseif ($isTemplate && $templateData->details) {
@@ -73,7 +79,7 @@
         },
 
         addItem() {
-            this.items.push({ id: null, description: '', amount: 0, request_detail_id: null });
+            this.items.push({ id: null, description: '', amount: 0, request_detail_id: null, outstanding: null });
         },
 
         removeItem(index) {
@@ -321,6 +327,7 @@
                         <thead>
                             <tr>
                                 <th>Keterangan Item</th>
+                                <th class="text-end">Outstanding</th>
                                 <th class="w-25">Nominal (Rp)</th>
                                 <th class="w-1"></th>
                             </tr>
@@ -332,6 +339,18 @@
                                         <input type="hidden" :name="`items[${index}][id]`" :value="item.id">
                                         <input type="hidden" :name="`items[${index}][request_detail_id]`" :value="item.request_detail_id">
                                         <input type="text" :name="`items[${index}][description]`" class="form-control" x-model="item.description" placeholder="Contoh: Beras" required {{ $readOnly ? 'disabled' : '' }}>
+                                    </td>
+                                    <td class="text-end">
+                                        <template x-if="item.outstanding">
+                                            <div>
+                                                <div class="small text-secondary">Dari: <span x-text="formatRupiah(item.outstanding.rd_amount)"></span></div>
+                                                <div class="small text-secondary">Realisasi: <span x-text="formatRupiah(item.outstanding.total_realized)"></span></div>
+                                                <div class="fw-bold" :class="item.amount > item.outstanding.remaining_amount ? 'text-danger' : 'text-success'" x-text="'Sisa: ' + formatRupiah(item.outstanding.remaining_amount)"></div>
+                                            </div>
+                                        </template>
+                                        <template x-if="!item.outstanding">
+                                            <span class="text-muted small">-</span>
+                                        </template>
                                     </td>
                                     <td>
                                         <input type="number" :name="`items[${index}][amount]`" class="form-control text-end" x-model.number="item.amount" min="0" required {{ $readOnly ? 'disabled' : '' }}>
