@@ -33,9 +33,10 @@ class TransactionService
 
             foreach ($items as $item) {
                 TransactionDetail::create([
-                    'header_id'   => $header->id,
-                    'description' => $item['description'],
-                    'amount'      => $item['amount'],
+                    'header_id'         => $header->id,
+                    'description'       => $item['description'],
+                    'amount'            => $item['amount'],
+                    'request_detail_id' => $item['request_detail_id'] ?? null,
                 ]);
             }
 
