@@ -20,29 +20,37 @@
     $isTemplate = isset($templateData);
     $outstandingDetails = $outstandingDetails ?? [];
 
-    if ($isEdit && $transactionData->request_id && !empty($outstandingDetails)) {
-        // Edit dengan request terkait: auto-feed dari outstanding details
+    // Existing details keyed by request_detail_id untuk matching
+    $existingByRdId = [];
+    if ($isEdit && $transactionData->details->isNotEmpty()) {
+        foreach ($transactionData->details as $det) {
+            if ($det->request_detail_id) {
+                $existingByRdId[$det->request_detail_id] = $det;
+            }
+        }
+    }
+
+    if ($isEdit && !empty($outstandingDetails)) {
+        // Auto-feed dari outstanding details, match dengan existing detail jika ada
         foreach ($outstandingDetails as $out) {
+            $existing = $existingByRdId[$out['rd_id']] ?? null;
             $defaultItems[] = [
-                'id' => null,
+                'id' => $existing?->id,
                 'description' => $out['description'],
-                'amount' => (float) $out['remaining_amount'],
+                'amount' => $existing ? (float) $existing->amount : (float) $out['remaining_amount'],
                 'request_detail_id' => $out['rd_id'],
                 'outstanding' => $out,
             ];
         }
-    } elseif ($isEdit && $transactionData->details) {
+    } elseif ($isEdit && $transactionData->details->isNotEmpty()) {
+        // Fallback: existing details tanpa outstanding
         foreach($transactionData->details as $det) {
-            $outstandingInfo = null;
-            if ($det->request_detail_id && isset($outstandingDetails[$det->request_detail_id])) {
-                $outstandingInfo = $outstandingDetails[$det->request_detail_id];
-            }
             $defaultItems[] = [
                 'id' => $det->id,
                 'description' => $det->description,
                 'amount' => (float) $det->amount,
                 'request_detail_id' => $det->request_detail_id,
-                'outstanding' => $outstandingInfo,
+                'outstanding' => null,
             ];
         }
     } elseif ($isTemplate && $templateData->details) {
