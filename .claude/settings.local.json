@@ -10,7 +10,15 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -oP '.{0,50}\\(Alpine|themeManager|sidebarManager|initScripts|DOMContentLoaded|htmx:afterSwap\\).{0,100}')",
+      "Bash(composer install:*)",
+      "Bash(npx vite:*)",
+      "Bash(composer remove:*)",
+      "Bash(GCM_INTERACTIVE=never git push:*)",
+      "Read(//tmp/**)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ]
   }
 }

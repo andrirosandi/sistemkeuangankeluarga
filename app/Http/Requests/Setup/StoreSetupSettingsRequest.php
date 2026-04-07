@@ -15,7 +15,6 @@ class StoreSetupSettingsRequest extends FormRequest
     {
         return [
             'currency' => 'required|string|max:10',
-            'timezone' => 'required|string|max:50',
         ];
     }
 
@@ -23,7 +22,6 @@ class StoreSetupSettingsRequest extends FormRequest
     {
         return [
             'currency.required' => 'Mata uang wajib diisi.',
-            'timezone.required' => 'Timezone wajib dipilih.',
         ];
     }
 }

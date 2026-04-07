@@ -17,7 +17,7 @@ class NotificationService
      */
     private static function isMailReady(): bool
     {
-        return !empty(Setting::get('smtp_verified_at')) && !empty(Setting::get('mail_host'));
+        return !empty(Setting::get('mail_host'));
     }
 
     /**

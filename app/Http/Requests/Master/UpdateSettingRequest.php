@@ -17,7 +17,6 @@ class UpdateSettingRequest extends FormRequest
             'app_name'        => 'required|string|max:255',
             'logo_media_id'   => 'nullable|integer',
             'favicon_media_id' => 'nullable|integer',
-            'timezone'        => 'required|string',
             'currency'        => 'required|string|max:10',
             'mail_host'       => 'nullable|string',
             'mail_port'       => 'nullable|numeric',
@@ -32,7 +31,6 @@ class UpdateSettingRequest extends FormRequest
     {
         return [
             'app_name.required' => 'Nama aplikasi wajib diisi.',
-            'timezone.required' => 'Timezone wajib dipilih.',
             'currency.required' => 'Mata uang wajib diisi.',
             'mail_from.email'   => 'Format email pengirim tidak valid.',
         ];

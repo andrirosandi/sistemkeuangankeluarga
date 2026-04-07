@@ -68,7 +68,6 @@ class SetupController extends Controller
     {
 
         Setting::set('currency', $request->currency);
-        Setting::set('timezone', $request->timezone);
         Setting::set('app_name', config('app.name'));
 
         session(['setup_step' => 3]);

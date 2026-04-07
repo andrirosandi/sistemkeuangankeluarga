@@ -146,17 +146,6 @@
                     <div class="form-hint text-white-50">Contoh: Rp, IDR, $</div>
                     @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-white-50">Zona Waktu</label>
-                    <select name="timezone" class="form-select @error('timezone') is-invalid @enderror" required>
-                        @foreach(timezone_identifiers_list() as $tz)
-                            <option value="{{ $tz }}" {{ old('timezone', 'Asia/Jakarta') === $tz ? 'selected' : '' }}>
-                                {{ $tz }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('timezone')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
                 <button type="submit" class="btn btn-primary w-100">
                     Lanjut <i class="ti ti-arrow-right ms-1"></i>
                 </button>
