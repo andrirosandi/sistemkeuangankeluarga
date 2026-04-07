@@ -155,11 +155,13 @@ class TransactionController extends Controller
         $outstandingDetails = [];
         $outstandingSummary = null;
         if ($transaction->request_id) {
-            $outstandingDetails = $this->outstandingService->getRequestOutstanding($transaction->request_id)
+            $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
+
+            $outstandingDetails = $this->outstandingService->getOutstandingDetails($visibleUserIds)
+                ->where('r_id', $transaction->request_id)
                 ->keyBy('rd_id')
                 ->toArray();
 
-            $visibleUserIds = RoleVisibility::getVisibleUserIds(auth()->user());
             $outstandingSummary = $this->outstandingService->getOutstandingSummary($visibleUserIds)
                 ->firstWhere('r_id', $transaction->request_id);
         }

@@ -36,11 +36,12 @@ class OutstandingService
             )
             ->whereIn('a.created_by', $userIds)
             ->where('a.status', 'approved')
-            ->groupBy('a.id', 'b.id', 'b.amount', 'a.status', 'b.status')
+            ->groupBy('a.id', 'b.id', 'b.amount', 'b.description', 'a.status', 'b.status')
             ->select(
                 'a.id as r_id',
                 'b.id as rd_id',
                 'b.amount as rd_amount',
+                'b.description',
                 'a.status',
                 DB::raw("IF(b.status = 'closed', 1, 0) as closed"),
                 DB::raw('COALESCE(SUM(y.td_amount), 0) as total_realized'),
