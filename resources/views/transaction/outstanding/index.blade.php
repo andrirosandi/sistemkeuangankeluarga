@@ -5,7 +5,10 @@
 @section('content')
 @php
     $totalCount = $requested->count() + $approvedDraft->count() + $partial->count();
-    $totalAmount = $requested->sum('amount') + $approvedDraft->sum('amount') + $partial->sum('amount');
+    $requestedAmount = (float) $requested->sum('amount');
+    $approvedDraftAmount = (float) $approvedDraft->sum(fn($r) => $remainingByRequest[$r->id] ?? 0);
+    $partialAmount = (float) $partial->sum(fn($r) => $remainingByRequest[$r->id] ?? 0);
+    $totalAmount = $requestedAmount + $approvedDraftAmount + $partialAmount;
 @endphp
 
 {{-- Summary Cards --}}
@@ -46,7 +49,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Approved, Belum Direalisasikan</div>
                         <div class="fw-bold text-blue">{{ $approvedDraft->count() }}</div>
-                        <div class="text-secondary" style="font-size:0.7rem">@uang($approvedDraft->sum('amount'))</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($approvedDraftAmount)</div>
                     </div>
                 </div>
             </div>
@@ -60,7 +63,7 @@
                     <div>
                         <div class="text-secondary" style="font-size:0.75rem">Realisasi Parsial</div>
                         <div class="fw-bold text-purple">{{ $partial->count() }}</div>
-                        <div class="text-secondary" style="font-size:0.7rem">@uang($partial->sum('amount'))</div>
+                        <div class="text-secondary" style="font-size:0.7rem">@uang($partialAmount)</div>
                     </div>
                 </div>
             </div>
@@ -246,6 +249,7 @@
                     <th>Oleh</th>
                     <th class="text-end">Diajukan</th>
                     <th class="text-end">Terealisasi</th>
+                    <th class="text-end">Sisa Outstanding</th>
                     <th>Progress</th>
                     <th class="text-end">Aksi</th>
                 </tr>
@@ -257,6 +261,7 @@
                     $typeLabel = $r->trans_code == 1 ? 'Masuk' : 'Keluar';
                     $typeBg = $r->trans_code == 1 ? 'bg-green-lt text-green' : 'bg-red-lt text-red';
                     $realizedAmount = $r->transactions->where('status', 'completed')->sum('amount');
+                    $sisaOutstanding = $remainingByRequest[$r->id] ?? 0;
                     $totalItems = $r->details->count();
                     $realizedItems = $r->details->where('status', 'realized')->count();
                     $pct = $r->amount > 0 ? round($realizedAmount / $r->amount * 100) : 0;
@@ -271,6 +276,7 @@
                     <td>{{ $r->creator->name ?? '-' }}</td>
                     <td class="text-end">@uang($r->amount)</td>
                     <td class="text-end fw-bold text-purple">@uang($realizedAmount)</td>
+                    <td class="text-end fw-bold text-orange">@uang($sisaOutstanding)</td>
                     <td>
                         <div class="d-flex align-items-center gap-2" style="min-width: 120px;">
                             <div class="progress flex-fill" style="height: 6px;">

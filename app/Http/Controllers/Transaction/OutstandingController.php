@@ -37,11 +37,17 @@ class OutstandingController extends Controller
             ->sortBy('approved_at')
             ->values();
 
+        // Build r_id => sisa outstanding dari detail
+        $details = $this->outstandingService->getOutstandingDetails($visibleUserIds);
+        $remainingByRequest = $details->groupBy('r_id')
+            ->map(fn($rows) => (float) $rows->sum('remaining_amount'));
+
         return view('transaction.outstanding.index', compact(
             'requested',
             'approvedDraft',
             'partial',
-            'highlightRequestId'
+            'highlightRequestId',
+            'remainingByRequest'
         ));
     }
 }
