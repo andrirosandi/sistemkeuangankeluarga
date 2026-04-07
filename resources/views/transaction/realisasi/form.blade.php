@@ -20,7 +20,18 @@
     $isTemplate = isset($templateData);
     $outstandingDetails = $outstandingDetails ?? [];
 
-    if ($isEdit && $transactionData->details) {
+    if ($isEdit && $transactionData->request_id && !empty($outstandingDetails)) {
+        // Edit dengan request terkait: auto-feed dari outstanding details
+        foreach ($outstandingDetails as $out) {
+            $defaultItems[] = [
+                'id' => null,
+                'description' => $out['description'],
+                'amount' => (float) $out['remaining_amount'],
+                'request_detail_id' => $out['rd_id'],
+                'outstanding' => $out,
+            ];
+        }
+    } elseif ($isEdit && $transactionData->details) {
         foreach($transactionData->details as $det) {
             $outstandingInfo = null;
             if ($det->request_detail_id && isset($outstandingDetails[$det->request_detail_id])) {
