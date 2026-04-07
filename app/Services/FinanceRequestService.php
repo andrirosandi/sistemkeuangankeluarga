@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceRequestService
 {
+    public function __construct(
+        private OutstandingService $outstandingService,
+    ) {}
     /**
      * Buat pengajuan baru (header + details + media).
      *
@@ -231,35 +234,15 @@ class FinanceRequestService
      */
     public function calculateOutstanding(RequestHeader $request): array
     {
-        $outstandingItems = [];
-
-        foreach ($request->details as $detail) {
-            // Jika sudah di-writeoff, lompati
-            if ($detail->status === 'closed') {
-                continue;
-            }
-
-            // Total realisasi dari transaksi yang 'completed'
-            $realizedAmount = TransactionDetail::where('request_detail_id', $detail->id)
-                ->whereHas('header', function ($q) {
-                    $q->where('status', 'completed');
-                })
-                ->sum('amount');
-
-            $outstandingAmount = $detail->amount - $realizedAmount;
-
-            if ($outstandingAmount > 0) {
-                $outstandingItems[] = [
-                    'request_detail_id' => $detail->id,
-                    'description'       => $detail->description,
-                    'amount'            => $outstandingAmount,
-                    'original_amount'   => $detail->amount,
-                    'realized_amount'   => $realizedAmount,
-                ];
-            }
-        }
-
-        return $outstandingItems;
+        return $this->outstandingService->getRequestOutstanding($request->id)
+            ->map(fn($row) => [
+                'request_detail_id' => $row->rd_id,
+                'description'       => $row->description,
+                'amount'            => $row->remaining_amount,
+                'original_amount'   => $row->rd_amount,
+                'realized_amount'   => $row->total_realized,
+            ])
+            ->toArray();
     }
 
     /**

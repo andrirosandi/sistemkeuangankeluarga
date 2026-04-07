@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\TransactionHeader;
 use App\Models\RequestHeader;
 use App\Models\User;
+use App\Services\OutstandingService;
 use App\Services\ScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,6 +17,7 @@ class DashboardController extends Controller
 {
     public function __construct(
         private ScopeService $scopeService,
+        private OutstandingService $outstandingService,
     ) {}
     /**
      * Dashboard page — renders permission-driven widget layout.
@@ -468,70 +470,7 @@ class DashboardController extends Controller
     public function widgetOutstanding(Request $request)
     {
         [$userIds] = $this->resolveScope($request);
-
-        // 1. Status requested (belum dijawab approver)
-        $requested = RequestHeader::whereIn('created_by', $userIds)
-            ->where('status', 'requested')
-            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
-
-        // 2. Status approved tapi transaksi masih draft (approved belum direalisasikan)
-        $approvedNotCashed = RequestHeader::whereIn('created_by', $userIds)
-            ->where('status', 'approved')
-            ->whereHas('transactions', function ($q) {
-                $q->where('status', 'draft');
-            })
-            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
-
-        // 3. Approved tapi ada detail yang masih pending (realisasi parsial) atau nominal kurang
-        $partialRealized = RequestHeader::whereIn('created_by', $userIds)
-            ->where('status', 'approved')
-            ->whereHas('transactions', function ($q) {
-                $q->where('status', 'completed');
-            })
-            ->where(function ($q) {
-                $q->whereHas('details', function ($dq) {
-                    $dq->where('status', 'pending');
-                })
-                ->orwhereHas('transactions', function ($tq) {
-                    $tq->where('status', 'completed')
-                       ->whereColumn('amount', '<', 'request_header.amount');
-                });
-            })
-            ->get(['id', 'description', 'amount', 'request_date', 'created_at']);
-
-        $allOutstanding = $requested->merge($approvedNotCashed)->merge($partialRealized);
-
-        // Aging breakdown
-        $now = Carbon::now();
-        $aging = ['fresh' => 0, 'medium' => 0, 'old' => 0];
-        $agingAmount = ['fresh' => 0, 'medium' => 0, 'old' => 0];
-
-        foreach ($allOutstanding as $item) {
-            $days = $now->diffInDays(Carbon::parse($item->created_at));
-            if ($days <= 3) {
-                $aging['fresh']++;
-                $agingAmount['fresh'] += $item->amount;
-            } elseif ($days <= 7) {
-                $aging['medium']++;
-                $agingAmount['medium'] += $item->amount;
-            } else {
-                $aging['old']++;
-                $agingAmount['old'] += $item->amount;
-            }
-        }
-
-        $data = [
-            'totalCount'    => $allOutstanding->count(),
-            'totalAmount'   => (float) $allOutstanding->sum('amount'),
-            'requestedCount'      => $requested->count(),
-            'requestedAmount'     => (float) $requested->sum('amount'),
-            'approvedDraftCount'  => $approvedNotCashed->count(),
-            'approvedDraftAmount' => (float) $approvedNotCashed->sum('amount'),
-            'partialCount'        => $partialRealized->count(),
-            'partialAmount'       => (float) $partialRealized->sum('amount'),
-            'aging'               => $aging,
-            'agingAmount'         => $agingAmount,
-        ];
+        $data = $this->outstandingService->getWidgetData($userIds);
 
         return view('dashboard.outstanding', compact('data'))->render();
     }

@@ -3,60 +3,39 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Http\Controllers\Controller;
-use App\Models\RequestHeader;
 use App\Models\RoleVisibility;
+use App\Services\OutstandingService;
 use Illuminate\Http\Request;
 
 class OutstandingController extends Controller
 {
+    public function __construct(
+        private OutstandingService $outstandingService,
+    ) {}
+
     public function index(Request $request)
     {
         $user = auth()->user();
         $visibleUserIds = RoleVisibility::getVisibleUserIds($user);
         $highlightRequestId = $request->query('request_id');
 
-        // 1. Menunggu Approval — request.status = 'requested'
-        $requestedQuery = RequestHeader::with(['category', 'creator'])
-            ->whereIn('created_by', $visibleUserIds)
-            ->where('status', 'requested');
+        // 1. Menunggu Approval
+        $requested = $this->outstandingService->getRequestedOutstanding($visibleUserIds)
+            ->load(['category', 'creator'])
+            ->sortBy(fn($r) => match ($r->priority) { 'high' => 0, 'normal' => 1, 'low' => 2, default => 1 })
+            ->values();
 
-        $requested = $requestedQuery
-            ->orderByRaw("FIELD(priority, 'high', 'normal', 'low'), created_at ASC")
-            ->get();
+        // 2. Approved, Belum Direalisasikan
+        $approvedDraft = $this->outstandingService->getApprovedDraftOutstanding($visibleUserIds)
+            ->load(['category', 'creator', 'approver', 'transactions'])
+            ->sortBy('approved_at')
+            ->values();
 
-        // 2. Approved, Belum Direalisasikan — request.status = 'approved' + BELUM ADA transaction yg completed
-        $approvedDraftQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions'])
-            ->whereIn('created_by', $visibleUserIds)
-            ->where('status', 'approved')
-            ->whereDoesntHave('transactions', function ($q) {
-                $q->where('status', 'completed');
-            })
-            ->whereHas('details', function ($dq) {
-                $dq->where('status', 'pending');
-            });
-
-        $approvedDraft = $approvedDraftQuery
-            ->orderBy('approved_at', 'asc')
-            ->get();
-
-        // 3. Realisasi Parsial — approved + transaction completed + masih ada detail pending
-        //    Detail status adalah sumber kebenaran:
-        //      pending  = belum direalisasikan (masih outstanding)
-        //      realized = sudah direalisasikan (selesai)
-        //      closed   = di-write-off (selesai)
-        $partialQuery = RequestHeader::with(['category', 'creator', 'approver', 'transactions', 'details'])
-            ->whereIn('created_by', $visibleUserIds)
-            ->where('status', 'approved')
-            ->whereHas('transactions', function ($q) {
-                $q->where('status', 'completed');
-            })
-            ->whereHas('details', function ($dq) {
-                $dq->where('status', 'pending');
-            });
-
-        $partial = $partialQuery
-            ->orderBy('approved_at', 'asc')
-            ->get();
+        // 3. Realisasi Parsial
+        $partial = $this->outstandingService->getPartialOutstanding($visibleUserIds)
+            ->load(['category', 'creator', 'approver', 'transactions', 'details'])
+            ->sortBy('approved_at')
+            ->values();
 
         return view('transaction.outstanding.index', compact(
             'requested',
