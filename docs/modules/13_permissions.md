@@ -32,11 +32,9 @@ Permissions atau modul akses yang akan disimpan ke dalam database diberi pola na
 - `dashboard.widget.activity` — Aktivitas 7 hari
 - `dashboard.widget.alerts` — Pengajuan pending
 - `dashboard.widget.recent` — Transaksi terkini
-- `dashboard.widget.request-summary` — Ringkasan pengajuan *(NEW)*
 - `dashboard.widget.category` — Breakdown per kategori *(NEW)*
 - `dashboard.widget.group-ranking` — Ranking grup *(NEW)*
 - `dashboard.widget.user-ranking` — Ranking pengguna *(NEW)*
-- `dashboard.widget.outstanding` — Outstanding board *(NEW)*
 - `dashboard.widget.month-compare` — Bulan ini vs bulan lalu *(NEW)*
 - `dashboard.widget.approval-stats` — Statistik approval *(NEW)*
 

@@ -17,19 +17,7 @@ Dashboard terdiri dari widget-widget berikut (urut dari atas ke bawah):
 - Permission: `dashboard.system.balance`
 - Tampil untuk: Admin only
 
-### 3. Ringkasan Pengajuan (Request Summary) — **NEW**
-- Total pengajuan bulan ini, breakdown per status (draft/requested/approved/rejected)
-- Outstanding highlight (pengajuan belum sepenuhnya terealisasi)
-- Permission: `dashboard.widget.request-summary`
-- Scope: self/group/all
-
-### 4. Outstanding Board — **NEW**
-- Total outstanding amount + breakdown (menunggu approval, belum cair, parsial)
-- Aging indicator (≤3 hari, 3-7 hari, >7 hari)
-- Permission: `dashboard.widget.outstanding`
-- Scope: self/group/all
-
-### 5. Category Breakdown (Donut Chart) — **NEW**
+### 4. Category Breakdown (Donut Chart) — **NEW**
 - Distribusi transaksi per kategori (ApexCharts donut)
 - Data dari `transaction_header` (completed)
 - Permission: `dashboard.widget.category`

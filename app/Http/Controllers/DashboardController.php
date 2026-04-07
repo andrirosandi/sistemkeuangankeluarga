@@ -270,58 +270,6 @@ class DashboardController extends Controller
     // ─── NEW Widget API Methods ──────────────────────────────────
 
     /**
-     * W1: Request Summary — total requests, amounts, status breakdown.
-     */
-    public function widgetRequestSummary(Request $request)
-    {
-        [$userIds] = $this->resolveScope($request);
-        $month = now()->format('Y-m');
-
-        $query = RequestHeader::whereIn('created_by', $userIds)
-            ->where('request_date', 'like', $month . '%');
-
-        $statuses = ['draft', 'requested', 'approved', 'rejected'];
-        $byStatus = [];
-        foreach ($statuses as $status) {
-            $sq = (clone $query)->where('status', $status);
-            $byStatus[$status] = [
-                'count'  => $sq->count(),
-                'amount' => (float) $sq->sum('amount'),
-            ];
-        }
-
-        // Outstanding = requested (belum dijawab) + approved tapi transaksi belum direalisasikan/sebagian
-        $outstandingRequested = (clone $query)->where('status', 'requested')->sum('amount');
-        $outstandingApproved = (clone $query)->where('status', 'approved')
-            ->whereHas('transactions', function ($q) {
-                $q->where('status', 'draft');
-            })->sum('amount');
-
-        // Partial: approved requests whose transaction is completed but has pending detail items or amount mismatch
-        $partialRealized = (clone $query)->where('status', 'approved')
-            ->whereHas('transactions', function ($q) {
-                $q->where('status', 'completed');
-            })
-            ->where(function ($q) {
-                $q->whereHas('details', function ($dq) {
-                    $dq->where('status', 'pending');
-                })->orwhereHas('transactions', function ($tq) {
-                    $tq->where('status', 'completed')
-                       ->whereColumn('amount', '<', 'request_header.amount');
-                });
-            })->sum('amount');
-
-        $data = [
-            'totalCount'    => (clone $query)->count(),
-            'totalAmount'   => (float) (clone $query)->sum('amount'),
-            'byStatus'      => $byStatus,
-            'outstanding'   => (float) ($outstandingRequested + $outstandingApproved + $partialRealized),
-        ];
-
-        return view('dashboard.request-summary', compact('data'))->render();
-    }
-
-    /**
      * W2: Category Breakdown — donut chart data (JSON).
      */
     public function widgetCategoryBreakdown(Request $request)
@@ -462,17 +410,6 @@ class DashboardController extends Controller
         $maxOut = collect($ranking)->max('totalOut') ?: 1;
 
         return view('dashboard.user-ranking', compact('ranking', 'maxOut'))->render();
-    }
-
-    /**
-     * W5: Outstanding Board — requests not yet fully realized + aging.
-     */
-    public function widgetOutstanding(Request $request)
-    {
-        [$userIds] = $this->resolveScope($request);
-        $data = $this->outstandingService->getWidgetData($userIds);
-
-        return view('dashboard.outstanding', compact('data'))->render();
     }
 
     /**

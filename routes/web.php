@@ -149,8 +149,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {
         Route::get('/balance', [DashboardController::class, 'widgetBalance'])->name('balance')->middleware('can:dashboard.system.balance');
         Route::get('/recent', [DashboardController::class, 'widgetRecent'])->name('recent')->middleware('can:dashboard.widget.recent');
-        Route::get('/request-summary', [DashboardController::class, 'widgetRequestSummary'])->name('request-summary')->middleware('can:dashboard.widget.request-summary');
-        Route::get('/outstanding', [DashboardController::class, 'widgetOutstanding'])->name('outstanding')->middleware('can:dashboard.widget.outstanding');
     });
 });
 

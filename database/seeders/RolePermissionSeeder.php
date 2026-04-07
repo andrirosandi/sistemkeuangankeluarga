@@ -22,8 +22,6 @@ class RolePermissionSeeder extends Seeder
         'dashboard.scope.all',
         'dashboard.system.balance',
         'dashboard.widget.recent',
-        'dashboard.widget.request-summary',
-        'dashboard.widget.outstanding',
 
         // Kas Masuk - Pengajuan
         'in.request.view',
@@ -106,8 +104,6 @@ class RolePermissionSeeder extends Seeder
         'dashboard.view',
         'dashboard.scope.self',
         'dashboard.widget.recent',
-        'dashboard.widget.request-summary',
-        'dashboard.widget.outstanding',
 
         // Laporan (Self-only)
         'report.view.self',
