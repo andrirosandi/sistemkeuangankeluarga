@@ -130,6 +130,7 @@ class OutstandingService
 
     /**
      * Data untuk dashboard widget outstanding: counts, amounts, aging.
+     * Amount = sisa outstanding (remaining), bukan nominal full request.
      */
     public function getWidgetData(Collection $userIds): array
     {
@@ -139,33 +140,56 @@ class OutstandingService
 
         $allOutstanding = $requested->merge($approvedDraft)->merge($partial);
 
+        // Build r_id => sum(remaining_amount) dari detail outstanding
+        $details = $this->getOutstandingDetails($userIds);
+        $remainingByRequest = $details->groupBy('r_id')
+            ->map(fn($rows) => (float) $rows->sum('remaining_amount'));
+
+        // Helper: ambil sisa outstanding per request
+        $getRemaining = function ($item) use ($remainingByRequest) {
+            if ($item->status === 'requested') {
+                return (float) $item->amount;
+            }
+            return $remainingByRequest[$item->id] ?? 0.0;
+        };
+
         $now = now();
         $aging = ['fresh' => 0, 'medium' => 0, 'old' => 0];
         $agingAmount = ['fresh' => 0, 'medium' => 0, 'old' => 0];
 
+        $totalAmount = 0.0;
+
         foreach ($allOutstanding as $item) {
+            $remaining = $getRemaining($item);
+            $totalAmount += $remaining;
+
             $days = $now->diffInDays($item->created_at ?? $item->approved_at);
             if ($days <= 3) {
                 $aging['fresh']++;
-                $agingAmount['fresh'] += $item->amount;
+                $agingAmount['fresh'] += $remaining;
             } elseif ($days <= 7) {
                 $aging['medium']++;
-                $agingAmount['medium'] += $item->amount;
+                $agingAmount['medium'] += $remaining;
             } else {
                 $aging['old']++;
-                $agingAmount['old'] += $item->amount;
+                $agingAmount['old'] += $remaining;
             }
         }
 
+        // Hitung per-kategori outstanding amount
+        $requestedAmount = $requested->sum(fn($r) => (float) $r->amount);
+        $approvedDraftAmount = $approvedDraft->sum(fn($r) => $remainingByRequest[$r->id] ?? 0.0);
+        $partialAmount = $partial->sum(fn($r) => $remainingByRequest[$r->id] ?? 0.0);
+
         return [
             'totalCount'          => $allOutstanding->count(),
-            'totalAmount'         => (float) $allOutstanding->sum('amount'),
+            'totalAmount'         => $totalAmount,
             'requestedCount'      => $requested->count(),
-            'requestedAmount'     => (float) $requested->sum('amount'),
+            'requestedAmount'     => $requestedAmount,
             'approvedDraftCount'  => $approvedDraft->count(),
-            'approvedDraftAmount' => (float) $approvedDraft->sum('amount'),
+            'approvedDraftAmount' => $approvedDraftAmount,
             'partialCount'        => $partial->count(),
-            'partialAmount'       => (float) $partial->sum('amount'),
+            'partialAmount'       => $partialAmount,
             'aging'               => $aging,
             'agingAmount'         => $agingAmount,
         ];
