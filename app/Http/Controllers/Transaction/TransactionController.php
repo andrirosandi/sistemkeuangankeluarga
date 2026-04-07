@@ -159,6 +159,7 @@ class TransactionController extends Controller
 
             $outstandingDetails = $this->outstandingService->getOutstandingDetails($visibleUserIds)
                 ->where('r_id', $transaction->request_id)
+                ->map(fn($row) => (array) $row)
                 ->keyBy('rd_id')
                 ->toArray();
 
