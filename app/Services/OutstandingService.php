@@ -12,7 +12,7 @@ class OutstandingService
      * Query inti: ambil outstanding per detail item.
      * Menggabungkan request_detail dengan total realisasi dari transaction_detail (completed).
      *
-     * @return Collection  Setiap row: r_id, rd_id, rd_amount, total_realized, remaining_amount, closed
+     * @return Collection  Setiap row: r_id, rd_id, rd_amount, status, total_realized, txn_count, closed, remaining_amount
      */
     public function getOutstandingDetails(Collection $userIds): Collection
     {
@@ -22,7 +22,48 @@ class OutstandingService
                 DB::table('transaction_header as th')
                     ->join('transaction_detail as td', 'th.id', '=', 'td.header_id')
                     ->where('th.status', 'completed')
-                    ->select('th.request_id as r_id', 'td.request_detail_id as rd_id', DB::raw('SUM(td.amount) as td_amount'))
+                    ->select(
+                        'th.request_id as r_id',
+                        'td.request_detail_id as rd_id',
+                        'td.amount as td_amount',
+                        'td.id as td_id'
+                    ),
+                'y',
+                function ($join) {
+                    $join->on('a.id', '=', 'y.r_id')
+                         ->on('b.id', '=', 'y.rd_id');
+                }
+            )
+            ->whereIn('a.created_by', $userIds)
+            ->where('a.status', 'approved')
+            ->groupBy('a.id', 'b.id', 'b.amount', 'a.status', 'b.status')
+            ->select(
+                'a.id as r_id',
+                'b.id as rd_id',
+                'b.amount as rd_amount',
+                'a.status',
+                DB::raw("IF(b.status = 'closed', 1, 0) as closed"),
+                DB::raw('COALESCE(SUM(y.td_amount), 0) as total_realized'),
+                DB::raw('COUNT(y.td_id) as txn_count'),
+                DB::raw("IF(b.status = 'closed', 0, IF(b.amount > COALESCE(SUM(y.td_amount), 0), b.amount - COALESCE(SUM(y.td_amount), 0), 0)) as remaining_amount")
+            )
+            ->get();
+    }
+
+    /**
+     * Query aggregate per request: total_request_amount, total_transaction_amount, total_detail, total_remaining_amount.
+     *
+     * @return Collection  Setiap row: r_id, total_request_amount, total_transaction_amount, total_detail, total_remaining_amount
+     */
+    public function getOutstandingSummary(Collection $userIds): Collection
+    {
+        return DB::table('request_header as a')
+            ->join('request_detail as b', 'a.id', '=', 'b.header_id')
+            ->leftJoinSub(
+                DB::table('transaction_header as th')
+                    ->join('transaction_detail as td', 'th.id', '=', 'td.header_id')
+                    ->where('th.status', 'completed')
+                    ->select('th.request_id as r_id', 'td.request_detail_id as rd_id', DB::raw('SUM(td.amount) as total_td_amount'))
                     ->groupBy('th.request_id', 'td.request_detail_id'),
                 'y',
                 function ($join) {
@@ -32,13 +73,13 @@ class OutstandingService
             )
             ->whereIn('a.created_by', $userIds)
             ->where('a.status', 'approved')
+            ->groupBy('a.id')
             ->select(
                 'a.id as r_id',
-                'b.id as rd_id',
-                'b.amount as rd_amount',
-                DB::raw('COALESCE(y.td_amount, 0) as total_realized'),
-                DB::raw("IF(b.status = 'closed', 1, 0) as closed"),
-                DB::raw("IF(b.status = 'closed', 0, GREATEST(b.amount - COALESCE(y.td_amount, 0), 0)) as remaining_amount")
+                DB::raw('SUM(b.amount) as total_request_amount'),
+                DB::raw('COALESCE(SUM(y.total_td_amount), 0) as total_transaction_amount'),
+                DB::raw('COUNT(DISTINCT b.id) as total_detail'),
+                DB::raw("SUM(IF(b.status = 'closed', 0, IF(b.amount > COALESCE(y.total_td_amount, 0), b.amount - COALESCE(y.total_td_amount, 0), 0))) as total_remaining_amount")
             )
             ->get();
     }
@@ -100,7 +141,7 @@ class OutstandingService
      * Ambil outstanding per detail untuk satu request tertentu.
      * Menggantikan FinanceRequestService::calculateOutstanding() (fixes N+1).
      *
-     * @return Collection  Setiap row: rd_id, description (via rd_id), rd_amount, total_realized, remaining_amount
+     * @return Collection  Setiap row: rd_id, description, rd_amount, total_realized, txn_count, remaining_amount
      */
     public function getRequestOutstanding(int $requestId): Collection
     {
@@ -110,19 +151,20 @@ class OutstandingService
                     ->join('transaction_detail as td', 'th.id', '=', 'td.header_id')
                     ->where('th.status', 'completed')
                     ->where('th.request_id', $requestId)
-                    ->select('td.request_detail_id as rd_id', DB::raw('SUM(td.amount) as td_amount'))
-                    ->groupBy('td.request_detail_id'),
+                    ->select('td.request_detail_id as rd_id', 'td.amount as td_amount', 'td.id as td_id'),
                 'y',
                 fn($join) => $join->on('b.id', '=', 'y.rd_id')
             )
             ->where('b.header_id', $requestId)
             ->where('b.status', '!=', 'closed')
+            ->groupBy('b.id', 'b.description', 'b.amount')
             ->select(
                 'b.id as rd_id',
                 'b.description',
                 'b.amount as rd_amount',
-                DB::raw('COALESCE(y.td_amount, 0) as total_realized'),
-                DB::raw('GREATEST(b.amount - COALESCE(y.td_amount, 0), 0) as remaining_amount')
+                DB::raw('COALESCE(SUM(y.td_amount), 0) as total_realized'),
+                DB::raw('COUNT(y.td_id) as txn_count'),
+                DB::raw('GREATEST(b.amount - COALESCE(SUM(y.td_amount), 0), 0) as remaining_amount')
             )
             ->having('remaining_amount', '>', 0)
             ->get();
